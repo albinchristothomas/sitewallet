@@ -1,0 +1,46 @@
+{
+  "name": "SiteWallet",
+  "short_name": "SiteWallet",
+  "description": "Digital safety credentials wallet for Canadian energy workers. Verified at the gate.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1116",
+  "theme_color": "#0E1116",
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-CA",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My QR",
+      "short_name": "QR",
+      "url": "/wallet/qr",
+      "description": "Show my worker QR code"
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "url": "/wallet",
+      "description": "My credentials"
+    }
+  ]
+}
