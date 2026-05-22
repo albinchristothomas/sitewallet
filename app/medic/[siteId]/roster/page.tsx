@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Eyebrow, StatusPill } from "@/lib/atoms";
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -30,97 +31,118 @@ export default async function RosterPage(
     p_day: day,
   });
 
+  type Row = {
+    session_id: string;
+    worker_name: string | null;
+    worker_id: string;
+    check_in_at: string;
+    check_out_at: string | null;
+    duration_minutes: number | null;
+    status: string;
+  };
+  const list: Row[] = rows ?? [];
+
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-5 pb-10 pt-5">
       <Link
         href={`/medic/${siteId}`}
-        className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
+        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        &larr; Site
+        ← Site
       </Link>
-      <header className="mt-4 flex items-end justify-between gap-4">
+      <header className="mt-3 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Daily roster
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <Eyebrow className="mb-1">Daily roster</Eyebrow>
+          <h1 className="text-2xl font-bold tracking-tight">
             {site?.name}
-            {site?.rig_name && <> — {site.rig_name}</>}
+            {site?.rig_name && <> · {site.rig_name}</>}
             {site?.rig_number && <> #{site.rig_number}</>}
-          </p>
+          </h1>
         </div>
-        <form>
-          <label className="block text-xs font-medium text-zinc-500">
-            Date
-          </label>
-          <input
-            type="date"
-            name="day"
-            defaultValue={day}
-            className="mt-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100"
-          />
+        <form className="flex items-end gap-2">
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-faint)]">
+              Date
+            </label>
+            <input
+              type="date"
+              name="day"
+              defaultValue={day}
+              className="mt-1 rounded-lg border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3 py-2 text-sm focus:border-[color:var(--hi-yellow)] focus:outline-none"
+            />
+          </div>
           <button
             type="submit"
-            className="ml-2 rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
           >
             Apply
           </button>
         </form>
       </header>
 
-      <p className="mt-4 text-sm text-zinc-500">
-        {rows?.length ?? 0} sessions on {day}
+      <p className="mt-3 font-mono text-[12px] text-[color:var(--text-faint)]">
+        {list.length} sessions on {day}
       </p>
 
-      {!rows || rows.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-500">No activity for this day.</p>
+      {list.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center text-sm text-[color:var(--text-dim)]">
+          No activity for this day.
+        </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)]">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900">
-              <tr>
-                <th className="px-4 py-2">Worker</th>
-                <th className="px-4 py-2">Check-in</th>
-                <th className="px-4 py-2">Check-out</th>
-                <th className="px-4 py-2">Duration</th>
-                <th className="px-4 py-2">Status</th>
+            <thead>
+              <tr className="border-b border-[color:var(--hair)] text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-faint)]">
+                <th className="px-4 py-2.5">Worker</th>
+                <th className="px-4 py-2.5">Check-in</th>
+                <th className="px-4 py-2.5">Check-out</th>
+                <th className="px-4 py-2.5">Duration</th>
+                <th className="px-4 py-2.5">Status</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(
-                (r: {
-                  session_id: string;
-                  worker_name: string | null;
-                  worker_id: string;
-                  check_in_at: string;
-                  check_out_at: string | null;
-                  duration_minutes: number | null;
-                  status: string;
-                }) => (
+              {list.map((r) => {
+                const onSite = r.status === "ACTIVE";
+                return (
                   <tr
                     key={r.session_id}
-                    className="border-t border-zinc-100 dark:border-zinc-900"
+                    className="border-t border-[color:var(--hair)]"
                   >
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3 font-medium">
                       {r.worker_name ?? r.worker_id.slice(0, 8)}
                     </td>
-                    <td className="px-4 py-2 text-zinc-600 dark:text-zinc-400">
-                      {new Date(r.check_in_at).toLocaleTimeString()}
+                    <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
+                      {new Date(r.check_in_at).toLocaleTimeString("en-CA", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
                     </td>
-                    <td className="px-4 py-2 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
                       {r.check_out_at
-                        ? new Date(r.check_out_at).toLocaleTimeString()
+                        ? new Date(r.check_out_at).toLocaleTimeString("en-CA", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
                         : "—"}
                     </td>
-                    <td className="px-4 py-2 text-zinc-600 dark:text-zinc-400">
+                    <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
                       {r.duration_minutes
                         ? `${Math.floor(r.duration_minutes / 60)}h ${r.duration_minutes % 60}m`
-                        : "—"}
+                        : onSite
+                          ? "on site"
+                          : "—"}
                     </td>
-                    <td className="px-4 py-2 text-xs">{r.status}</td>
+                    <td className="px-4 py-3">
+                      <StatusPill
+                        status={onSite ? "ok" : "info"}
+                        label={onSite ? "On site" : r.status.toLowerCase()}
+                      />
+                    </td>
                   </tr>
-                ),
-              )}
+                );
+              })}
             </tbody>
           </table>
         </div>

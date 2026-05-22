@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SWMark } from "@/lib/atoms";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage() {
@@ -15,9 +16,12 @@ export default async function LoginPage() {
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">SiteWallet</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="mb-10 text-center">
+          <div className="mx-auto mb-5 flex justify-center">
+            <SWMark size={48} />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">SiteWallet</h1>
+          <p className="mt-2 text-sm text-[color:var(--text-dim)]">
             Your safety credentials, in your pocket. Verified at the gate.
           </p>
         </div>

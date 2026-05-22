@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
+/* ============================================================
+   SiteWallet design tokens
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* dark surfaces (worker + medic) */
+  --bg: #0b0d11;
+  --ink-1: #0e1116;
+  --ink-2: #1a1d23;
+  --ink-3: #232830;
+  --hair: rgba(255, 255, 255, 0.07);
+  --hair-strong: rgba(255, 255, 255, 0.14);
+
+  /* text */
+  --text: #f4f5f7;
+  --text-dim: #a0a6b0;
+  --text-faint: #6b7280;
+
+  /* status */
+  --ok: #10b981;
+  --ok-glow: rgba(16, 185, 129, 0.18);
+  --warn: #f59e0b;
+  --bad: #ef4444;
+
+  /* brand accents */
+  --hi-yellow: #facc15;
+  --hi-orange: #f97316;
+
+  /* light "paper" surfaces (admin) */
+  --paper: #f6f6f4;
+  --paper-2: #ffffff;
+  --paper-line: #e4e4e0;
+  --paper-line-strong: #d2d2cc;
+  --paper-ink: #14171c;
+  --paper-dim: #5b6068;
+  --paper-faint: #8a8f98;
 }
 
+/* Expose tokens to Tailwind v4 utilities */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-hair: var(--hair);
+  --color-hair-strong: var(--hair-strong);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-faint: var(--text-faint);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-hi-yellow: var(--hi-yellow);
+  --color-hi-orange: var(--hi-orange);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-line: var(--paper-line);
+  --color-paper-line-strong: var(--paper-line-strong);
+  --color-paper-ink: var(--paper-ink);
+  --color-paper-dim: var(--paper-dim);
+  --color-paper-faint: var(--paper-faint);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* App-wide defaults — dark background, Inter font */
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01";
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Standalone PWA — avoid iOS rubber-banding around the QR / scanner UI */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Light theme override — applied only on /admin/* via the admin layout */
+.theme-paper {
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+.theme-paper body,
+body.theme-paper {
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+
+/* Common utility-ish classes used across the design */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.mono {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+/* QR pulse animation used on /wallet/qr */
+@keyframes sw-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.sw-pulse {
+  animation: sw-pulse 1.5s ease-in-out infinite;
+}
+
+/* Scanner line animation */
+@keyframes sw-scan {
+  0%, 100% { transform: translateY(-110px); }
+  50% { transform: translateY(110px); }
+}
+.sw-scan {
+  animation: sw-scan 2.4s ease-in-out infinite;
 }

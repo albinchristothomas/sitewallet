@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
-import { assignSelfAsMedic, assignMedicByEmail } from "./actions";
+import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
+import { assignSelfAsMedic } from "./actions";
 
 export default async function SiteDetailPage(
   props: PageProps<"/admin/sites/[siteId]">,
@@ -24,7 +25,7 @@ export default async function SiteDetailPage(
 
   if (!site) {
     return (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         <p>Site not found.</p>
         <Link href="/admin" className="text-sm underline">
           Back
@@ -54,59 +55,58 @@ export default async function SiteDetailPage(
   const meAssigned = assignments?.some((a) => a.medic_id === user.id);
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
       <Link
         href="/admin"
-        className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
+        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        &larr; All sites
+        ← All sites
       </Link>
-      <header className="mt-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{site.name}</h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+      <header className="mt-3">
+        <Eyebrow className="mb-1">Site</Eyebrow>
+        <h1 className="text-2xl font-bold tracking-tight">{site.name}</h1>
+        <p className="mt-1 text-sm text-[color:var(--text-dim)]">
           {operator?.name}
-          {project?.name && (
-            <>
-              {" · "}
-              {project.name}
-            </>
-          )}
+          {project?.name && <> · {project.name}</>}
         </p>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+        <p className="mt-1 font-mono text-[12px] text-[color:var(--text-faint)]">
           {site.rig_name && <>Rig {site.rig_name} </>}
           {site.rig_number && <>#{site.rig_number} </>}
           {site.lsd_location && <>· {site.lsd_location}</>}
         </p>
       </header>
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-semibold">Required credentials</h2>
+      <section className="mt-7">
+        <Eyebrow className="mb-2.5">Required credentials</Eyebrow>
         {required.length === 0 ? (
-          <p className="text-sm text-zinc-500">No credentials required.</p>
+          <p className="text-sm text-[color:var(--text-faint)]">
+            No credentials required.
+          </p>
         ) : (
-          <ul className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+          <ul className="space-y-1.5">
             {required.map((r) => (
               <li
                 key={r}
-                className="border-b border-zinc-100 px-4 py-2 text-sm last:border-0 dark:border-zinc-900"
+                className="flex items-center justify-between rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-2.5 text-sm"
               >
-                {getCredentialLabel(r)}
+                <span>{getCredentialLabel(r)}</span>
+                <StatusPill status="info" label="Required" />
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Medics</h2>
+      <section className="mt-7">
+        <div className="mb-2.5 flex items-center justify-between">
+          <Eyebrow>Medics · {assignments?.length ?? 0}</Eyebrow>
           {!meAssigned && (
             <form action={assignSelfAsMedic.bind(null, siteId)}>
               <button
                 type="submit"
-                className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-1.5 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
               >
-                Assign myself as medic
+                Assign myself
               </button>
             </form>
           )}
@@ -116,58 +116,57 @@ export default async function SiteDetailPage(
           <ul className="space-y-2">
             {assignments.map((a) => {
               const medic = Array.isArray(a.medic) ? a.medic[0] : a.medic;
+              const isMe = a.medic_id === user.id;
               return (
                 <li
                   key={a.id}
-                  className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+                  className="flex items-center gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-2.5"
                 >
-                  {medic?.full_name ?? medic?.id ?? a.medic_id}
-                  {a.medic_id === user.id && (
-                    <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200">
-                      You
-                    </span>
-                  )}
+                  <Avatar
+                    initials={getInitials(medic?.full_name)}
+                    size={36}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold">
+                      {medic?.full_name ?? "—"}
+                    </div>
+                    <div className="font-mono text-[11px] text-[color:var(--text-faint)]">
+                      since{" "}
+                      {new Date(a.assigned_at)
+                        .toLocaleDateString("en-CA", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                        .toUpperCase()}
+                    </div>
+                  </div>
+                  {isMe && <StatusPill status="info" label="You" />}
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="text-sm text-zinc-500">No medics assigned yet.</p>
+          <p className="text-sm text-[color:var(--text-faint)]">
+            No medics assigned yet.
+          </p>
         )}
-
-        <form
-          action={assignMedicByEmail.bind(null, siteId)}
-          className="mt-4 flex gap-2"
-        >
-          <input
-            name="email"
-            type="email"
-            placeholder="medic@example.com"
-            className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100"
-          />
-          <button
-            type="submit"
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
-          >
-            Add medic by email
-          </button>
-        </form>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-          The medic must have signed in at least once for this to work. Phase 2:
-          send them an invite email automatically.
+        <p className="mt-2 text-[12px] text-[color:var(--text-faint)]">
+          Phase 1: assign yourself, or have the medic sign in first then come
+          back here. Phase 2: invite via email.
         </p>
       </section>
 
       <section className="mt-8 flex gap-3">
         <Link
           href={`/medic/${siteId}/scan`}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="rounded-xl bg-[color:var(--hi-yellow)] px-5 py-3 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
         >
           Open scanner
         </Link>
         <Link
           href={`/medic/${siteId}/roster`}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
         >
           Daily roster
         </Link>

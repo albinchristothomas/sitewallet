@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
+import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
 import { admitWorker } from "./actions";
 
 type Compliance = {
@@ -25,20 +26,9 @@ type CompliancePayload = {
   evaluated_at: string;
 };
 
-const STATUS_COPY: Record<Compliance["status"], { label: string; cls: string }> = {
-  VALID: {
-    label: "Valid",
-    cls: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
-  },
-  EXPIRED: {
-    label: "Expired",
-    cls: "bg-red-100 text-red-900 dark:bg-red-900/40 dark:text-red-200",
-  },
-  MISSING: {
-    label: "Missing",
-    cls: "bg-red-100 text-red-900 dark:bg-red-900/40 dark:text-red-200",
-  },
-};
+function shortId(uuid: string): string {
+  return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+}
 
 export default async function VerifyWorkerPage(
   props: PageProps<"/medic/[siteId]/verify/[workerId]">,
@@ -57,17 +47,17 @@ export default async function VerifyWorkerPage(
 
   if (error || !data) {
     return (
-      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10">
         <Link
           href={`/medic/${siteId}/scan`}
-          className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
+          className="text-sm text-[color:var(--text-dim)]"
         >
-          &larr; Scan
+          ← Scan
         </Link>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-4 text-2xl font-bold tracking-tight">
           Couldn't verify
         </h1>
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+        <p className="mt-2 text-sm text-[color:#F87171]">
           {error?.message ?? "Worker not found."}
         </p>
       </main>
@@ -78,91 +68,150 @@ export default async function VerifyWorkerPage(
   const allPass = payload.compliance.every((c) => c.status === "VALID");
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-8 pt-4">
       <Link
         href={`/medic/${siteId}/scan`}
-        className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
+        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        &larr; Scan another
+        ← Scan another
       </Link>
 
       <div
-        className={`mt-4 rounded-2xl p-6 ${
-          allPass
-            ? "bg-emerald-50 dark:bg-emerald-950/30"
-            : "bg-red-50 dark:bg-red-950/30"
-        }`}
+        className="mt-3 overflow-hidden rounded-3xl"
+        style={{
+          background: allPass
+            ? "linear-gradient(180deg, rgba(16,185,129,0.20) 0%, rgba(16,185,129,0.04) 100%)"
+            : "linear-gradient(180deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.04) 100%)",
+          border: allPass
+            ? "1px solid rgba(16,185,129,0.40)"
+            : "1px solid rgba(239,68,68,0.40)",
+        }}
       >
-        <p
-          className={`text-xs font-bold uppercase tracking-widest ${
-            allPass
-              ? "text-emerald-700 dark:text-emerald-300"
-              : "text-red-700 dark:text-red-300"
-          }`}
+        <div className="flex items-center gap-5 p-6">
+          <Avatar
+            initials={getInitials(payload.worker.full_name)}
+            size={84}
+          />
+          <div className="min-w-0 flex-1">
+            <div
+              className="text-[11px] font-bold uppercase tracking-[0.12em]"
+              style={{
+                color: allPass ? "#34D399" : "#F87171",
+              }}
+            >
+              {allPass ? "Compliant · Admit OK" : "Not compliant"}
+            </div>
+            <div className="mt-1 truncate text-[28px] font-bold leading-tight">
+              {payload.worker.full_name ?? "Unnamed worker"}
+            </div>
+            <div className="mt-1 font-mono text-[12px] text-[color:var(--text-dim)]">
+              {shortId(payload.worker.id)}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="px-6 py-3.5 text-center text-[44px] font-extrabold tracking-tight"
+          style={{
+            background: allPass ? "rgba(16,185,129,0.20)" : "rgba(239,68,68,0.20)",
+            color: allPass ? "#10B981" : "#EF4444",
+            borderTop: allPass
+              ? "1px solid rgba(16,185,129,0.30)"
+              : "1px solid rgba(239,68,68,0.30)",
+          }}
         >
-          {allPass ? "Compliant" : "Not compliant"}
-        </p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          {payload.worker.full_name ?? "Unnamed worker"}
-        </h1>
-        <p className="mt-1 font-mono text-xs text-zinc-500 break-all">
-          {payload.worker.id}
-        </p>
+          {allPass ? "PASS" : "FAIL"}
+        </div>
       </div>
 
-      <h2 className="mt-6 mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-        Required credentials
-      </h2>
+      <Eyebrow className="mt-6 mb-3">Required credentials</Eyebrow>
+
       <ul className="space-y-2">
         {payload.compliance.map((c) => {
-          const style = STATUS_COPY[c.status];
+          const isValid = c.status === "VALID";
+          const isExpired = c.status === "EXPIRED";
+          const isMissing = c.status === "MISSING";
+          const tint = isValid ? "#10B981" : "#EF4444";
           return (
             <li
               key={c.credential_type}
-              className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+              className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5"
+              style={{ borderLeft: `3px solid ${tint}` }}
             >
-              <div>
-                <p className="font-medium">
+              <div className="min-w-0">
+                <div className="text-[15px] font-bold">
                   {getCredentialLabel(c.credential_type)}
-                </p>
-                {c.expiry_date && (
-                  <p className="mt-0.5 text-xs text-zinc-500">
-                    Expires {new Date(c.expiry_date).toLocaleDateString()}
-                  </p>
-                )}
+                </div>
+                <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-faint)]">
+                  {isMissing && "Not in wallet"}
+                  {isExpired && c.expiry_date && (
+                    <>
+                      Expired{" "}
+                      {new Date(c.expiry_date).toLocaleDateString("en-CA", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </>
+                  )}
+                  {isValid && c.expiry_date && (
+                    <>
+                      Valid until{" "}
+                      {new Date(c.expiry_date).toLocaleDateString("en-CA", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </>
+                  )}
+                  {isValid && !c.expiry_date && "Valid · no expiry"}
+                </div>
               </div>
-              <span
-                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${style.cls}`}
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold"
+                style={{
+                  background: isValid
+                    ? "rgba(16,185,129,0.20)"
+                    : "rgba(239,68,68,0.20)",
+                  color: tint,
+                }}
               >
-                {style.label}
-              </span>
+                {isValid ? "✓" : "✕"}
+              </div>
             </li>
           );
         })}
         {payload.compliance.length === 0 && (
-          <li className="text-sm text-zinc-500">
-            This site has no required credentials.
+          <li className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5 text-sm text-[color:var(--text-dim)]">
+            This site has no required credentials configured.
           </li>
         )}
       </ul>
 
       <form
         action={admitWorker.bind(null, siteId, workerId, payload)}
-        className="mt-8"
+        className="mt-7"
       >
         <button
           type="submit"
-          className={`w-full rounded-md px-4 py-4 text-base font-semibold ${
+          className="h-[64px] w-full rounded-xl text-[17px] font-bold tracking-[0.01em]"
+          style={
             allPass
-              ? "bg-emerald-600 text-white hover:bg-emerald-700"
-              : "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-          }`}
+              ? {
+                  background: "#10B981",
+                  color: "#062B1F",
+                }
+              : {
+                  background: "var(--hi-yellow)",
+                  color: "var(--ink-1)",
+                }
+          }
         >
           {allPass ? "Admit worker" : "Admit anyway (override)"}
         </button>
       </form>
       {!allPass && (
-        <p className="mt-2 text-center text-xs text-zinc-500">
+        <p className="mt-2 text-center text-[12px] text-[color:var(--text-faint)]">
           Override is recorded in the audit log with your medic ID.
         </p>
       )}

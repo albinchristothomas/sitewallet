@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Eyebrow } from "@/lib/atoms";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -17,46 +18,49 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-5 pb-10 pt-6">
+      <header className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Admin</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Create sites, set required credentials, assign medics.
+          <Eyebrow className="mb-1">Operator</Eyebrow>
+          <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
+          <p className="mt-1 text-sm text-[color:var(--text-dim)]">
+            Create sites, set required credentials, assign medics, invite
+            workers.
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/admin/invite"
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
           >
             Invite worker
           </Link>
           <Link
             href="/admin/sites/new"
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
             + New site
           </Link>
         </div>
       </header>
 
-      <h2 className="mb-4 text-lg font-semibold">Sites</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <Eyebrow>Sites · {sites?.length ?? 0}</Eyebrow>
+      </div>
+
       {!sites || sites.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-10 text-center dark:border-zinc-700 dark:bg-zinc-950">
-          <p className="text-zinc-600 dark:text-zinc-400">No sites yet.</p>
+        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
+          <p className="text-sm text-[color:var(--text-dim)]">No sites yet.</p>
           <Link
             href="/admin/sites/new"
-            className="mt-3 inline-block text-sm font-medium underline"
+            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
           >
-            Create your first site
+            Create your first site →
           </Link>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
           {sites.map((s) => {
-            // Supabase nested types can come back as array or object depending
-            // on the relationship cardinality. Normalize.
             const project = Array.isArray(s.project) ? s.project[0] : s.project;
             const operator = project
               ? Array.isArray(project.operator)
@@ -66,37 +70,36 @@ export default async function AdminPage() {
             return (
               <li
                 key={s.id}
-                className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+                className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <Link
                       href={`/admin/sites/${s.id}`}
-                      className="font-medium hover:underline"
+                      className="text-[17px] font-bold hover:text-[color:var(--hi-yellow)]"
                     >
                       {s.name}
-                      {s.rig_name && <> — {s.rig_name}</>}
+                      {s.rig_name && <> · {s.rig_name}</>}
                       {s.rig_number && <> #{s.rig_number}</>}
                     </Link>
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="mt-1 text-[13px] text-[color:var(--text-dim)]">
                       {operator?.name && (
                         <>
-                          <span className="font-medium">{operator.name}</span>
-                          {" · "}
+                          <span className="font-semibold">{operator.name}</span>{" "}
+                          ·{" "}
                         </>
                       )}
                       {project?.name}
-                      {s.lsd_location && (
-                        <>
-                          {" · "}
-                          <span className="font-mono">{s.lsd_location}</span>
-                        </>
-                      )}
-                    </p>
+                    </div>
+                    {s.lsd_location && (
+                      <div className="mt-1 font-mono text-[11px] text-[color:var(--text-faint)]">
+                        {s.lsd_location}
+                      </div>
+                    )}
                   </div>
                   <Link
                     href={`/admin/sites/${s.id}`}
-                    className="shrink-0 rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                    className="shrink-0 rounded-lg border border-[color:var(--hair-strong)] px-3 py-1.5 text-sm font-semibold hover:bg-[color:var(--ink-3)]"
                   >
                     Manage
                   </Link>

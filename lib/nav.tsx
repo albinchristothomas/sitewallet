@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { SWMark } from "@/lib/atoms";
 
 export async function NavBar() {
   const supabase = await createClient();
@@ -18,30 +19,31 @@ export async function NavBar() {
   const roles: string[] = worker?.roles ?? ["WORKER"];
   const isMedic = roles.includes("MEDIC");
 
+  const linkCls =
+    "rounded-md px-2.5 py-1.5 text-sm font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]";
+
   return (
-    <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
-        <Link href="/" className="text-sm font-semibold tracking-tight">
-          SiteWallet
+    <nav className="sticky top-0 z-20 border-b border-[color:var(--hair)] bg-[color:var(--ink-1)]/90 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
+        <Link href="/" className="flex items-center gap-2.5">
+          <SWMark size={28} />
+          <span className="text-sm font-bold tracking-tight">SiteWallet</span>
         </Link>
-        <div className="flex items-center gap-4 text-sm">
-          <Link href="/wallet" className="hover:underline">
+        <div className="flex items-center gap-1 text-sm">
+          <Link href="/wallet" className={linkCls}>
             Wallet
           </Link>
-          <Link href="/wallet/qr" className="hover:underline">
+          <Link href="/wallet/qr" className={linkCls}>
             My QR
           </Link>
           {isMedic && (
-            <Link href="/medic" className="hover:underline">
+            <Link href="/medic" className={linkCls}>
               Medic
             </Link>
           )}
-          <Link href="/admin" className="hover:underline">
+          <Link href="/admin" className={linkCls}>
             Admin
           </Link>
-          <span className="hidden text-zinc-500 sm:inline">
-            {worker?.full_name ?? user.email}
-          </span>
         </div>
       </div>
     </nav>

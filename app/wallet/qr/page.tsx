@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 
+function shortId(uuid: string): string {
+  return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+}
+
 export default async function WalletQrPage() {
   const supabase = await createClient();
   const {
@@ -19,37 +23,57 @@ export default async function WalletQrPage() {
   const qrSvg = await QRCode.toString(user.id, {
     type: "svg",
     margin: 1,
-    width: 320,
-    color: { dark: "#0a0a0a", light: "#ffffff" },
+    width: 300,
+    color: { dark: "#0E1116", light: "#FACC15" },
   });
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 px-6 py-10">
-      <Link
-        href="/wallet"
-        className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
-      >
-        &larr; Back to wallet
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight">My QR</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Show this to the medic at the gate.
-      </p>
-
-      <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
-        <div
-          className="mx-auto w-full max-w-xs"
-          dangerouslySetInnerHTML={{ __html: qrSvg }}
-        />
-        <p className="mt-4 font-medium">{worker?.full_name ?? user.email}</p>
-        <p className="mt-1 font-mono text-xs text-zinc-500 break-all">
-          {user.id}
-        </p>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-8 pt-2">
+      <div className="flex h-12 items-center">
+        <Link
+          href="/wallet"
+          className="flex items-center gap-1.5 text-[15px] font-medium text-[color:var(--text)]"
+        >
+          <span aria-hidden>←</span> Wallet
+        </Link>
       </div>
 
-      <div className="mt-4 rounded-md bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        Phase 1 QR is static. Phase 2 will rotate this every 30 seconds with a
-        signed token so a screenshot can't be reused.
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[color:var(--text-faint)]">
+          Gate Pass
+        </div>
+
+        <div
+          className="overflow-hidden rounded-2xl"
+          style={{
+            background: "#FACC15",
+            padding: 14,
+            boxShadow: "0 20px 50px -10px rgba(250,204,21,0.35)",
+          }}
+        >
+          <div
+            className="mx-auto"
+            style={{ width: 300, height: 300 }}
+            dangerouslySetInnerHTML={{ __html: qrSvg }}
+          />
+        </div>
+
+        <div>
+          <div className="text-[26px] font-bold leading-tight">
+            {worker?.full_name ?? user.email}
+          </div>
+          <div className="mt-1 font-mono text-[13px] text-[color:var(--text-dim)]">
+            {shortId(user.id)}
+          </div>
+        </div>
+
+        <div className="inline-flex items-center gap-2.5 rounded-full border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3.5 py-2 text-[12px] text-[color:var(--text-faint)]">
+          <span
+            className="sw-pulse inline-block h-2 w-2 rounded-full"
+            style={{ background: "#FACC15" }}
+          />
+          Show this to the medic at the gate
+        </div>
       </div>
     </main>
   );

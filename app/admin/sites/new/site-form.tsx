@@ -2,133 +2,123 @@
 
 import { useActionState } from "react";
 import { CREDENTIAL_TYPES } from "@/lib/credentials";
+import { Eyebrow } from "@/lib/atoms";
 import { createSite } from "./actions";
 
 const initialState: { error?: string } = {};
 
 const inputCls =
-  "w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100";
+  "h-[48px] w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
+
+const monoInput = inputCls + " font-mono";
 
 export function SiteForm() {
   const [state, action, pending] = useActionState(createSite, initialState);
 
   return (
-    <form action={action} className="space-y-5">
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Operator & project
-        </h2>
-        <div className="space-y-4">
-          <Field label="Operator company" htmlFor="operator_name" required>
+    <form action={action} className="space-y-7">
+      <Section title="Operator & project">
+        <Field label="Operator company" htmlFor="operator_name" required>
+          <input
+            id="operator_name"
+            name="operator_name"
+            type="text"
+            required
+            placeholder="Tourmaline Oil Corp"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Project name" htmlFor="project_name" required>
+          <input
+            id="project_name"
+            name="project_name"
+            type="text"
+            required
+            placeholder="Karr Wapiti Drilling Program 2026"
+            className={inputCls}
+          />
+        </Field>
+      </Section>
+
+      <Section title="Site">
+        <Field label="Site name" htmlFor="site_name" required>
+          <input
+            id="site_name"
+            name="site_name"
+            type="text"
+            required
+            placeholder="Karr 12-34 Pad B"
+            className={inputCls}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3.5">
+          <Field label="Rig name" htmlFor="rig_name">
             <input
-              id="operator_name"
-              name="operator_name"
+              id="rig_name"
+              name="rig_name"
               type="text"
-              required
-              placeholder="e.g. Tourmaline Oil Corp"
+              placeholder="Precision 555"
               className={inputCls}
             />
           </Field>
-          <Field label="Project name" htmlFor="project_name" required>
+          <Field label="Rig number" htmlFor="rig_number">
             <input
-              id="project_name"
-              name="project_name"
+              id="rig_number"
+              name="rig_number"
               type="text"
-              required
-              placeholder="e.g. Karr Wapiti Drilling Program 2026"
-              className={inputCls}
+              placeholder="555"
+              className={monoInput}
             />
           </Field>
         </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Site
-        </h2>
-        <div className="space-y-4">
-          <Field label="Site name" htmlFor="site_name" required>
+        <Field label="LSD / location" htmlFor="lsd_location">
+          <input
+            id="lsd_location"
+            name="lsd_location"
+            type="text"
+            placeholder="12-34-067-25 W5M"
+            className={monoInput}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3.5">
+          <Field label="Latitude" htmlFor="lat">
             <input
-              id="site_name"
-              name="site_name"
-              type="text"
-              required
-              placeholder="e.g. Karr 12-34 Pad B"
-              className={inputCls}
+              id="lat"
+              name="lat"
+              type="number"
+              step="any"
+              placeholder="54.123456"
+              className={monoInput}
             />
           </Field>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Rig name" htmlFor="rig_name">
-              <input
-                id="rig_name"
-                name="rig_name"
-                type="text"
-                placeholder="Precision 555"
-                className={inputCls}
-              />
-            </Field>
-            <Field label="Rig number" htmlFor="rig_number">
-              <input
-                id="rig_number"
-                name="rig_number"
-                type="text"
-                placeholder="555"
-                className={inputCls}
-              />
-            </Field>
-          </div>
-          <Field label="LSD / location" htmlFor="lsd_location">
+          <Field label="Longitude" htmlFor="lng">
             <input
-              id="lsd_location"
-              name="lsd_location"
-              type="text"
-              placeholder="12-34-067-25 W5M"
-              className={inputCls}
+              id="lng"
+              name="lng"
+              type="number"
+              step="any"
+              placeholder="-118.456789"
+              className={monoInput}
             />
           </Field>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Latitude" htmlFor="lat">
-              <input
-                id="lat"
-                name="lat"
-                type="number"
-                step="any"
-                placeholder="54.123456"
-                className={inputCls}
-              />
-            </Field>
-            <Field label="Longitude" htmlFor="lng">
-              <input
-                id="lng"
-                name="lng"
-                type="number"
-                step="any"
-                placeholder="-118.456789"
-                className={inputCls}
-              />
-            </Field>
-          </div>
         </div>
-      </section>
+      </Section>
 
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Required credentials
-        </h2>
-        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+      <Section title="Required credentials">
+        <p className="mb-2 text-[12px] text-[color:var(--text-dim)]">
           Workers must hold all checked credentials to be admitted at the gate.
         </p>
-        <div className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="space-y-1 rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-2">
           {CREDENTIAL_TYPES.map((c) => (
             <label
               key={c.value}
-              className="flex items-start gap-3 rounded-md p-2 hover:bg-white dark:hover:bg-zinc-900"
+              className="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-[color:var(--ink-3)]"
             >
               <input
                 type="checkbox"
                 name="required"
                 value={c.value}
-                className="mt-1"
+                className="mt-1 h-4 w-4 accent-[color:var(--hi-yellow)]"
                 defaultChecked={
                   c.value === "H2S_ALIVE" ||
                   c.value === "FIRST_AID" ||
@@ -136,28 +126,45 @@ export function SiteForm() {
                 }
               />
               <span>
-                <span className="block text-sm font-medium">{c.label}</span>
-                <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                <span className="block text-[14px] font-semibold">
+                  {c.label}
+                </span>
+                <span className="block text-[12px] text-[color:var(--text-faint)]">
                   {c.issuer}
                 </span>
               </span>
             </label>
           ))}
         </div>
-      </section>
+      </Section>
 
       {state.error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p className="text-sm text-[color:#F87171]">{state.error}</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-md bg-zinc-900 px-4 py-3 text-base font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+        className="h-[56px] w-full rounded-xl bg-[color:var(--hi-yellow)] text-[16px] font-bold text-[color:var(--ink-1)] hover:brightness-95 disabled:opacity-50"
       >
-        {pending ? "Creating..." : "Create site"}
+        {pending ? "Creating site..." : "Create site"}
       </button>
     </form>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <Eyebrow className="mb-3">{title}</Eyebrow>
+      <div className="space-y-3.5">{children}</div>
+    </section>
   );
 }
 
@@ -176,10 +183,10 @@ function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100"
+        className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-dim)]"
       >
         {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-[color:#EF4444]">*</span>}
       </label>
       {children}
     </div>

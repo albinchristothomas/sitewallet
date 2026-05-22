@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
 
 export default async function MedicSitePage(
   props: PageProps<"/medic/[siteId]">,
@@ -15,7 +16,7 @@ export default async function MedicSitePage(
   const { data: site } = await supabase
     .from("sites")
     .select(
-      "id, name, rig_name, rig_number, project:projects(name, operator:companies(name))",
+      "id, name, rig_name, rig_number, lsd_location, project:projects(name, operator:companies(name))",
     )
     .eq("id", siteId)
     .single();
@@ -35,72 +36,103 @@ export default async function MedicSitePage(
       : project.operator
     : null;
 
+  type ActiveRow = {
+    session_id: string;
+    worker_id: string;
+    worker_name: string | null;
+    check_in_at: string;
+  };
+  const activeList: ActiveRow[] = active ?? [];
+
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-5 pb-10 pt-5">
       <Link
         href="/medic"
-        className="text-sm text-zinc-600 hover:underline dark:text-zinc-400"
+        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        &larr; All assigned sites
+        ← All assigned sites
       </Link>
-      <header className="mt-4 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {site?.name ?? "Site"}
-            {site?.rig_name && <> — {site.rig_name}</>}
+
+      <header className="mt-3 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <Eyebrow className="mb-1">Gate · Medic</Eyebrow>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {site?.name}
+            {site?.rig_name && <> · {site.rig_name}</>}
+            {site?.rig_number && <> #{site.rig_number}</>}
           </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-[color:var(--text-dim)]">
             {operator?.name}
             {project?.name && <> · {project.name}</>}
           </p>
+          {site?.lsd_location && (
+            <p className="mt-1 font-mono text-[12px] text-[color:var(--text-faint)]">
+              {site.lsd_location}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 gap-2">
           <Link
             href={`/medic/${siteId}/roster`}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
+            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
           >
             Roster
           </Link>
           <Link
             href={`/medic/${siteId}/scan`}
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
             Scan worker
           </Link>
         </div>
       </header>
 
-      <h2 className="mt-8 mb-3 text-lg font-semibold">
-        Active on site ({active?.length ?? 0})
-      </h2>
-      {!active || active.length === 0 ? (
-        <p className="text-sm text-zinc-500">No workers currently on site.</p>
+      <div className="mt-8 flex items-center justify-between">
+        <Eyebrow>Active on site · {activeList.length}</Eyebrow>
+        <div className="font-mono text-[11px] text-[color:#34D399]">
+          ● live
+        </div>
+      </div>
+
+      {activeList.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
+          <p className="text-sm text-[color:var(--text-dim)]">
+            No workers currently on site.
+          </p>
+          <Link
+            href={`/medic/${siteId}/scan`}
+            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+          >
+            Scan a worker in →
+          </Link>
+        </div>
       ) : (
-        <ul className="space-y-2">
-          {active.map(
-            (s: {
-              session_id: string;
-              worker_id: string;
-              worker_name: string | null;
-              check_in_at: string;
-            }) => (
-              <li
-                key={s.session_id}
-                className="rounded-md border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">
-                      {s.worker_name ?? s.worker_id}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      Checked in {new Date(s.check_in_at).toLocaleString()}
-                    </p>
-                  </div>
+        <ul className="mt-4 space-y-2">
+          {activeList.map((s) => (
+            <li
+              key={s.session_id}
+              className="flex items-center gap-3.5 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3"
+            >
+              <Avatar
+                initials={getInitials(s.worker_name)}
+                size={42}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-semibold">
+                  {s.worker_name ?? "Unnamed worker"}
                 </div>
-              </li>
-            ),
-          )}
+                <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-faint)]">
+                  Checked in{" "}
+                  {new Date(s.check_in_at).toLocaleTimeString("en-CA", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </div>
+              </div>
+              <StatusPill status="ok" label="On site" />
+            </li>
+          ))}
         </ul>
       )}
     </main>

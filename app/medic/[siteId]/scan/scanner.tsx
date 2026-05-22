@@ -80,23 +80,23 @@ export function Scanner({ siteId }: { siteId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="inline-flex rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-1">
         <button
           onClick={() => setMode("camera")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${
             mode === "camera"
-              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-              : "border border-zinc-300 dark:border-zinc-700"
+              ? "bg-[color:var(--ink-3)] text-[color:var(--text)]"
+              : "text-[color:var(--text-dim)]"
           }`}
         >
-          Camera
+          QR scan
         </button>
         <button
           onClick={() => setMode("manual")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${
             mode === "manual"
-              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-              : "border border-zinc-300 dark:border-zinc-700"
+              ? "bg-[color:var(--ink-3)] text-[color:var(--text)]"
+              : "text-[color:var(--text-dim)]"
           }`}
         >
           Manual entry
@@ -106,23 +106,58 @@ export function Scanner({ siteId }: { siteId: string }) {
       {mode === "camera" ? (
         <div>
           <div
-            ref={containerRef}
-            className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 dark:border-zinc-800"
-          />
-          {starting && (
-            <p className="mt-2 text-sm text-zinc-500">Starting camera...</p>
-          )}
+            className="relative overflow-hidden rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, #181B21 0 18px, #1E2128 18px 36px)",
+              minHeight: 360,
+            }}
+          >
+            <div ref={containerRef} className="absolute inset-0" />
+
+            {/* viewfinder corners */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="relative" style={{ width: 280, height: 280 }}>
+                <Corner pos="tl" />
+                <Corner pos="tr" />
+                <Corner pos="bl" />
+                <Corner pos="br" />
+                <div
+                  className="sw-scan absolute left-3 right-3 top-1/2 h-[2px]"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, #FACC15, transparent)",
+                    boxShadow: "0 0 14px rgba(250,204,21,0.7)",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="absolute left-4 top-4 font-mono text-[11px] tracking-[0.08em] text-[color:var(--text-faint)]">
+              CAM 01 · GATE A
+            </div>
+            <div className="absolute right-4 top-4 flex items-center gap-1.5 font-mono text-[11px] text-[color:#34D399]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:#10B981]" />
+              READY
+            </div>
+            <div className="absolute bottom-5 left-0 right-0 text-center text-[13px] text-[color:var(--text-dim)]">
+              {starting
+                ? "Starting camera..."
+                : "Hold the worker's phone in front of the camera"}
+            </div>
+          </div>
           {error && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
+            <p className="mt-3 text-sm text-[color:#F87171]">{error}</p>
           )}
         </div>
       ) : (
-        <form onSubmit={submitManual} className="space-y-3">
+        <form
+          onSubmit={submitManual}
+          className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-6"
+        >
           <label
             htmlFor="manual"
-            className="block text-sm font-medium text-zinc-900 dark:text-zinc-100"
+            className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-faint)]"
           >
             Worker ID
           </label>
@@ -131,14 +166,17 @@ export function Scanner({ siteId }: { siteId: string }) {
             value={manualValue}
             onChange={(e) => setManualValue(e.target.value)}
             placeholder="00000000-0000-0000-0000-000000000000"
-            className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 font-mono text-sm focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-100"
+            className="w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-1)] px-4 py-4 font-mono text-base tracking-[0.05em] text-[color:var(--text)] focus:border-[color:var(--hi-yellow)] focus:outline-none"
           />
+          <p className="mt-3 text-[12px] text-[color:var(--text-faint)]">
+            Find this on the worker's wallet home screen, below their name.
+          </p>
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p className="mt-2 text-sm text-[color:#F87171]">{error}</p>
           )}
           <button
             type="submit"
-            className="w-full rounded-md bg-zinc-900 px-4 py-3 text-base font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="mt-5 h-14 w-full rounded-xl bg-[color:var(--hi-yellow)] text-base font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
             Look up
           </button>
@@ -146,4 +184,22 @@ export function Scanner({ siteId }: { siteId: string }) {
       )}
     </div>
   );
+}
+
+function Corner({ pos }: { pos: "tl" | "tr" | "bl" | "br" }) {
+  const base: React.CSSProperties = {
+    position: "absolute",
+    width: 36,
+    height: 36,
+    borderColor: "#FACC15",
+    borderStyle: "solid",
+    borderWidth: 0,
+  };
+  const styles: Record<typeof pos, React.CSSProperties> = {
+    tl: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
+    tr: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
+    bl: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 8 },
+    br: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 8 },
+  };
+  return <div style={{ ...base, ...styles[pos] }} />;
 }

@@ -6,105 +6,118 @@ import { CREDENTIAL_TYPES } from "@/lib/credentials";
 
 const initialState: { error?: string } = {};
 
+const inputCls =
+  "h-[52px] w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
+
+const monoInputCls = inputCls + " font-mono";
+
 export function AddCredentialForm() {
   const [state, action, pending] = useActionState(addCredential, initialState);
 
   return (
-    <form action={action} className="space-y-5">
-      <Field label="Credential type" htmlFor="credential_type" required>
-        <select
-          id="credential_type"
-          name="credential_type"
-          required
-          defaultValue=""
-          className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-100"
+    <form action={action} className="flex flex-1 flex-col">
+      <div className="flex-1 overflow-auto px-5 py-3">
+        <Field label="Credential type" htmlFor="credential_type" required>
+          <div className="relative">
+            <select
+              id="credential_type"
+              name="credential_type"
+              required
+              defaultValue=""
+              className={inputCls + " appearance-none pr-10"}
+            >
+              <option value="" disabled>
+                Select credential...
+              </option>
+              {CREDENTIAL_TYPES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[color:var(--text-dim)]">
+              ▾
+            </span>
+          </div>
+        </Field>
+
+        <Field label="Issuer" htmlFor="issuer">
+          <input
+            id="issuer"
+            name="issuer"
+            type="text"
+            placeholder="e.g. Energy Safety Canada"
+            className={inputCls}
+          />
+        </Field>
+
+        <Field label="Certificate number" htmlFor="certificate_number">
+          <input
+            id="certificate_number"
+            name="certificate_number"
+            type="text"
+            placeholder="ESC-2024-118-44210"
+            className={monoInputCls}
+          />
+        </Field>
+
+        <Field
+          label="Validation code"
+          htmlFor="validation_code"
+          hint="Code printed on the back of your safety card."
         >
-          <option value="" disabled>
-            Select credential...
-          </option>
-          {CREDENTIAL_TYPES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Issuer" htmlFor="issuer">
-        <input
-          id="issuer"
-          name="issuer"
-          type="text"
-          placeholder="e.g. Energy Safety Canada"
-          className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100"
-        />
-      </Field>
-
-      <Field label="Certificate number" htmlFor="certificate_number">
-        <input
-          id="certificate_number"
-          name="certificate_number"
-          type="text"
-          placeholder="As printed on the ticket"
-          className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100"
-        />
-      </Field>
-
-      <Field label="Validation code" htmlFor="validation_code">
-        <input
-          id="validation_code"
-          name="validation_code"
-          type="text"
-          placeholder="e.g. R8LQ3-TVNJ7-9JXGZ-0YGQG"
-          className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 font-mono text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100"
-        />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-          The validation code printed under the QR on the ESC card. Used later
-          for issuer verification.
-        </p>
-      </Field>
-
-      <Field label="Holder name (as printed)" htmlFor="holder_name">
-        <input
-          id="holder_name"
-          name="holder_name"
-          type="text"
-          placeholder="Full name on the ticket"
-          className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100"
-        />
-      </Field>
-
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <Field label="Issue date" htmlFor="issue_date">
           <input
-            id="issue_date"
-            name="issue_date"
-            type="date"
-            className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-100"
+            id="validation_code"
+            name="validation_code"
+            type="text"
+            placeholder="R8LQ3-TVNJ7-9JXGZ-0YGQG"
+            className={monoInputCls + " tracking-[0.1em]"}
           />
         </Field>
 
-        <Field label="Expiry date" htmlFor="expiry_date">
+        <Field label="Holder name (as printed)" htmlFor="holder_name">
           <input
-            id="expiry_date"
-            name="expiry_date"
-            type="date"
-            className="w-full rounded-md border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 focus:border-zinc-900 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-zinc-100"
+            id="holder_name"
+            name="holder_name"
+            type="text"
+            placeholder="Full name on the ticket"
+            className={inputCls}
           />
         </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Issued" htmlFor="issue_date">
+            <input
+              id="issue_date"
+              name="issue_date"
+              type="date"
+              className={monoInputCls}
+            />
+          </Field>
+          <Field label="Expires" htmlFor="expiry_date">
+            <input
+              id="expiry_date"
+              name="expiry_date"
+              type="date"
+              className={monoInputCls}
+            />
+          </Field>
+        </div>
+
+        {state.error && (
+          <p className="mt-2 text-sm text-[color:#F87171]">{state.error}</p>
+        )}
       </div>
 
-      {state.error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
-      )}
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-md bg-zinc-900 px-4 py-3 text-base font-medium text-white transition hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-      >
-        {pending ? "Saving..." : "Save credential"}
-      </button>
+      <div className="border-t border-[color:var(--hair)] bg-[color:var(--ink-1)] px-5 py-4">
+        <button
+          type="submit"
+          disabled={pending}
+          className="h-[60px] w-full rounded-xl bg-[color:var(--hi-yellow)] text-[17px] font-bold tracking-[0.01em] text-[color:var(--ink-1)] transition hover:brightness-95 disabled:opacity-50"
+        >
+          {pending ? "Saving..." : "Save credential"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -113,23 +126,30 @@ function Field({
   label,
   htmlFor,
   required,
+  hint,
   children,
 }: {
   label: string;
   htmlFor: string;
   required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="mb-4">
       <label
         htmlFor={htmlFor}
-        className="mb-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100"
+        className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.04em] text-[color:var(--text-dim)]"
       >
         {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-[color:#EF4444]">*</span>}
       </label>
       {children}
+      {hint && (
+        <div className="mt-1.5 text-[12px] text-[color:var(--text-faint)]">
+          {hint}
+        </div>
+      )}
     </div>
   );
 }
