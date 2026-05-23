@@ -64,7 +64,7 @@ export function AddCredentialForm() {
         <Field
           label="Validation code"
           htmlFor="validation_code"
-          hint="Code printed on the back of your safety card."
+          hint="On Energy Safety Canada cards, this is the long code printed under the QR. Other cards may not have one — leave blank if so."
         >
           <input
             id="validation_code"
@@ -75,7 +75,7 @@ export function AddCredentialForm() {
           />
         </Field>
 
-        <Field label="Holder name (as printed)" htmlFor="holder_name">
+        <Field label="Name on the card" htmlFor="holder_name">
           <input
             id="holder_name"
             name="holder_name"

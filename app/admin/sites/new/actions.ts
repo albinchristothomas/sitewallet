@@ -75,5 +75,5 @@ export async function createSite(
     .single();
   if (siteErr) return { error: `Site: ${siteErr.message}` };
 
-  redirect(`/admin/sites/${site.id}`);
+  redirect(`/admin/sites/${site.id}?created=1`);
 }

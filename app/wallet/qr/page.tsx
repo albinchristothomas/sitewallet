@@ -38,7 +38,7 @@ export default async function WalletQrPage() {
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
         <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[color:var(--text-faint)]">
           Gate Pass
         </div>
@@ -62,7 +62,7 @@ export default async function WalletQrPage() {
           <div className="text-[26px] font-bold leading-tight">
             {worker?.full_name ?? user.email}
           </div>
-          <div className="mt-1 font-mono text-[13px] text-[color:var(--text-dim)]">
+          <div className="mt-1.5 font-mono text-[13px] text-[color:var(--text-dim)]">
             {shortId(user.id)}
           </div>
         </div>
@@ -74,6 +74,18 @@ export default async function WalletQrPage() {
           />
           Show this to the medic at the gate
         </div>
+
+        <details className="w-full rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] text-left">
+          <summary className="cursor-pointer list-none px-4 py-3 text-[12px] font-semibold text-[color:var(--text-dim)] hover:text-[color:var(--text)]">
+            Camera not working? Tap here
+          </summary>
+          <div className="border-t border-[color:var(--hair)] px-4 py-3 text-[12px] leading-relaxed text-[color:var(--text-dim)]">
+            <p>If the medic can&apos;t scan the QR, ask them to use Manual entry and read this code:</p>
+            <div className="mt-2.5 select-all rounded-md bg-[color:var(--ink-1)] px-3 py-2 font-mono text-[11px] text-[color:var(--text)] break-all">
+              {user.id}
+            </div>
+          </div>
+        </details>
       </div>
     </main>
   );

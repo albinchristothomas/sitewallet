@@ -28,15 +28,21 @@ export default async function MedicHomePage() {
       </p>
 
       {items.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
-          <p className="text-sm text-[color:var(--text-dim)]">
-            You're not assigned to any sites yet.
+        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
+          <div className="text-[32px]" aria-hidden>
+            🛡️
+          </div>
+          <p className="mt-2 text-[15px] font-semibold">No sites assigned yet</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
+            You need to be assigned to a site before you can scan workers in.
+            If this is your own demo, open Setup and click &ldquo;Assign myself
+            as medic&rdquo; on a site.
           </p>
           <Link
             href="/admin"
-            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+            className="mt-4 inline-block rounded-lg border border-[color:var(--hair-strong)] px-4 py-2.5 text-sm font-semibold hover:bg-[color:var(--ink-3)]"
           >
-            Go to Admin to assign yourself
+            Open Setup
           </Link>
         </div>
       ) : (

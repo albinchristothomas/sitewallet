@@ -49,13 +49,20 @@ export default async function AdminPage() {
       </div>
 
       {!sites || sites.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
-          <p className="text-sm text-[color:var(--text-dim)]">No sites yet.</p>
+        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
+          <div className="text-[32px]" aria-hidden>
+            🛢️
+          </div>
+          <p className="mt-2 text-[15px] font-semibold">No worksites yet</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
+            Start by setting up a site — the rig or pad workers will check in
+            at. You can edit it later.
+          </p>
           <Link
             href="/admin/sites/new"
-            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            Create your first site →
+            + Create first site
           </Link>
         </div>
       ) : (

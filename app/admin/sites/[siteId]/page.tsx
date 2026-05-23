@@ -9,6 +9,8 @@ export default async function SiteDetailPage(
   props: PageProps<"/admin/sites/[siteId]">,
 ) {
   const { siteId } = await props.params;
+  const sp = await props.searchParams;
+  const justCreated = sp.created === "1";
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,6 +64,32 @@ export default async function SiteDetailPage(
       >
         ← All sites
       </Link>
+
+      {justCreated && (
+        <div
+          className="mt-3 flex items-center gap-3 rounded-2xl border px-4 py-3"
+          style={{
+            background: "rgba(16,185,129,0.10)",
+            borderColor: "rgba(16,185,129,0.32)",
+          }}
+        >
+          <div
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(16,185,129,0.30)", color: "#10B981" }}
+          >
+            ✓
+          </div>
+          <div className="text-[13px]">
+            <span className="font-semibold text-[color:#34D399]">
+              Site created.
+            </span>{" "}
+            <span className="text-[color:var(--text-dim)]">
+              Now assign a medic and you&apos;re ready to scan workers in.
+            </span>
+          </div>
+        </div>
+      )}
+
       <header className="mt-3">
         <Eyebrow className="mb-1">Site</Eyebrow>
         <h1 className="text-2xl font-bold tracking-tight">{site.name}</h1>
@@ -152,8 +180,9 @@ export default async function SiteDetailPage(
           </p>
         )}
         <p className="mt-2 text-[12px] text-[color:var(--text-faint)]">
-          Phase 1: assign yourself, or have the medic sign in first then come
-          back here. Phase 2: invite via email.
+          To add another medic for now: ask them to sign in first, then come
+          back here and tell us — we&apos;ll wire up email invites for medics
+          next.
         </p>
       </section>
 

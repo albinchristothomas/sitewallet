@@ -32,8 +32,9 @@ export function LoginForm() {
           We sent a sign-in link to{" "}
           <span className="font-mono">{state.email}</span>.
         </p>
-        <p className="mt-1 text-xs text-[color:var(--text-dim)]">
-          Open it on this device to continue.
+        <p className="mt-2 text-xs leading-relaxed text-[color:var(--text-dim)]">
+          Tap the link on this phone to continue. If you don&apos;t see it,
+          check your spam folder.
         </p>
       </div>
     );
@@ -46,7 +47,7 @@ export function LoginForm() {
           htmlFor="email"
           className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-dim)]"
         >
-          Work email
+          Email
         </label>
         <input
           id="email"
@@ -54,7 +55,7 @@ export function LoginForm() {
           type="email"
           required
           autoComplete="email"
-          placeholder="you@company.ca"
+          placeholder="you@example.com"
           className={inputCls}
         />
       </div>
@@ -68,11 +69,12 @@ export function LoginForm() {
         disabled={pending}
         className="h-14 w-full rounded-xl bg-[color:var(--hi-yellow)] text-base font-bold text-[color:var(--ink-1)] transition hover:brightness-95 disabled:opacity-50"
       >
-        {pending ? "Sending link..." : "Send sign-in link"}
+        {pending ? "Sending..." : "Email me a sign-in link"}
       </button>
 
       <p className="pt-2 text-center text-xs text-[color:var(--text-faint)]">
-        No password. We'll email you a one-time link.
+        We&apos;ll send you a link. Tap it on your phone. You&apos;re in. No
+        password.
       </p>
     </form>
   );

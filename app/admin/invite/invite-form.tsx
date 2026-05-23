@@ -61,7 +61,7 @@ export function InviteForm() {
           htmlFor="full_name"
           className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-dim)]"
         >
-          Worker name (pre-fills profile)
+          Worker name
         </label>
         <input
           id="full_name"
@@ -70,6 +70,9 @@ export function InviteForm() {
           placeholder="Jonathan Doe"
           className={inputCls}
         />
+        <p className="mt-1 text-[11px] text-[color:var(--text-faint)]">
+          Optional. Pre-fills their wallet so they don&apos;t have to type it.
+        </p>
       </div>
 
       {state.error && (

@@ -95,15 +95,17 @@ export default async function MedicSitePage(
       </div>
 
       {activeList.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
-          <p className="text-sm text-[color:var(--text-dim)]">
-            No workers currently on site.
+        <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
+          <p className="text-[15px] font-semibold">Quiet right now</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
+            No one&apos;s checked in yet. As workers arrive at the gate, scan
+            their QR and they&apos;ll appear here.
           </p>
           <Link
             href={`/medic/${siteId}/scan`}
-            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            Scan a worker in →
+            Open scanner
           </Link>
         </div>
       ) : (

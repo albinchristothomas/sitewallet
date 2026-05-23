@@ -51,8 +51,8 @@ export function Scanner({ siteId }: { siteId: string }) {
       } catch (e) {
         setError(
           e instanceof Error
-            ? e.message
-            : "Could not start camera. Use manual entry below.",
+            ? `${e.message}. Allow camera access in your browser settings, or use Manual entry below.`
+            : "Could not start camera. Use Manual entry below.",
         );
       } finally {
         setStarting(false);
@@ -71,7 +71,9 @@ export function Scanner({ siteId }: { siteId: string }) {
     e.preventDefault();
     const v = manualValue.trim();
     if (!UUID_RE.test(v)) {
-      setError("That doesn't look like a worker ID (UUID format).");
+      setError(
+        "Type the long worker ID from under their QR. It looks like 8 letters/numbers, then dashes (e.g. a8b3c4d5-...).",
+      );
       return;
     }
     setError(null);
@@ -99,7 +101,7 @@ export function Scanner({ siteId }: { siteId: string }) {
               : "text-[color:var(--text-dim)]"
           }`}
         >
-          Manual entry
+          Type ID
         </button>
       </div>
 
@@ -134,7 +136,7 @@ export function Scanner({ siteId }: { siteId: string }) {
             </div>
 
             <div className="absolute left-4 top-4 font-mono text-[11px] tracking-[0.08em] text-[color:var(--text-faint)]">
-              CAM 01 · GATE A
+              CAM 01 · GATE
             </div>
             <div className="absolute right-4 top-4 flex items-center gap-1.5 font-mono text-[11px] text-[color:#34D399]">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:#10B981]" />
@@ -143,7 +145,7 @@ export function Scanner({ siteId }: { siteId: string }) {
             <div className="absolute bottom-5 left-0 right-0 text-center text-[13px] text-[color:var(--text-dim)]">
               {starting
                 ? "Starting camera..."
-                : "Hold the worker's phone in front of the camera"}
+                : "Hold the worker's QR in front of the camera"}
             </div>
           </div>
           {error && (
@@ -165,11 +167,15 @@ export function Scanner({ siteId }: { siteId: string }) {
             id="manual"
             value={manualValue}
             onChange={(e) => setManualValue(e.target.value)}
-            placeholder="00000000-0000-0000-0000-000000000000"
-            className="w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-1)] px-4 py-4 font-mono text-base tracking-[0.05em] text-[color:var(--text)] focus:border-[color:var(--hi-yellow)] focus:outline-none"
+            placeholder="a8b3c4d5-0000-0000-0000-000000000000"
+            className="w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-1)] px-4 py-4 font-mono text-[14px] tracking-tight text-[color:var(--text)] focus:border-[color:var(--hi-yellow)] focus:outline-none"
           />
           <p className="mt-3 text-[12px] text-[color:var(--text-faint)]">
-            Find this on the worker's wallet home screen, below their name.
+            Ask the worker to open their QR screen and tap{" "}
+            <span className="font-semibold text-[color:var(--text-dim)]">
+              &ldquo;Camera not working? Tap here&rdquo;
+            </span>{" "}
+            to reveal the long ID. Read it out and type it here.
           </p>
           {error && (
             <p className="mt-2 text-sm text-[color:#F87171]">{error}</p>
@@ -178,7 +184,7 @@ export function Scanner({ siteId }: { siteId: string }) {
             type="submit"
             className="mt-5 h-14 w-full rounded-xl bg-[color:var(--hi-yellow)] text-base font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            Look up
+            Look up worker
           </button>
         </form>
       )}

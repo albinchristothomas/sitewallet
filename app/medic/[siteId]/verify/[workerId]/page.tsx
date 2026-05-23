@@ -55,17 +55,28 @@ export default async function VerifyWorkerPage(
           ← Scan
         </Link>
         <h1 className="mt-4 text-2xl font-bold tracking-tight">
-          Couldn't verify
+          Couldn&apos;t look up this worker
         </h1>
-        <p className="mt-2 text-sm text-[color:#F87171]">
+        <p className="mt-2 text-sm text-[color:var(--text-dim)]">
+          They may not have signed up yet, or the QR was for a different
+          system.
+        </p>
+        <p className="mt-2 font-mono text-[11px] text-[color:#F87171]">
           {error?.message ?? "Worker not found."}
         </p>
+        <Link
+          href={`/medic/${siteId}/scan`}
+          className="mt-6 inline-block rounded-xl bg-[color:var(--hi-yellow)] px-5 py-3 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+        >
+          Try another scan
+        </Link>
       </main>
     );
   }
 
   const payload = data as CompliancePayload;
   const allPass = payload.compliance.every((c) => c.status === "VALID");
+  const hasPhoto = Boolean(payload.worker.photo_url);
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-8 pt-4">
@@ -99,7 +110,7 @@ export default async function VerifyWorkerPage(
                 color: allPass ? "#34D399" : "#F87171",
               }}
             >
-              {allPass ? "Compliant · Admit OK" : "Not compliant"}
+              {allPass ? "Compliant · OK to admit" : "Not compliant"}
             </div>
             <div className="mt-1 truncate text-[28px] font-bold leading-tight">
               {payload.worker.full_name ?? "Unnamed worker"}
@@ -121,6 +132,21 @@ export default async function VerifyWorkerPage(
           }}
         >
           {allPass ? "PASS" : "FAIL"}
+        </div>
+      </div>
+
+      {/* Face-match prompt — the medic's job */}
+      <div className="mt-4 flex items-start gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4">
+        <div className="text-[20px]" aria-hidden>
+          👁️
+        </div>
+        <div className="text-[13px] leading-relaxed">
+          <div className="font-semibold">Check the person at the gate</div>
+          <div className="mt-1 text-[color:var(--text-dim)]">
+            {hasPhoto
+              ? "Compare the photo above to the person standing in front of you. If they don't match, deny entry."
+              : "No photo on file for this worker yet. Ask for government ID and confirm the name above matches."}
+          </div>
         </div>
       </div>
 
@@ -188,9 +214,22 @@ export default async function VerifyWorkerPage(
         )}
       </ul>
 
+      {!allPass && (
+        <div className="mt-6 rounded-xl border border-[color:rgba(239,68,68,0.30)] bg-[color:rgba(239,68,68,0.10)] p-4 text-[13px] leading-relaxed">
+          <div className="font-semibold text-[color:#F87171]">
+            Heads up — admitting anyway is an override
+          </div>
+          <div className="mt-1 text-[color:var(--text-dim)]">
+            It&apos;s recorded in the audit log with your medic ID. Only use
+            when you&apos;ve verified another way (paper card, phone call to
+            issuer, etc.).
+          </div>
+        </div>
+      )}
+
       <form
         action={admitWorker.bind(null, siteId, workerId, payload)}
-        className="mt-7"
+        className="mt-4"
       >
         <button
           type="submit"
@@ -210,11 +249,6 @@ export default async function VerifyWorkerPage(
           {allPass ? "Admit worker" : "Admit anyway (override)"}
         </button>
       </form>
-      {!allPass && (
-        <p className="mt-2 text-center text-[12px] text-[color:var(--text-faint)]">
-          Override is recorded in the audit log with your medic ID.
-        </p>
-      )}
     </main>
   );
 }

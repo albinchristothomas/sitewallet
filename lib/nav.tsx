@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
+import { signOutAction } from "@/lib/auth-actions";
 
 export async function NavBar() {
   const supabase = await createClient();
@@ -33,17 +34,22 @@ export async function NavBar() {
           <Link href="/wallet" className={linkCls}>
             Wallet
           </Link>
-          <Link href="/wallet/qr" className={linkCls}>
-            My QR
-          </Link>
           {isMedic && (
             <Link href="/medic" className={linkCls}>
               Medic
             </Link>
           )}
           <Link href="/admin" className={linkCls}>
-            Admin
+            Setup
           </Link>
+          <form action={signOutAction} className="ml-2">
+            <button
+              type="submit"
+              className="rounded-md border border-[color:var(--hair-strong)] px-2.5 py-1.5 text-xs font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
       </div>
     </nav>

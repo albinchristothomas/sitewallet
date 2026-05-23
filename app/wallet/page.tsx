@@ -11,7 +11,10 @@ function shortId(uuid: string): string {
   return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
 }
 
-export default async function WalletPage() {
+export default async function WalletPage(props: PageProps<"/wallet">) {
+  const sp = await props.searchParams;
+  const justSaved = typeof sp.saved === "string" ? sp.saved : null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -74,6 +77,31 @@ export default async function WalletPage() {
         </div>
         <Avatar initials={getInitials(fullName)} size={46} />
       </header>
+
+      {justSaved && (
+        <div
+          className="mb-5 flex items-center gap-3 rounded-2xl border px-4 py-3"
+          style={{
+            background: "rgba(16,185,129,0.10)",
+            borderColor: "rgba(16,185,129,0.32)",
+          }}
+        >
+          <div
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+            style={{ background: "rgba(16,185,129,0.30)", color: "#10B981" }}
+          >
+            ✓
+          </div>
+          <div className="text-[13px]">
+            <span className="font-semibold text-[color:#34D399]">
+              {getCredentialLabel(justSaved)}
+            </span>{" "}
+            <span className="text-[color:var(--text-dim)]">
+              added to your wallet.
+            </span>
+          </div>
+        </div>
+      )}
 
       {activeSession && (
         <Link
@@ -150,15 +178,23 @@ export default async function WalletPage() {
       </div>
 
       {credentialsList.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center">
-          <p className="text-sm text-[color:var(--text-dim)]">
-            No credentials yet. Add your first safety ticket to get started.
+        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
+          <div className="text-[32px]" aria-hidden>
+            🪪
+          </div>
+          <p className="mt-2 text-[15px] font-semibold">
+            Add your first ticket
+          </p>
+          <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
+            H2S Alive, First Aid, Ground Disturbance, CSO — whatever you carry
+            in your wallet today. Type in the dates and certificate number,
+            and you&apos;re set.
           </p>
           <Link
             href="/wallet/credentials/new"
-            className="mt-3 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            + Add a credential
+            + Add credential
           </Link>
         </div>
       ) : (

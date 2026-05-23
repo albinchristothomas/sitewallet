@@ -1,5 +1,39 @@
 -- SiteWallet — Phase 1 core schema
 -- Worker-centric data model. Credentials are append-only. Sessions are check-in/check-out pairs.
+--
+-- This script is idempotent: dropping any existing SiteWallet objects first,
+-- then recreating cleanly. Safe to re-run during pilot iteration.
+
+-- =============================================================================
+-- Reset (drop existing SiteWallet objects, if any)
+-- =============================================================================
+
+drop function if exists worker_compliance_for_site(uuid, uuid) cascade;
+drop function if exists admit_worker(uuid, uuid, jsonb) cascade;
+drop function if exists active_sessions_for_site(uuid) cascade;
+drop function if exists daily_roster(uuid, date) cascade;
+drop function if exists is_medic_for_site(uuid) cascade;
+drop function if exists set_updated_at() cascade;
+
+drop table if exists work_permits cascade;
+drop table if exists muster_points cascade;
+drop table if exists audit_log cascade;
+drop table if exists sessions cascade;
+drop table if exists medic_assignments cascade;
+drop table if exists sites cascade;
+drop table if exists projects cascade;
+drop table if exists requirements_profiles cascade;
+drop table if exists credentials cascade;
+drop table if exists employments cascade;
+drop table if exists companies cascade;
+drop table if exists workers cascade;
+
+drop type if exists verification_status cascade;
+drop type if exists company_type cascade;
+drop type if exists session_status cascade;
+drop type if exists check_method cascade;
+drop type if exists worker_role cascade;
+drop type if exists permit_type cascade;
 
 -- =============================================================================
 -- Enums

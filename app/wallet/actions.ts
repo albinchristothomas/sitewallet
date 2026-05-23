@@ -56,5 +56,5 @@ export async function addCredential(
   }
 
   revalidatePath("/wallet");
-  redirect("/wallet");
+  redirect(`/wallet?saved=${encodeURIComponent(credentialType)}`);
 }

@@ -7,7 +7,7 @@ export function BetaBanner() {
         Pilot
       </span>
       <span className="mx-2 text-[color:var(--text-faint)]">·</span>
-      <span>Phase 1 — not for production safety decisions</span>
+      <span>We&apos;re improving SiteWallet — tell us what works</span>
       <span className="mx-2 text-[color:var(--text-faint)]">·</span>
       <Link href="/help" className="font-medium hover:text-[color:var(--text)]">
         Help

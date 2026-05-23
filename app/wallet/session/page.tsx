@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 import { checkOut } from "./actions";
+import { CheckoutButton } from "./checkout-button";
 
 function formatDuration(checkIn: string): string {
   const minutes = Math.floor(
@@ -138,14 +139,7 @@ export default async function ActiveSessionPage() {
 
       <div className="flex-1" />
 
-      <form action={checkOut.bind(null, session.id)}>
-        <button
-          type="submit"
-          className="h-16 w-full rounded-xl bg-[color:var(--hi-yellow)] text-[18px] font-bold tracking-[0.01em] text-[color:var(--ink-1)] hover:brightness-95"
-        >
-          Check out
-        </button>
-      </form>
+      <CheckoutButton action={checkOut.bind(null, session.id)} />
     </main>
   );
 }
