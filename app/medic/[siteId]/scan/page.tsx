@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Eyebrow } from "@/lib/atoms";
 import { Scanner } from "./scanner";
 
 export default async function ScanPage(props: PageProps<"/medic/[siteId]/scan">) {
@@ -13,24 +12,27 @@ export default async function ScanPage(props: PageProps<"/medic/[siteId]/scan">)
   if (!user) redirect("/login");
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 pb-6 pt-5">
-      <Link
-        href={`/medic/${siteId}`}
-        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
-      >
-        ← Site
-      </Link>
-      <header className="mt-3">
-        <Eyebrow className="mb-1">Gate scan</Eyebrow>
-        <h1 className="text-2xl font-bold tracking-tight">Scan worker QR</h1>
-        <p className="mt-1 text-sm text-[color:var(--text-dim)]">
-          Hold the worker's phone in front of the camera, or type their ID
-          below.
-        </p>
-      </header>
-      <div className="mt-5 flex-1">
-        <Scanner siteId={siteId} />
+    <main
+      className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 pb-4"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <Link
+          href={`/medic/${siteId}`}
+          aria-label="Back to site"
+          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-[22px] leading-none text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+        >
+          ←
+        </Link>
+        <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-faint)]">
+          Scan
+        </div>
+        <div className="w-11" />
       </div>
+
+      <Scanner siteId={siteId} />
     </main>
   );
 }
