@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Camera, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { parseTicketText, type ParsedTicket } from "@/lib/ocr-parser";
 
 type Phase = "idle" | "reading" | "parsed" | "error";
@@ -80,15 +81,15 @@ export function ScanForm({ holderName }: { holderName: string }) {
 
           <button
             onClick={() => cameraRef.current?.click()}
-            className="flex h-16 w-full items-center justify-center gap-3 rounded-xl bg-[color:var(--hi-yellow)] text-[15px] font-bold text-[color:var(--ink-1)] active:scale-[0.98]"
+            className="flex h-16 w-full items-center justify-center gap-2.5 rounded-xl bg-[color:var(--hi-yellow)] text-[15px] font-bold text-[color:var(--ink-1)] active:scale-[0.98]"
           >
-            <span aria-hidden>📷</span> Take photo of ticket
+            <Camera size={20} strokeWidth={1.75} /> Take photo of ticket
           </button>
           <button
             onClick={() => fileRef.current?.click()}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] text-[14px] font-semibold text-[color:var(--text)] active:scale-[0.98]"
           >
-            <span aria-hidden>🖼️</span> Choose from gallery
+            <ImageIcon size={18} strokeWidth={1.75} /> Choose from gallery
           </button>
 
           <input

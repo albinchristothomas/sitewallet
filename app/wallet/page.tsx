@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ScanLine, IdCard, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   getCredentialLabel,
@@ -175,10 +176,10 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
         className="mb-6 flex items-center gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3 transition hover:bg-[color:var(--ink-3)]"
       >
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[18px]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
           style={{ background: "rgba(250,204,21,0.15)", color: "#FACC15" }}
         >
-          📷
+          <ScanLine size={18} strokeWidth={1.75} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[14px] font-semibold">Scan a paper ticket</div>
@@ -186,7 +187,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
             Snap a photo, we auto-fill the form
           </div>
         </div>
-        <span className="text-[color:var(--text-dim)]">›</span>
+        <ChevronRight size={16} className="text-[color:var(--text-dim)]" />
       </Link>
 
       <div className="mb-3 flex items-center justify-between">
@@ -198,10 +199,10 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
 
       {credentialsList.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
-          <div className="text-[32px]" aria-hidden>
-            🪪
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
+            <IdCard size={28} strokeWidth={1.75} />
           </div>
-          <p className="mt-2 text-[15px] font-semibold">
+          <p className="mt-3 text-[15px] font-semibold">
             Add your first ticket
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">

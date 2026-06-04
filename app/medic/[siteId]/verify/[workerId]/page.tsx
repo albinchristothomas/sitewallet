@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Eye, Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
@@ -137,8 +138,8 @@ export default async function VerifyWorkerPage(
 
       {/* Face-match prompt — the medic's job */}
       <div className="mt-4 flex items-start gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4">
-        <div className="text-[20px]" aria-hidden>
-          👁️
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
+          <Eye size={18} strokeWidth={1.75} />
         </div>
         <div className="text-[13px] leading-relaxed">
           <div className="font-semibold">Check the person at the gate</div>
@@ -194,7 +195,7 @@ export default async function VerifyWorkerPage(
                 </div>
               </div>
               <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
                 style={{
                   background: isValid
                     ? "rgba(16,185,129,0.20)"
@@ -202,7 +203,11 @@ export default async function VerifyWorkerPage(
                   color: tint,
                 }}
               >
-                {isValid ? "✓" : "✕"}
+                {isValid ? (
+                  <Check size={18} strokeWidth={2.2} />
+                ) : (
+                  <X size={18} strokeWidth={2.2} />
+                )}
               </div>
             </li>
           );
