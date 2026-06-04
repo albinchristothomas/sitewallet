@@ -132,7 +132,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
         </Link>
       )}
 
-      <div className="mb-6 grid grid-cols-[1.4fr_1fr] gap-2.5">
+      <div className="mb-3 grid grid-cols-[1.4fr_1fr] gap-2.5">
         <Link
           href="/wallet/qr"
           className="flex h-[124px] flex-col justify-between rounded-2xl bg-[color:var(--hi-yellow)] p-5 text-[color:var(--ink-1)] transition hover:brightness-95"
@@ -169,6 +169,25 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
           </div>
         </Link>
       </div>
+
+      <Link
+        href="/wallet/credentials/scan"
+        className="mb-6 flex items-center gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3 transition hover:bg-[color:var(--ink-3)]"
+      >
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[18px]"
+          style={{ background: "rgba(250,204,21,0.15)", color: "#FACC15" }}
+        >
+          📷
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[14px] font-semibold">Scan a paper ticket</div>
+          <div className="text-[11px] text-[color:var(--text-faint)]">
+            Snap a photo, we auto-fill the form
+          </div>
+        </div>
+        <span className="text-[color:var(--text-dim)]">›</span>
+      </Link>
 
       <div className="mb-3 flex items-center justify-between">
         <Eyebrow>Credentials · {credentialsList.length}</Eyebrow>

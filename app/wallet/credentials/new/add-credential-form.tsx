@@ -11,8 +11,18 @@ const inputCls =
 
 const monoInputCls = inputCls + " font-mono";
 
-export function AddCredentialForm() {
+type Prefill = {
+  type?: string;
+  issuer?: string;
+  cert?: string;
+  issue?: string;
+  expiry?: string;
+  holder?: string;
+};
+
+export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
   const [state, action, pending] = useActionState(addCredential, initialState);
+  const p = prefill ?? {};
 
   return (
     <form action={action} className="flex flex-1 flex-col">
@@ -23,7 +33,7 @@ export function AddCredentialForm() {
               id="credential_type"
               name="credential_type"
               required
-              defaultValue=""
+              defaultValue={p.type ?? ""}
               className={inputCls + " appearance-none pr-10"}
             >
               <option value="" disabled>
@@ -46,6 +56,7 @@ export function AddCredentialForm() {
             id="issuer"
             name="issuer"
             type="text"
+            defaultValue={p.issuer ?? ""}
             placeholder="e.g. Energy Safety Canada"
             className={inputCls}
           />
@@ -56,6 +67,7 @@ export function AddCredentialForm() {
             id="certificate_number"
             name="certificate_number"
             type="text"
+            defaultValue={p.cert ?? ""}
             placeholder="ESC-2024-118-44210"
             className={monoInputCls}
           />
@@ -80,6 +92,7 @@ export function AddCredentialForm() {
             id="holder_name"
             name="holder_name"
             type="text"
+            defaultValue={p.holder ?? ""}
             placeholder="Full name on the ticket"
             className={inputCls}
           />
@@ -91,6 +104,7 @@ export function AddCredentialForm() {
               id="issue_date"
               name="issue_date"
               type="date"
+              defaultValue={p.issue ?? ""}
               className={monoInputCls}
             />
           </Field>
@@ -99,6 +113,7 @@ export function AddCredentialForm() {
               id="expiry_date"
               name="expiry_date"
               type="date"
+              defaultValue={p.expiry ?? ""}
               className={monoInputCls}
             />
           </Field>
