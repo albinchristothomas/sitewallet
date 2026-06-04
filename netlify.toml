@@ -1,0 +1,36 @@
+# Netlify config for SiteWallet (Next.js 16 + Supabase SSR)
+# Netlify's @netlify/plugin-nextjs handles routing, ISR, and middleware (proxy)
+# automatically when this is set up. No additional config needed for routes.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Match the local dev Node version
+  NODE_VERSION = "22"
+  # Next.js 16 + Turbopack — Netlify supports this in production builds
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Security headers (same as the Vercel config used to set)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(self)"
+
+# Service worker — must not be cached aggressively
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+# Manifest — short cache
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=3600, must-revalidate"
