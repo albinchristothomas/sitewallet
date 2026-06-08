@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { addCredential } from "@/app/wallet/actions";
-import { CREDENTIAL_TYPES } from "@/lib/credentials";
+import { CREDENTIAL_TYPES, isCompanyOrientation } from "@/lib/credentials";
 
 const initialState: { error?: string } = {};
 
@@ -24,10 +24,12 @@ type Prefill = {
 export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
   const [state, action, pending] = useActionState(addCredential, initialState);
   const p = prefill ?? {};
+  const [credType, setCredType] = useState<string>(p.type ?? "");
+  const isOrientation = isCompanyOrientation(credType);
 
   return (
     <form action={action} className="flex flex-1 flex-col">
-      {p.verifyUrl && (
+      {p.verifyUrl && !isOrientation && (
         <input type="hidden" name="external_verification_url" value={p.verifyUrl} />
       )}
       <div className="flex-1 overflow-auto px-5 py-3">
@@ -37,7 +39,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
               id="credential_type"
               name="credential_type"
               required
-              defaultValue={p.type ?? ""}
+              value={credType}
+              onChange={(e) => setCredType(e.target.value)}
               className={inputCls + " appearance-none pr-10"}
             >
               <option value="" disabled>
@@ -55,73 +58,120 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
           </div>
         </Field>
 
-        <Field label="Issuer" htmlFor="issuer">
-          <input
-            id="issuer"
-            name="issuer"
-            type="text"
-            defaultValue={p.issuer ?? ""}
-            placeholder="e.g. Energy Safety Canada"
-            className={inputCls}
-          />
-        </Field>
+        {isOrientation ? (
+          <>
+            <div className="mb-4 rounded-lg border border-[color:rgba(250,204,21,0.30)] bg-[color:rgba(250,204,21,0.08)] px-3 py-2.5 text-[12px] leading-relaxed text-[color:var(--text-dim)]">
+              Company orientations are issued by the operating company and
+              don&apos;t need external verification. Just the company name and
+              the start / end dates.
+            </div>
 
-        <Field label="Certificate number" htmlFor="certificate_number">
-          <input
-            id="certificate_number"
-            name="certificate_number"
-            type="text"
-            defaultValue={p.cert ?? ""}
-            placeholder="ESC-2024-118-44210"
-            className={monoInputCls}
-          />
-        </Field>
+            <Field label="Issuing company" htmlFor="issuer" required>
+              <input
+                id="issuer"
+                name="issuer"
+                type="text"
+                required
+                defaultValue={p.issuer ?? ""}
+                placeholder="e.g. Tourmaline Oil Corp"
+                className={inputCls}
+              />
+            </Field>
 
-        <Field
-          label="Validation code"
-          htmlFor="validation_code"
-          hint="On Energy Safety Canada cards, this is the long code printed under the QR. Other cards may not have one — leave blank if so."
-        >
-          <input
-            id="validation_code"
-            name="validation_code"
-            type="text"
-            placeholder="R8LQ3-TVNJ7-9JXGZ-0YGQG"
-            className={monoInputCls + " tracking-[0.1em]"}
-          />
-        </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Start date" htmlFor="issue_date" required>
+                <input
+                  id="issue_date"
+                  name="issue_date"
+                  type="date"
+                  required
+                  defaultValue={p.issue ?? ""}
+                  className={monoInputCls}
+                />
+              </Field>
+              <Field label="End date" htmlFor="expiry_date" required>
+                <input
+                  id="expiry_date"
+                  name="expiry_date"
+                  type="date"
+                  required
+                  defaultValue={p.expiry ?? ""}
+                  className={monoInputCls}
+                />
+              </Field>
+            </div>
+          </>
+        ) : (
+          <>
+            <Field label="Issuer" htmlFor="issuer">
+              <input
+                id="issuer"
+                name="issuer"
+                type="text"
+                defaultValue={p.issuer ?? ""}
+                placeholder="e.g. Energy Safety Canada"
+                className={inputCls}
+              />
+            </Field>
 
-        <Field label="Name on the card" htmlFor="holder_name">
-          <input
-            id="holder_name"
-            name="holder_name"
-            type="text"
-            defaultValue={p.holder ?? ""}
-            placeholder="Full name on the ticket"
-            className={inputCls}
-          />
-        </Field>
+            <Field label="Certificate number" htmlFor="certificate_number">
+              <input
+                id="certificate_number"
+                name="certificate_number"
+                type="text"
+                defaultValue={p.cert ?? ""}
+                placeholder="ESC-2024-118-44210"
+                className={monoInputCls}
+              />
+            </Field>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Issued" htmlFor="issue_date">
-            <input
-              id="issue_date"
-              name="issue_date"
-              type="date"
-              defaultValue={p.issue ?? ""}
-              className={monoInputCls}
-            />
-          </Field>
-          <Field label="Expires" htmlFor="expiry_date">
-            <input
-              id="expiry_date"
-              name="expiry_date"
-              type="date"
-              defaultValue={p.expiry ?? ""}
-              className={monoInputCls}
-            />
-          </Field>
-        </div>
+            <Field
+              label="Validation code"
+              htmlFor="validation_code"
+              hint="On Energy Safety Canada cards, this is the long code printed under the QR. Other cards may not have one — leave blank if so."
+            >
+              <input
+                id="validation_code"
+                name="validation_code"
+                type="text"
+                placeholder="R8LQ3-TVNJ7-9JXGZ-0YGQG"
+                className={monoInputCls + " tracking-[0.1em]"}
+              />
+            </Field>
+
+            <Field label="Name on the card" htmlFor="holder_name">
+              <input
+                id="holder_name"
+                name="holder_name"
+                type="text"
+                defaultValue={p.holder ?? ""}
+                placeholder="Full name on the ticket"
+                className={inputCls}
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Issued" htmlFor="issue_date">
+                <input
+                  id="issue_date"
+                  name="issue_date"
+                  type="date"
+                  defaultValue={p.issue ?? ""}
+                  className={monoInputCls}
+                />
+              </Field>
+              <Field label="Expires" htmlFor="expiry_date">
+                <input
+                  id="expiry_date"
+                  name="expiry_date"
+                  type="date"
+                  defaultValue={p.expiry ?? ""}
+                  className={monoInputCls}
+                />
+              </Field>
+            </div>
+          </>
+        )}
 
         {state.error && (
           <p className="mt-2 text-sm text-[color:#F87171]">{state.error}</p>

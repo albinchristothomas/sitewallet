@@ -19,7 +19,7 @@ export default async function SiteDetailPage(
   const { data: site } = await supabase
     .from("sites")
     .select(
-      "id, name, rig_name, rig_number, lsd_location, project:projects(id, name, requirements_profile:requirements_profiles(id, required_credential_types), operator:companies(id, name))",
+      "id, name, rig_name, rig_number, well_number, lsd_location, project:projects(id, name, contract_name, contractor_company_name, requirements_profile:requirements_profiles(id, required_credential_types), operator:companies(id, name))",
     )
     .eq("id", siteId)
     .single();
@@ -94,11 +94,17 @@ export default async function SiteDetailPage(
           {operator?.name}
           {project?.name && <> · {project.name}</>}
         </p>
-        <p className="mt-1 font-mono text-[12px] text-[color:var(--text-faint)]">
-          {site.rig_name && <>Rig {site.rig_name} </>}
-          {site.rig_number && <>#{site.rig_number} </>}
-          {site.lsd_location && <>· {site.lsd_location}</>}
-        </p>
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-[12px]">
+          {site.rig_name && (
+            <Detail label="Rig" value={`${site.rig_name}${site.rig_number ? ` · #${site.rig_number}` : ""}`} />
+          )}
+          {site.well_number && <Detail label="Well" value={site.well_number} />}
+          {site.lsd_location && <Detail label="LSD" value={site.lsd_location} />}
+          {project?.contract_name && <Detail label="Contract" value={project.contract_name} />}
+          {project?.contractor_company_name && (
+            <Detail label="Contractor" value={project.contractor_company_name} />
+          )}
+        </dl>
       </header>
 
       <section className="mt-7">
@@ -171,7 +177,7 @@ export default async function SiteDetailPage(
         </p>
       </section>
 
-      <section className="mt-8 flex gap-3">
+      <section className="mt-8 flex flex-wrap gap-3">
         <Link
           href={`/medic/${siteId}/scan`}
           className="rounded-xl bg-[color:var(--hi-yellow)] px-5 py-3 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
@@ -184,7 +190,30 @@ export default async function SiteDetailPage(
         >
           Daily roster
         </Link>
+        <Link
+          href={`/medic/${siteId}/report`}
+          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+        >
+          End-of-day report
+        </Link>
+        <Link
+          href={`/medic/${siteId}/incidents`}
+          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+        >
+          Incidents
+        </Link>
       </section>
     </main>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-faint)]">
+        {label}
+      </dt>
+      <dd className="mt-0.5 text-[color:var(--text-dim)]">{value}</dd>
+    </div>
   );
 }

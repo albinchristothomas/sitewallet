@@ -1,39 +1,29 @@
 // Account type helpers. Single source of truth for who lands where.
 //
-// Each identity is exactly one type. There is no "worker who is also a medic"
-// — the medic is a different person checking the worker. If the same human
-// ever needs to do both jobs, they create two accounts with two emails.
+// Two account types, period:
+//   WORKER  — the person coming to the rig with safety tickets
+//   MEDIC   — the person at the gate who scans workers in, sets up sites,
+//             generates daily reports, and logs incidents.
+//
+// The partner's phrasing: "two apps — wallet and medic." The medic role
+// covers what other systems split into "operator" + "medic". One sign-up,
+// one home, full set of admin powers.
 
-export type AccountType = "WORKER" | "MEDIC" | "OPERATOR_ADMIN";
+export type AccountType = "WORKER" | "MEDIC";
 
-export type SignupIntent = "worker" | "medic" | "operator";
+export type SignupIntent = "worker" | "medic";
 
 export function intentToType(intent: SignupIntent): AccountType {
-  switch (intent) {
-    case "worker":
-      return "WORKER";
-    case "medic":
-      return "MEDIC";
-    case "operator":
-      return "OPERATOR_ADMIN";
-  }
+  return intent === "worker" ? "WORKER" : "MEDIC";
 }
 
 export function homeForType(type: AccountType): string {
-  switch (type) {
-    case "WORKER":
-      return "/wallet";
-    case "MEDIC":
-      return "/medic";
-    case "OPERATOR_ADMIN":
-      return "/admin";
-  }
+  return type === "WORKER" ? "/wallet" : "/medic";
 }
 
 export const TYPE_LABEL: Record<AccountType, string> = {
   WORKER: "Worker",
   MEDIC: "Medic",
-  OPERATOR_ADMIN: "Operator",
 };
 
 export const INTENT_DESCRIPTION: Record<SignupIntent, {
@@ -46,10 +36,6 @@ export const INTENT_DESCRIPTION: Record<SignupIntent, {
   },
   medic: {
     short: "I work at the gate",
-    long: "Check workers in as they arrive. Scan their QR, verify their tickets, manage the daily roster.",
-  },
-  operator: {
-    short: "I run the worksite",
-    long: "Set up sites, choose which tickets are required, assign medics, export rosters and incident reports.",
+    long: "Scan workers in, set up sites, run the daily roster, log incidents, send the day's report to the oil company.",
   },
 };

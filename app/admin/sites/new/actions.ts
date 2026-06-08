@@ -17,9 +17,13 @@ export async function createSite(
 
   const operatorName = String(formData.get("operator_name") ?? "").trim();
   const projectName = String(formData.get("project_name") ?? "").trim();
+  const contractName = String(formData.get("contract_name") ?? "").trim() || null;
+  const contractorCompanyName =
+    String(formData.get("contractor_company_name") ?? "").trim() || null;
   const siteName = String(formData.get("site_name") ?? "").trim();
   const rigName = String(formData.get("rig_name") ?? "").trim() || null;
   const rigNumber = String(formData.get("rig_number") ?? "").trim() || null;
+  const wellNumber = String(formData.get("well_number") ?? "").trim() || null;
   const lsdLocation = String(formData.get("lsd_location") ?? "").trim() || null;
   const latStr = String(formData.get("lat") ?? "").trim();
   const lngStr = String(formData.get("lng") ?? "").trim();
@@ -53,6 +57,8 @@ export async function createSite(
     .insert({
       operator_id: company.id,
       name: projectName,
+      contract_name: contractName,
+      contractor_company_name: contractorCompanyName,
       requirements_profile_id: profile.id,
     })
     .select("id")
@@ -67,6 +73,7 @@ export async function createSite(
       name: siteName,
       rig_name: rigName,
       rig_number: rigNumber,
+      well_number: wellNumber,
       lsd_location: lsdLocation,
       lat,
       lng,

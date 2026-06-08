@@ -37,14 +37,14 @@ export async function NavBar() {
             </Link>
           )}
           {type === "MEDIC" && (
-            <Link href="/medic" className={linkCls}>
-              Medic
-            </Link>
-          )}
-          {type === "OPERATOR_ADMIN" && (
-            <Link href="/admin" className={linkCls}>
-              Setup
-            </Link>
+            <>
+              <Link href="/medic" className={linkCls}>
+                Medic
+              </Link>
+              <Link href="/admin" className={linkCls}>
+                Setup
+              </Link>
+            </>
           )}
           <form action={signOutAction} className="ml-2">
             <button

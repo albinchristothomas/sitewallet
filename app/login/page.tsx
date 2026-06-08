@@ -5,7 +5,7 @@ import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } 
 import { LoginForm } from "./login-form";
 
 function isIntent(s: string | string[] | undefined): s is SignupIntent {
-  return s === "worker" || s === "medic" || s === "operator";
+  return s === "worker" || s === "medic";
 }
 
 export default async function LoginPage(props: PageProps<"/login">) {
@@ -30,7 +30,6 @@ export default async function LoginPage(props: PageProps<"/login">) {
   const ROLE_LABELS: Record<SignupIntent, string> = {
     worker: "Worker · Wallet",
     medic: "Medic · Gate scanner",
-    operator: "Operator · Setup",
   };
 
   return (

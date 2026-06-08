@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { intentToType, type SignupIntent, type AccountType } from "@/lib/roles";
 
 function isIntent(s: unknown): s is SignupIntent {
-  return s === "worker" || s === "medic" || s === "operator";
+  return s === "worker" || s === "medic";
 }
 
 export async function GET(request: NextRequest) {

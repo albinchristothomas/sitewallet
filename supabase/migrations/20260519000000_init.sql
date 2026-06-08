@@ -15,6 +15,7 @@ drop function if exists daily_roster(uuid, date) cascade;
 drop function if exists is_medic_for_site(uuid) cascade;
 drop function if exists set_updated_at() cascade;
 
+drop table if exists incidents cascade;
 drop table if exists work_permits cascade;
 drop table if exists muster_points cascade;
 drop table if exists audit_log cascade;
@@ -34,6 +35,8 @@ drop type if exists session_status cascade;
 drop type if exists check_method cascade;
 drop type if exists worker_role cascade;
 drop type if exists permit_type cascade;
+drop type if exists incident_type cascade;
+drop type if exists incident_severity cascade;
 
 -- =============================================================================
 -- Enums
@@ -69,21 +72,19 @@ create type check_method as enum (
 );
 
 -- Account type — exactly one per identity, locked at sign-up.
--- Workers are the people coming to a rig. Medics are the people checking
--- them in at the gate. Operators are the admins running a worksite.
--- They are never the same person.
+-- Workers are the people coming to a rig (drivers, roughneck, etc.).
+-- Medics are the people at the gate checking workers in; they also do
+-- site setup, daily reports, and incident logging. They are never the
+-- same person.
 create type account_type as enum (
   'WORKER',
-  'MEDIC',
-  'OPERATOR_ADMIN'
+  'MEDIC'
 );
 
--- Legacy alias retained for backward compatibility with existing code that
--- still references the old name. New code uses account_type.
+-- Legacy alias retained for code paths still referencing the old name.
 create type worker_role as enum (
   'WORKER',
-  'MEDIC',
-  'OPERATOR_ADMIN'
+  'MEDIC'
 );
 
 create type permit_type as enum (
@@ -93,6 +94,23 @@ create type permit_type as enum (
   'WORKING_AT_HEIGHTS',
   'EXCAVATION',
   'GENERAL'
+);
+
+create type incident_type as enum (
+  'FIRST_AID',
+  'NEAR_MISS',
+  'PROPERTY_DAMAGE',
+  'EQUIPMENT_FAILURE',
+  'ENVIRONMENTAL',
+  'MEDICAL_EVACUATION',
+  'OTHER'
+);
+
+create type incident_severity as enum (
+  'LOW',
+  'MEDIUM',
+  'HIGH',
+  'CRITICAL'
 );
 
 -- =============================================================================
@@ -178,11 +196,14 @@ create table requirements_profiles (
   created_at timestamptz not null default now()
 );
 
--- Projects: persistent operational thing owned by an operator.
+-- Projects: persistent operational thing owned by an operator (the oil & gas
+-- company). A project usually corresponds to one contract with a contractor.
 create table projects (
   id uuid primary key default gen_random_uuid(),
   operator_id uuid not null references companies(id) on delete restrict,
   name text not null,
+  contract_name text,             -- e.g. "Karr Wapiti 2026 Drilling MSA"
+  contractor_company_name text,   -- e.g. "Precision Drilling"
   requirements_profile_id uuid references requirements_profiles(id),
   created_at timestamptz not null default now()
 );
@@ -194,6 +215,7 @@ create table sites (
   name text not null,
   rig_name text,                  -- e.g. "Precision 555"
   rig_number text,                -- e.g. "555"
+  well_number text,               -- e.g. "PD 525" — the specific well being drilled
   lsd_location text,              -- legal land description (e.g. "12-34-067-25 W5M")
   lat numeric(9,6),
   lng numeric(9,6),
@@ -251,6 +273,22 @@ create table work_permits (
   valid_from timestamptz not null default now(),
   valid_until timestamptz not null,
   closed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+-- Incidents: logged by the medic on duty. Anything from a first-aid call
+-- to a near-miss or a medical evacuation. Surfaced on the end-of-day report.
+create table incidents (
+  id uuid primary key default gen_random_uuid(),
+  site_id uuid not null references sites(id) on delete cascade,
+  reported_by uuid not null references workers(id) on delete restrict,  -- the medic
+  worker_id uuid references workers(id),                                -- the worker involved (optional)
+  type incident_type not null,
+  severity incident_severity not null,
+  description text not null,
+  occurred_at timestamptz not null default now(),
+  closed_at timestamptz,
+  follow_up text,
   created_at timestamptz not null default now()
 );
 
@@ -352,6 +390,7 @@ alter table audit_log enable row level security;
 alter table medic_assignments enable row level security;
 alter table muster_points enable row level security;
 alter table work_permits enable row level security;
+alter table incidents enable row level security;
 
 -- Workers: own row, plus medics can read workers they are scanning in (handled
 -- via a view or RPC in practice; for Phase 1 we allow authenticated read of
@@ -438,6 +477,19 @@ create policy "work_permits medic select assigned"
 
 create policy "work_permits medic insert assigned"
   on work_permits for insert with check (is_medic_for_site(site_id));
+
+-- Incidents: medics at the site can read + write. Workers can read incidents
+-- in which they're the named worker.
+create policy "incidents medic select assigned"
+  on incidents for select using (is_medic_for_site(site_id));
+
+create policy "incidents medic insert assigned"
+  on incidents for insert with check (
+    is_medic_for_site(site_id) and reported_by = auth.uid()
+  );
+
+create policy "incidents worker select own"
+  on incidents for select using (worker_id = auth.uid());
 
 -- =============================================================================
 -- RPCs the medic UI calls (security definer so they can read worker data

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HardHat, Stethoscope, ClipboardList, ArrowRight } from "lucide-react";
+import { HardHat, Stethoscope, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
 import { homeForType, INTENT_DESCRIPTION, type SignupIntent, type AccountType } from "@/lib/roles";
@@ -22,9 +22,8 @@ export default async function Home() {
   }
 
   const intents: Array<{ key: SignupIntent; icon: React.ReactNode }> = [
-    { key: "worker", icon: <HardHat size={22} strokeWidth={1.75} /> },
-    { key: "medic", icon: <Stethoscope size={22} strokeWidth={1.75} /> },
-    { key: "operator", icon: <ClipboardList size={22} strokeWidth={1.75} /> },
+    { key: "worker", icon: <HardHat size={24} strokeWidth={1.75} /> },
+    { key: "medic", icon: <Stethoscope size={24} strokeWidth={1.75} /> },
   ];
 
   return (
@@ -50,14 +49,14 @@ export default async function Home() {
               <Link
                 key={key}
                 href={`/login?as=${key}`}
-                className="group flex items-center gap-4 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4 transition hover:border-[color:var(--hair-strong)] hover:bg-[color:var(--ink-3)]"
+                className="group flex items-center gap-4 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-5 transition hover:border-[color:var(--hair-strong)] hover:bg-[color:var(--ink-3)]"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)] group-hover:bg-[color:var(--hi-yellow)] group-hover:text-[color:var(--ink-1)]">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)] group-hover:bg-[color:var(--hi-yellow)] group-hover:text-[color:var(--ink-1)]">
                   {icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[15px] font-semibold">{meta.short}</div>
-                  <div className="mt-0.5 text-[12px] leading-snug text-[color:var(--text-dim)]">
+                  <div className="text-[16px] font-semibold">{meta.short}</div>
+                  <div className="mt-1 text-[12px] leading-snug text-[color:var(--text-dim)]">
                     {meta.long}
                   </div>
                 </div>

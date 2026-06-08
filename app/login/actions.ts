@@ -7,7 +7,7 @@ import { intentToType, homeForType, type SignupIntent } from "@/lib/roles";
 type State = { error?: string; sent?: boolean; email?: string };
 
 function isIntent(s: string): s is SignupIntent {
-  return s === "worker" || s === "medic" || s === "operator";
+  return s === "worker" || s === "medic";
 }
 
 export async function sendMagicLink(

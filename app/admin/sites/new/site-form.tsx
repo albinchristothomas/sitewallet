@@ -17,8 +17,8 @@ export function SiteForm() {
 
   return (
     <form action={action} className="space-y-7">
-      <Section title="Operator & project">
-        <Field label="Operator company" htmlFor="operator_name" required>
+      <Section title="Oil company, project & contract">
+        <Field label="Oil company" htmlFor="operator_name" required>
           <input
             id="operator_name"
             name="operator_name"
@@ -38,9 +38,27 @@ export function SiteForm() {
             className={inputCls}
           />
         </Field>
+        <Field label="Contract name" htmlFor="contract_name">
+          <input
+            id="contract_name"
+            name="contract_name"
+            type="text"
+            placeholder="Karr Wapiti 2026 Drilling MSA"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Contractor company" htmlFor="contractor_company_name">
+          <input
+            id="contractor_company_name"
+            name="contractor_company_name"
+            type="text"
+            placeholder="Precision Drilling"
+            className={inputCls}
+          />
+        </Field>
       </Section>
 
-      <Section title="Site">
+      <Section title="Site & well">
         <Field label="Site name" htmlFor="site_name" required>
           <input
             id="site_name"
@@ -71,6 +89,15 @@ export function SiteForm() {
             />
           </Field>
         </div>
+        <Field label="Well number" htmlFor="well_number">
+          <input
+            id="well_number"
+            name="well_number"
+            type="text"
+            placeholder="PD 525"
+            className={monoInput}
+          />
+        </Field>
         <Field label="LSD / location" htmlFor="lsd_location">
           <input
             id="lsd_location"
