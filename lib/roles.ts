@@ -1,10 +1,14 @@
-// Role helpers — single source of truth for who lands where.
+// Account type helpers. Single source of truth for who lands where.
+//
+// Each identity is exactly one type. There is no "worker who is also a medic"
+// — the medic is a different person checking the worker. If the same human
+// ever needs to do both jobs, they create two accounts with two emails.
 
-export type WorkerRole = "WORKER" | "MEDIC" | "OPERATOR_ADMIN";
+export type AccountType = "WORKER" | "MEDIC" | "OPERATOR_ADMIN";
 
 export type SignupIntent = "worker" | "medic" | "operator";
 
-export function intentToRole(intent: SignupIntent): WorkerRole {
+export function intentToType(intent: SignupIntent): AccountType {
   switch (intent) {
     case "worker":
       return "WORKER";
@@ -15,32 +19,18 @@ export function intentToRole(intent: SignupIntent): WorkerRole {
   }
 }
 
-export function intentToHome(intent: SignupIntent): string {
-  switch (intent) {
-    case "worker":
+export function homeForType(type: AccountType): string {
+  switch (type) {
+    case "WORKER":
       return "/wallet";
-    case "medic":
+    case "MEDIC":
       return "/medic";
-    case "operator":
+    case "OPERATOR_ADMIN":
       return "/admin";
   }
 }
 
-// Given a user's roles, decide their default home.
-// Priority: operator > medic > worker. (An operator usually doesn't also
-// scan QRs themselves; a medic might also hold their own tickets.)
-export function defaultHomeForRoles(roles: WorkerRole[]): string {
-  if (roles.includes("OPERATOR_ADMIN")) return "/admin";
-  if (roles.includes("MEDIC")) return "/medic";
-  return "/wallet";
-}
-
-export function hasRole(roles: WorkerRole[] | null | undefined, role: WorkerRole): boolean {
-  return Array.isArray(roles) && roles.includes(role);
-}
-
-// Human labels — used in onboarding and nav.
-export const ROLE_LABEL: Record<WorkerRole, string> = {
+export const TYPE_LABEL: Record<AccountType, string> = {
   WORKER: "Worker",
   MEDIC: "Medic",
   OPERATOR_ADMIN: "Operator",
@@ -56,7 +46,7 @@ export const INTENT_DESCRIPTION: Record<SignupIntent, {
   },
   medic: {
     short: "I work at the gate",
-    long: "Scan workers as they arrive, verify their tickets against site requirements, manage the daily roster.",
+    long: "Check workers in as they arrive. Scan their QR, verify their tickets, manage the daily roster.",
   },
   operator: {
     short: "I run the worksite",

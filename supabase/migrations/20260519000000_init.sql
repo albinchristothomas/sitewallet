@@ -68,6 +68,18 @@ create type check_method as enum (
   'BULK'
 );
 
+-- Account type — exactly one per identity, locked at sign-up.
+-- Workers are the people coming to a rig. Medics are the people checking
+-- them in at the gate. Operators are the admins running a worksite.
+-- They are never the same person.
+create type account_type as enum (
+  'WORKER',
+  'MEDIC',
+  'OPERATOR_ADMIN'
+);
+
+-- Legacy alias retained for backward compatibility with existing code that
+-- still references the old name. New code uses account_type.
 create type worker_role as enum (
   'WORKER',
   'MEDIC',
@@ -88,10 +100,11 @@ create type permit_type as enum (
 -- =============================================================================
 
 -- Workers: persistent identity. 1:1 with auth.users.
--- "Worker" is a misnomer here — this row represents any person in the system:
--- a field worker holding tickets, a medic at a gate, or an operator admin.
--- The roles[] column distinguishes them. Medic-specific and operator-specific
--- columns are nullable on this same row.
+-- This row represents any person in the system: a field worker holding
+-- tickets, a medic at a gate, or an operator admin. account_type is locked
+-- at sign-up — a person is exactly one of those. Workers and medics are
+-- never the same human; if a person needs both jobs they make two accounts.
+-- Medic-specific and operator-specific columns are nullable.
 create table workers (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
@@ -99,9 +112,9 @@ create table workers (
   date_of_birth date,
   government_id_hash text,
   photo_url text,
-  roles worker_role[] not null default array['WORKER']::worker_role[],
+  account_type account_type not null default 'WORKER',
 
-  -- Worker-specific
+  -- Worker-specific (null for non-workers)
   employee_number text,         -- internal employee ID at their employer
   contractor_company text,      -- e.g. "Precision Drilling", free text for now
 
@@ -315,7 +328,7 @@ as $$
     join workers w on w.id = ma.medic_id
     where ma.medic_id = auth.uid()
       and ma.site_id = target_site_id
-      and 'MEDIC' = any(w.roles)
+      and w.account_type = 'MEDIC'
       and (ma.expires_at is null or ma.expires_at > now())
   );
 $$;
@@ -526,6 +539,20 @@ declare
 begin
   if not is_medic_for_site(p_site_id) then
     raise exception 'not authorized';
+  end if;
+
+  -- Tamper-proof: medic cannot admit themselves. Worker and medic are
+  -- always different people in this system.
+  if p_worker_id = auth.uid() then
+    raise exception 'medic cannot admit themselves';
+  end if;
+
+  -- Tamper-proof: only WORKER-typed accounts can be admitted.
+  if not exists (
+    select 1 from workers
+    where id = p_worker_id and account_type = 'WORKER'
+  ) then
+    raise exception 'only worker accounts can be scanned in';
   end if;
 
   -- If there is already an active session for this worker, return it.

@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
-import { assignSelfAsMedic } from "./actions";
 
 export default async function SiteDetailPage(
   props: PageProps<"/admin/sites/[siteId]">,
@@ -53,8 +52,6 @@ export default async function SiteDetailPage(
     .from("medic_assignments")
     .select("id, medic_id, assigned_at, expires_at, medic:workers(id, full_name)")
     .eq("site_id", siteId);
-
-  const meAssigned = assignments?.some((a) => a.medic_id === user.id);
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-6">
@@ -126,25 +123,14 @@ export default async function SiteDetailPage(
       </section>
 
       <section className="mt-7">
-        <div className="mb-2.5 flex items-center justify-between">
+        <div className="mb-2.5">
           <Eyebrow>Medics · {assignments?.length ?? 0}</Eyebrow>
-          {!meAssigned && (
-            <form action={assignSelfAsMedic.bind(null, siteId)}>
-              <button
-                type="submit"
-                className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-1.5 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
-              >
-                Assign myself
-              </button>
-            </form>
-          )}
         </div>
 
         {assignments && assignments.length > 0 ? (
           <ul className="space-y-2">
             {assignments.map((a) => {
               const medic = Array.isArray(a.medic) ? a.medic[0] : a.medic;
-              const isMe = a.medic_id === user.id;
               return (
                 <li
                   key={a.id}
@@ -169,7 +155,6 @@ export default async function SiteDetailPage(
                         .toUpperCase()}
                     </div>
                   </div>
-                  {isMe && <StatusPill status="info" label="You" />}
                 </li>
               );
             })}

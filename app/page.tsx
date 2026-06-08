@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { HardHat, Stethoscope, ClipboardList, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
-import { defaultHomeForRoles, INTENT_DESCRIPTION, type SignupIntent, type WorkerRole } from "@/lib/roles";
+import { homeForType, INTENT_DESCRIPTION, type SignupIntent, type AccountType } from "@/lib/roles";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -14,11 +14,11 @@ export default async function Home() {
   if (user) {
     const { data: w } = await supabase
       .from("workers")
-      .select("roles")
+      .select("account_type")
       .eq("id", user.id)
       .single();
-    const roles = (w?.roles ?? ["WORKER"]) as WorkerRole[];
-    redirect(defaultHomeForRoles(roles));
+    const type = (w?.account_type ?? "WORKER") as AccountType;
+    redirect(homeForType(type));
   }
 
   const intents: Array<{ key: SignupIntent; icon: React.ReactNode }> = [
@@ -40,7 +40,7 @@ export default async function Home() {
           SiteWallet
         </h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-[15px] text-[color:var(--text-dim)]">
-          Pick how you&apos;ll use SiteWallet. You can change later.
+          Pick how you&apos;ll use SiteWallet.
         </p>
 
         <div className="mt-8 space-y-2.5">

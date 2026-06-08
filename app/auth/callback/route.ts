@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { intentToRole, type SignupIntent, type WorkerRole } from "@/lib/roles";
+import { intentToType, type SignupIntent, type AccountType } from "@/lib/roles";
 
 function isIntent(s: unknown): s is SignupIntent {
   return s === "worker" || s === "medic" || s === "operator";
@@ -29,36 +29,33 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (user) {
-    // First sign-in: create the workers row, pre-filling from user_metadata.
-    // signup_role (worker/medic/operator) tells us their primary role.
-    // full_name may have been set by the admin invite flow.
+    // First sign-in: create the workers row with the declared account_type.
+    // signup_role is set by the magic-link request from /login.
+    // full_name may have been set by an admin invite.
+    // Once created, account_type is locked — same identity can't shape-shift.
     const meta = user.user_metadata ?? {};
     const fullName = typeof meta.full_name === "string" ? meta.full_name : null;
     const signupRoleRaw = meta.signup_role;
-    const signupRole: WorkerRole | null = isIntent(signupRoleRaw)
-      ? intentToRole(signupRoleRaw)
+    const signupType: AccountType | null = isIntent(signupRoleRaw)
+      ? intentToType(signupRoleRaw)
       : null;
 
-    // Fetch existing roles so we don't clobber. Insert if new.
     const { data: existing } = await supabase
       .from("workers")
-      .select("id, roles")
+      .select("id, account_type")
       .eq("id", user.id)
       .maybeSingle();
 
     if (!existing) {
-      // New user — create row with declared role (or default WORKER).
-      const initialRoles: WorkerRole[] = signupRole ? [signupRole] : ["WORKER"];
       await supabase.from("workers").insert({
         id: user.id,
         ...(fullName ? { full_name: fullName } : {}),
-        roles: initialRoles,
+        account_type: signupType ?? "WORKER",
       });
-    } else if (signupRole && !(existing.roles ?? []).includes(signupRole)) {
-      // Existing user signing in under a new role intent — add the role.
-      const merged = Array.from(new Set([...(existing.roles ?? []), signupRole]));
-      await supabase.from("workers").update({ roles: merged }).eq("id", user.id);
     }
+    // No "else" branch — once account_type is set, we never change it from
+    // here. If a person needs a different account type, they sign up with a
+    // different email.
   }
 
   return NextResponse.redirect(`${origin}${next}`);

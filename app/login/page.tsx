@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
-import { INTENT_DESCRIPTION, type SignupIntent, defaultHomeForRoles, type WorkerRole } from "@/lib/roles";
+import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } from "@/lib/roles";
 import { LoginForm } from "./login-form";
 
 function isIntent(s: string | string[] | undefined): s is SignupIntent {
@@ -20,11 +20,11 @@ export default async function LoginPage(props: PageProps<"/login">) {
   if (user) {
     const { data: w } = await supabase
       .from("workers")
-      .select("roles")
+      .select("account_type")
       .eq("id", user.id)
       .single();
-    const roles = (w?.roles ?? ["WORKER"]) as WorkerRole[];
-    redirect(defaultHomeForRoles(roles));
+    const type = (w?.account_type ?? "WORKER") as AccountType;
+    redirect(homeForType(type));
   }
 
   const ROLE_LABELS: Record<SignupIntent, string> = {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
 import { signOutAction } from "@/lib/auth-actions";
-import { hasRole, type WorkerRole } from "@/lib/roles";
+import { type AccountType } from "@/lib/roles";
 
 export async function NavBar() {
   const supabase = await createClient();
@@ -14,14 +14,11 @@ export async function NavBar() {
 
   const { data: worker } = await supabase
     .from("workers")
-    .select("roles, full_name")
+    .select("account_type, full_name")
     .eq("id", user.id)
     .single();
 
-  const roles: WorkerRole[] = (worker?.roles ?? ["WORKER"]) as WorkerRole[];
-  const isWorker = hasRole(roles, "WORKER");
-  const isMedic = hasRole(roles, "MEDIC");
-  const isOperator = hasRole(roles, "OPERATOR_ADMIN");
+  const type: AccountType = (worker?.account_type ?? "WORKER") as AccountType;
 
   const linkCls =
     "rounded-md px-2.5 py-1.5 text-sm font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]";
@@ -34,17 +31,17 @@ export async function NavBar() {
           <span className="text-sm font-bold tracking-tight">SiteWallet</span>
         </Link>
         <div className="flex items-center gap-1 text-sm">
-          {isWorker && (
+          {type === "WORKER" && (
             <Link href="/wallet" className={linkCls}>
               Wallet
             </Link>
           )}
-          {isMedic && (
+          {type === "MEDIC" && (
             <Link href="/medic" className={linkCls}>
               Medic
             </Link>
           )}
-          {isOperator && (
+          {type === "OPERATOR_ADMIN" && (
             <Link href="/admin" className={linkCls}>
               Setup
             </Link>

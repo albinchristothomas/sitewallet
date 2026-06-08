@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { intentToHome, type SignupIntent } from "@/lib/roles";
+import { intentToType, homeForType, type SignupIntent } from "@/lib/roles";
 
 type State = { error?: string; sent?: boolean; email?: string };
 
@@ -28,8 +28,8 @@ export async function sendMagicLink(
     headerList.get("origin") ??
     `http://${headerList.get("host") ?? "localhost:3000"}`;
 
-  // After magic-link, send the user to their role's home page.
-  const next = signupAs ? intentToHome(signupAs) : "/wallet";
+  // After magic-link, send the user to their account type's home page.
+  const next = signupAs ? homeForType(intentToType(signupAs)) : "/wallet";
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
