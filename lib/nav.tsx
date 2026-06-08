@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
 import { signOutAction } from "@/lib/auth-actions";
+import { hasRole, type WorkerRole } from "@/lib/roles";
 
 export async function NavBar() {
   const supabase = await createClient();
@@ -17,8 +18,10 @@ export async function NavBar() {
     .eq("id", user.id)
     .single();
 
-  const roles: string[] = worker?.roles ?? ["WORKER"];
-  const isMedic = roles.includes("MEDIC");
+  const roles: WorkerRole[] = (worker?.roles ?? ["WORKER"]) as WorkerRole[];
+  const isWorker = hasRole(roles, "WORKER");
+  const isMedic = hasRole(roles, "MEDIC");
+  const isOperator = hasRole(roles, "OPERATOR_ADMIN");
 
   const linkCls =
     "rounded-md px-2.5 py-1.5 text-sm font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]";
@@ -31,17 +34,21 @@ export async function NavBar() {
           <span className="text-sm font-bold tracking-tight">SiteWallet</span>
         </Link>
         <div className="flex items-center gap-1 text-sm">
-          <Link href="/wallet" className={linkCls}>
-            Wallet
-          </Link>
+          {isWorker && (
+            <Link href="/wallet" className={linkCls}>
+              Wallet
+            </Link>
+          )}
           {isMedic && (
             <Link href="/medic" className={linkCls}>
               Medic
             </Link>
           )}
-          <Link href="/admin" className={linkCls}>
-            Setup
-          </Link>
+          {isOperator && (
+            <Link href="/admin" className={linkCls}>
+              Setup
+            </Link>
+          )}
           <form action={signOutAction} className="ml-2">
             <button
               type="submit"

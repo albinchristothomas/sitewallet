@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { HardHat, Stethoscope, ClipboardList, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
+import { defaultHomeForRoles, INTENT_DESCRIPTION, type SignupIntent, type WorkerRole } from "@/lib/roles";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -10,67 +12,67 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/wallet");
+    const { data: w } = await supabase
+      .from("workers")
+      .select("roles")
+      .eq("id", user.id)
+      .single();
+    const roles = (w?.roles ?? ["WORKER"]) as WorkerRole[];
+    redirect(defaultHomeForRoles(roles));
   }
+
+  const intents: Array<{ key: SignupIntent; icon: React.ReactNode }> = [
+    { key: "worker", icon: <HardHat size={22} strokeWidth={1.75} /> },
+    { key: "medic", icon: <Stethoscope size={22} strokeWidth={1.75} /> },
+    { key: "operator", icon: <ClipboardList size={22} strokeWidth={1.75} /> },
+  ];
 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="w-full max-w-xl text-center">
+      <div className="w-full max-w-md">
         <div className="mx-auto mb-6 flex justify-center">
-          <SWMark size={64} />
+          <SWMark size={56} />
         </div>
-        <p className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-[color:var(--text-faint)]">
+        <p className="mb-2 text-center font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-[color:var(--text-faint)]">
           For Canadian energy worksites
         </p>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="text-center text-4xl font-bold tracking-tight">
           SiteWallet
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-base text-[color:var(--text-dim)] sm:text-lg">
-          Carry your safety credentials in your pocket. Verified at the gate by
-          a medic in seconds. Your wallet stays with you when you change
-          employers.
+        <p className="mx-auto mt-3 max-w-sm text-center text-[15px] text-[color:var(--text-dim)]">
+          Pick how you&apos;ll use SiteWallet. You can change later.
         </p>
-        <div className="mt-10 flex justify-center">
-          <Link
-            href="/login"
-            className="rounded-xl bg-[color:var(--hi-yellow)] px-7 py-4 text-base font-bold text-[color:var(--ink-1)] transition hover:brightness-95"
-          >
-            Sign in or sign up
-          </Link>
+
+        <div className="mt-8 space-y-2.5">
+          {intents.map(({ key, icon }) => {
+            const meta = INTENT_DESCRIPTION[key];
+            return (
+              <Link
+                key={key}
+                href={`/login?as=${key}`}
+                className="group flex items-center gap-4 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4 transition hover:border-[color:var(--hair-strong)] hover:bg-[color:var(--ink-3)]"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)] group-hover:bg-[color:var(--hi-yellow)] group-hover:text-[color:var(--ink-1)]">
+                  {icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[15px] font-semibold">{meta.short}</div>
+                  <div className="mt-0.5 text-[12px] leading-snug text-[color:var(--text-dim)]">
+                    {meta.long}
+                  </div>
+                </div>
+                <ArrowRight size={18} className="shrink-0 text-[color:var(--text-faint)] group-hover:text-[color:var(--text)]" />
+              </Link>
+            );
+          })}
         </div>
 
-        <div className="mt-16 grid grid-cols-3 gap-4 text-left">
-          {[
-            {
-              n: "01",
-              title: "Worker",
-              body: "Wallet on your phone. Show QR at the gate.",
-            },
-            {
-              n: "02",
-              title: "Medic",
-              body: "Scan, see green or red, admit or deny.",
-            },
-            {
-              n: "03",
-              title: "Operator",
-              body: "Set required tickets. See daily roster.",
-            },
-          ].map((s) => (
-            <div
-              key={s.n}
-              className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4"
-            >
-              <div className="font-mono text-[11px] font-medium text-[color:var(--hi-yellow)]">
-                {s.n}
-              </div>
-              <div className="mt-2 text-sm font-bold">{s.title}</div>
-              <div className="mt-1 text-[12px] text-[color:var(--text-dim)]">
-                {s.body}
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="mt-8 text-center text-[12px] text-[color:var(--text-faint)]">
+          Already have an account?{" "}
+          <Link href="/login" className="text-[color:var(--text-dim)] underline-offset-2 hover:text-[color:var(--text)] hover:underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </main>
   );

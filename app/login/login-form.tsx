@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { sendMagicLink } from "./actions";
+import type { SignupIntent } from "@/lib/roles";
 
 type State = { error?: string; sent?: boolean; email?: string };
 
@@ -10,7 +11,7 @@ const initialState: State = {};
 const inputCls =
   "w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-4 py-3.5 text-base text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
 
-export function LoginForm() {
+export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
   const [state, action, pending] = useActionState<State, FormData>(
     sendMagicLink,
     initialState,
@@ -42,6 +43,9 @@ export function LoginForm() {
 
   return (
     <form action={action} className="space-y-4">
+      {signupAs && (
+        <input type="hidden" name="signup_as" value={signupAs} />
+      )}
       <div>
         <label
           htmlFor="email"

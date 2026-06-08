@@ -1,31 +1,62 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SWMark } from "@/lib/atoms";
+import { INTENT_DESCRIPTION, type SignupIntent, defaultHomeForRoles, type WorkerRole } from "@/lib/roles";
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
+function isIntent(s: string | string[] | undefined): s is SignupIntent {
+  return s === "worker" || s === "medic" || s === "operator";
+}
+
+export default async function LoginPage(props: PageProps<"/login">) {
+  const sp = await props.searchParams;
+  const as: SignupIntent | null = isIntent(sp.as) ? sp.as : null;
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/wallet");
+    const { data: w } = await supabase
+      .from("workers")
+      .select("roles")
+      .eq("id", user.id)
+      .single();
+    const roles = (w?.roles ?? ["WORKER"]) as WorkerRole[];
+    redirect(defaultHomeForRoles(roles));
   }
+
+  const ROLE_LABELS: Record<SignupIntent, string> = {
+    worker: "Worker · Wallet",
+    medic: "Medic · Gate scanner",
+    operator: "Operator · Setup",
+  };
 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
-        <div className="mb-10 text-center">
+        <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex justify-center">
             <SWMark size={48} />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">SiteWallet</h1>
-          <p className="mt-2 text-sm text-[color:var(--text-dim)]">
-            Your safety credentials, in your pocket. Verified at the gate.
-          </p>
+          {as ? (
+            <>
+              <p className="mt-3 inline-block rounded-full border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--hi-yellow)]">
+                Signing in as {ROLE_LABELS[as]}
+              </p>
+              <p className="mt-3 text-sm text-[color:var(--text-dim)]">
+                {INTENT_DESCRIPTION[as].long}
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-[color:var(--text-dim)]">
+              Your safety credentials, in your pocket. Verified at the gate.
+            </p>
+          )}
         </div>
-        <LoginForm />
+        <LoginForm signupAs={as} />
       </div>
     </main>
   );

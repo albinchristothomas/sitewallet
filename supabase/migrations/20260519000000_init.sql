@@ -88,6 +88,10 @@ create type permit_type as enum (
 -- =============================================================================
 
 -- Workers: persistent identity. 1:1 with auth.users.
+-- "Worker" is a misnomer here — this row represents any person in the system:
+-- a field worker holding tickets, a medic at a gate, or an operator admin.
+-- The roles[] column distinguishes them. Medic-specific and operator-specific
+-- columns are nullable on this same row.
 create table workers (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
@@ -96,6 +100,18 @@ create table workers (
   government_id_hash text,
   photo_url text,
   roles worker_role[] not null default array['WORKER']::worker_role[],
+
+  -- Worker-specific
+  employee_number text,         -- internal employee ID at their employer
+  contractor_company text,      -- e.g. "Precision Drilling", free text for now
+
+  -- Medic-specific (null for non-medics)
+  medic_license_number text,
+  medic_firm text,              -- Aluma / Falck / Astus / etc.
+
+  -- Operator-specific (null for non-operators)
+  operator_company_name text,   -- the oil & gas company the admin represents
+
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
