@@ -31,6 +31,13 @@ export async function addCredential(
     String(formData.get("certificate_number") ?? "").trim() || null;
   const validationCode =
     String(formData.get("validation_code") ?? "").trim() || null;
+  const externalVerificationUrlRaw = String(
+    formData.get("external_verification_url") ?? "",
+  ).trim();
+  const externalVerificationUrl =
+    externalVerificationUrlRaw && /^https?:\/\//i.test(externalVerificationUrlRaw)
+      ? externalVerificationUrlRaw
+      : null;
   const holderName = String(formData.get("holder_name") ?? "").trim() || null;
   const issueDate = String(formData.get("issue_date") ?? "") || null;
   const expiryDate = String(formData.get("expiry_date") ?? "") || null;
@@ -45,6 +52,7 @@ export async function addCredential(
     issuer,
     certificate_number: certificateNumber,
     validation_code: validationCode,
+    external_verification_url: externalVerificationUrl,
     holder_name: holderName,
     issue_date: issueDate,
     expiry_date: expiryDate,

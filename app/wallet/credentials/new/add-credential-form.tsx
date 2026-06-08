@@ -18,6 +18,7 @@ type Prefill = {
   issue?: string;
   expiry?: string;
   holder?: string;
+  verifyUrl?: string;
 };
 
 export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
@@ -26,6 +27,9 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
 
   return (
     <form action={action} className="flex flex-1 flex-col">
+      {p.verifyUrl && (
+        <input type="hidden" name="external_verification_url" value={p.verifyUrl} />
+      )}
       <div className="flex-1 overflow-auto px-5 py-3">
         <Field label="Credential type" htmlFor="credential_type" required>
           <div className="relative">

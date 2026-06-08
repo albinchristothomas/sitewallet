@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { Camera, Image as ImageIcon, ShieldCheck } from "lucide-react";
 import { parseTicketText, type ParsedTicket } from "@/lib/ocr-parser";
 
 type Phase = "idle" | "reading" | "parsed" | "error";
@@ -22,28 +22,43 @@ export function ScanForm({ holderName }: { holderName: string }) {
     setPhase("reading");
     setProgress(0);
 
-    // Show a preview from the file
     const reader = new FileReader();
     reader.onload = (e) => setPreview(String(e.target?.result ?? ""));
     reader.readAsDataURL(file);
 
     try {
-      // Resize for OCR performance
-      const resized = await resizeImage(file, 1200);
+      const canvas = await imageToCanvas(file, 1200);
+
+      // Run QR detection and OCR in parallel. QR is fast (<1s); OCR is slow
+      // (5-15s the first time, faster after). Both look at the same canvas.
+      const qrPromise = detectQr(canvas);
+
+      const blob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("Encoding failed"))),
+          "image/jpeg",
+          0.82,
+        );
+      });
+
       const { default: Tesseract } = await import("tesseract.js");
-      const result = await Tesseract.recognize(resized, "eng", {
+      const ocrResult = await Tesseract.recognize(blob, "eng", {
         logger: (m: { status: string; progress: number }) => {
           if (m.status === "recognizing text") {
             setProgress(Math.round(m.progress * 100));
           }
         },
       });
-      const text = result.data.text;
-      const p = parseTicketText(text, holderName);
+
+      const qrPayload = (await qrPromise) ?? "";
+      const text = ocrResult.data.text;
+      const p = parseTicketText(text, holderName, qrPayload);
       setParsed(p);
       setPhase("parsed");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "OCR failed. Try a clearer photo.");
+      setError(
+        e instanceof Error ? e.message : "Couldn't read the photo. Try again.",
+      );
       setPhase("error");
     }
   }
@@ -57,6 +72,8 @@ export function ScanForm({ holderName }: { holderName: string }) {
     if (parsed.issueDate) params.set("issue", parsed.issueDate);
     if (parsed.expiryDate) params.set("expiry", parsed.expiryDate);
     if (parsed.holderName) params.set("holder", parsed.holderName);
+    if (parsed.externalVerificationUrl)
+      params.set("verify_url", parsed.externalVerificationUrl);
     router.push(`/wallet/credentials/new?${params.toString()}`);
   }
 
@@ -70,11 +87,11 @@ export function ScanForm({ holderName }: { holderName: string }) {
             </div>
             <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
               Take a clear photo of the front of your safety card. We&rsquo;ll
-              read it and auto-fill the credential type, issuer, dates, and
-              cert number.
+              read the text and the QR code (if there is one) and pre-fill the
+              form.
             </p>
             <p className="mt-2 text-[11px] text-[color:var(--text-faint)]">
-              We recognize H2S Alive, First Aid, CSO, OSSA, Ground Disturbance,
+              Recognized: H2S Alive, First Aid, CSO, OSSA, Ground Disturbance,
               WHMIS, Fall Protection, Confined Space, TDG, and more.
             </p>
           </div>
@@ -162,16 +179,63 @@ export function ScanForm({ holderName }: { holderName: string }) {
               Auto-filled
             </div>
             <div className="mt-2 space-y-2 text-[13px]">
-              <Row label="Type" value={parsed.credentialLabel || "(not recognized — pick manually)"} ok={!!parsed.credentialKey} />
-              <Row label="Issuer" value={parsed.issuer || "(not found)"} ok={!!parsed.issuer} />
-              <Row label="Cert #" value={parsed.certificateNumber || "(not found)"} ok={parsed.confidence.cert} mono />
-              <Row label="Issued" value={parsed.issueDate || "(not found)"} ok={!!parsed.issueDate} mono />
-              <Row label="Expires" value={parsed.expiryDate || "(not found)"} ok={!!parsed.expiryDate} mono />
+              <Row
+                label="Type"
+                value={parsed.credentialLabel || "(not recognized — pick manually)"}
+                ok={!!parsed.credentialKey}
+              />
+              <Row
+                label="Issuer"
+                value={parsed.issuer || "(not found)"}
+                ok={!!parsed.issuer}
+              />
+              <Row
+                label="Cert #"
+                value={parsed.certificateNumber || "(not found)"}
+                ok={parsed.confidence.cert}
+                mono
+              />
+              <Row
+                label="Issued"
+                value={parsed.issueDate || "(not found)"}
+                ok={!!parsed.issueDate}
+                mono
+              />
+              <Row
+                label="Expires"
+                value={parsed.expiryDate || "(not found)"}
+                ok={!!parsed.expiryDate}
+                mono
+              />
               {parsed.holderName && (
                 <Row label="Name" value={parsed.holderName} ok={true} />
               )}
             </div>
           </div>
+
+          {parsed.confidence.qr && (
+            <div className="rounded-2xl border border-[color:rgba(16,185,129,0.32)] bg-[color:rgba(16,185,129,0.08)] p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck
+                  size={20}
+                  strokeWidth={1.75}
+                  className="mt-0.5 shrink-0 text-[color:#34D399]"
+                />
+                <div className="text-[13px] leading-relaxed">
+                  <div className="font-semibold text-[color:#34D399]">
+                    QR code detected
+                  </div>
+                  <div className="mt-1 text-[color:var(--text-dim)]">
+                    The medic at the gate will be able to tap this to verify
+                    with the issuer directly. Looks like an ESC card.
+                  </div>
+                  <div className="mt-2 break-all font-mono text-[11px] text-[color:var(--text-faint)]">
+                    {parsed.externalVerificationUrl}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <p className="text-center text-[12px] text-[color:var(--text-faint)]">
             We&rsquo;ll send these to the form so you can review and save.
@@ -251,8 +315,10 @@ function Row({
   );
 }
 
-// Image resize before OCR — Tesseract works faster on smaller files.
-function resizeImage(file: File, maxDim: number): Promise<Blob> {
+// Decode an image File and rasterize it onto a canvas, scaled so the largest
+// dimension fits maxDim. Returns the canvas so callers can both `toBlob` for
+// OCR and pull `ImageData` for QR detection.
+function imageToCanvas(file: File, maxDim: number): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -272,10 +338,7 @@ function resizeImage(file: File, maxDim: number): Promise<Blob> {
         const ctx = canvas.getContext("2d");
         if (!ctx) return reject(new Error("Canvas unavailable"));
         ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((b) => {
-          if (b) resolve(b);
-          else reject(new Error("Image encoding failed"));
-        }, "image/jpeg", 0.82);
+        resolve(canvas);
       };
       img.onerror = () => reject(new Error("Image load failed"));
       img.src = String(e.target?.result ?? "");
@@ -283,4 +346,21 @@ function resizeImage(file: File, maxDim: number): Promise<Blob> {
     reader.onerror = () => reject(new Error("File read failed"));
     reader.readAsDataURL(file);
   });
+}
+
+// Run jsQR over the canvas's pixel data. Returns the decoded payload string,
+// or null if no QR code was found.
+async function detectQr(canvas: HTMLCanvasElement): Promise<string | null> {
+  try {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const { default: jsQR } = await import("jsqr");
+    const result = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "attemptBoth",
+    });
+    return result?.data ?? null;
+  } catch {
+    return null;
+  }
 }

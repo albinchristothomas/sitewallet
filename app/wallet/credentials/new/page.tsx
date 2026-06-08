@@ -12,6 +12,7 @@ export default async function NewCredentialPage(
     issue: typeof sp.issue === "string" ? sp.issue : "",
     expiry: typeof sp.expiry === "string" ? sp.expiry : "",
     holder: typeof sp.holder === "string" ? sp.holder : "",
+    verifyUrl: typeof sp.verify_url === "string" ? sp.verify_url : "",
   };
   const wasPrefilled = Object.values(prefill).some((v) => v.length > 0);
 

@@ -231,14 +231,24 @@ export type ParsedTicket = {
   issueDate: string;
   expiryDate: string;
   holderName: string;
+  // If a QR code was detected on the card AND its decoded value is a URL,
+  // we store it here. For ESC H2S Alive cards this is the link to their
+  // free certificate-validation page. The medic can tap to verify at the
+  // gate; once verified, the credential's status flips to VERIFIED.
+  externalVerificationUrl: string;
   confidence: {
     name: boolean;
     dates: boolean;
     cert: boolean;
+    qr: boolean;
   };
 };
 
-export function parseTicketText(text: string, knownProfileName = ""): ParsedTicket {
+export function parseTicketText(
+  text: string,
+  knownProfileName = "",
+  qrPayload = "",
+): ParsedTicket {
   const preset = findPresetMatch(text);
   const { issueDate, expiryDate } = findIssueExpiry(text);
   const issuer = findIssuer(text, preset);
@@ -250,6 +260,15 @@ export function parseTicketText(text: string, knownProfileName = ""): ParsedTick
     finalExpiry = addYears(issueDate, preset.validYears);
   }
 
+  // If the QR payload is a URL, use it as the verification URL.
+  let externalVerificationUrl = "";
+  if (qrPayload) {
+    const trimmed = qrPayload.trim();
+    if (/^https?:\/\//i.test(trimmed)) {
+      externalVerificationUrl = trimmed;
+    }
+  }
+
   return {
     credentialKey: preset?.key ?? "",
     credentialLabel: preset?.label ?? "",
@@ -258,10 +277,12 @@ export function parseTicketText(text: string, knownProfileName = ""): ParsedTick
     issueDate,
     expiryDate: finalExpiry,
     holderName,
+    externalVerificationUrl,
     confidence: {
       name: !!preset,
       dates: !!(issueDate || finalExpiry),
       cert: !!certificateNumber,
+      qr: !!externalVerificationUrl,
     },
   };
 }

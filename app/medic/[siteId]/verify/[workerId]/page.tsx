@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Eye, Check, X } from "lucide-react";
+import { Eye, Check, X, ShieldCheck, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
-import { admitWorker } from "./actions";
+import { admitWorker, markVerified } from "./actions";
 
 type Compliance = {
   credential_type: string;
   status: "VALID" | "EXPIRED" | "MISSING";
   expiry_date: string | null;
   credential_id: string | null;
+  verification_status: "UNVERIFIED" | "MANUALLY_VERIFIED" | "VERIFIED_BY_ISSUER" | "REJECTED" | null;
+  external_verification_url: string | null;
 };
 
 type CompliancePayload = {
@@ -159,56 +161,89 @@ export default async function VerifyWorkerPage(
           const isExpired = c.status === "EXPIRED";
           const isMissing = c.status === "MISSING";
           const tint = isValid ? "#10B981" : "#EF4444";
+          const isVerified =
+            c.verification_status === "MANUALLY_VERIFIED" ||
+            c.verification_status === "VERIFIED_BY_ISSUER";
+          const canVerify = isValid && !isVerified && c.credential_id && c.external_verification_url;
           return (
             <li
               key={c.credential_type}
-              className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5"
+              className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5"
               style={{ borderLeft: `3px solid ${tint}` }}
             >
-              <div className="min-w-0">
-                <div className="text-[15px] font-bold">
-                  {getCredentialLabel(c.credential_type)}
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-bold">
+                      {getCredentialLabel(c.credential_type)}
+                    </span>
+                    {isVerified && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[color:rgba(16,185,129,0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:#34D399]">
+                        <ShieldCheck size={11} strokeWidth={2} /> Verified
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-faint)]">
+                    {isMissing && "Not in wallet"}
+                    {isExpired && c.expiry_date && (
+                      <>
+                        Expired{" "}
+                        {new Date(c.expiry_date).toLocaleDateString("en-CA", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </>
+                    )}
+                    {isValid && c.expiry_date && (
+                      <>
+                        Valid until{" "}
+                        {new Date(c.expiry_date).toLocaleDateString("en-CA", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </>
+                    )}
+                    {isValid && !c.expiry_date && "Valid · no expiry"}
+                  </div>
                 </div>
-                <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-faint)]">
-                  {isMissing && "Not in wallet"}
-                  {isExpired && c.expiry_date && (
-                    <>
-                      Expired{" "}
-                      {new Date(c.expiry_date).toLocaleDateString("en-CA", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </>
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{
+                    background: isValid
+                      ? "rgba(16,185,129,0.20)"
+                      : "rgba(239,68,68,0.20)",
+                    color: tint,
+                  }}
+                >
+                  {isValid ? (
+                    <Check size={18} strokeWidth={2.2} />
+                  ) : (
+                    <X size={18} strokeWidth={2.2} />
                   )}
-                  {isValid && c.expiry_date && (
-                    <>
-                      Valid until{" "}
-                      {new Date(c.expiry_date).toLocaleDateString("en-CA", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </>
-                  )}
-                  {isValid && !c.expiry_date && "Valid · no expiry"}
                 </div>
               </div>
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                style={{
-                  background: isValid
-                    ? "rgba(16,185,129,0.20)"
-                    : "rgba(239,68,68,0.20)",
-                  color: tint,
-                }}
-              >
-                {isValid ? (
-                  <Check size={18} strokeWidth={2.2} />
-                ) : (
-                  <X size={18} strokeWidth={2.2} />
-                )}
-              </div>
+              {canVerify && (
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[color:var(--hair)] pt-3">
+                  <a
+                    href={c.external_verification_url ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[color:var(--hair-strong)] text-[12px] font-semibold text-[color:var(--text-dim)] hover:bg-[color:var(--ink-3)] hover:text-[color:var(--text)]"
+                  >
+                    <ExternalLink size={14} strokeWidth={1.75} /> Verify with issuer
+                  </a>
+                  <form action={markVerified.bind(null, siteId, workerId, c.credential_id!)}>
+                    <button
+                      type="submit"
+                      className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[color:rgba(16,185,129,0.18)] text-[12px] font-bold text-[color:#34D399] hover:bg-[color:rgba(16,185,129,0.28)]"
+                    >
+                      <ShieldCheck size={14} strokeWidth={2} /> Mark verified
+                    </button>
+                  </form>
+                </div>
+              )}
             </li>
           );
         })}

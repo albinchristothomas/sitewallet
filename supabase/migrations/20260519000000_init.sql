@@ -148,20 +148,23 @@ create table employments (
   created_at timestamptz not null default now()
 );
 
--- Credentials: append-only. Renewals are new rows, never UPDATE.
+-- Credentials: append-only. Renewals are new rows, never UPDATE (except
+-- verification_status, set by a medic via the mark_credential_verified RPC).
 create table credentials (
   id uuid primary key default gen_random_uuid(),
   worker_id uuid not null references workers(id) on delete cascade,
   credential_type text not null,
   issuer text,
   certificate_number text,
-  validation_code text,           -- printed code on the card (e.g. ESC: R8LQ3-TVNJ7-9JXGZ-0YGQG)
+  validation_code text,                 -- printed code on the card (e.g. ESC: R8LQ3-TVNJ7-9JXGZ-0YGQG)
+  external_verification_url text,       -- URL from the QR code on the card, e.g. ESC's validation endpoint
   holder_name text,
   issue_date date,
   expiry_date date,
-  photo_url text,                 -- photo of the card itself
+  photo_url text,                       -- photo of the card itself
   source_document_url text,
   verification_status verification_status not null default 'UNVERIFIED',
+  verification_method text,             -- 'ESC_QR' / 'MEDIC_REVIEW' / etc. — how it was verified
   verified_at timestamptz,
   verified_by uuid references workers(id),
   created_at timestamptz not null default now()
@@ -486,8 +489,10 @@ begin
   from (
     select distinct on (c.credential_type)
       c.id, c.credential_type, c.issuer, c.certificate_number,
-      c.validation_code, c.holder_name, c.issue_date, c.expiry_date,
-      c.verification_status
+      c.validation_code, c.external_verification_url,
+      c.holder_name, c.issue_date, c.expiry_date,
+      c.verification_status, c.verification_method,
+      c.verified_at, c.verified_by
     from credentials c
     where c.worker_id = p_worker_id
     order by c.credential_type, c.issue_date desc nulls last
@@ -504,12 +509,14 @@ begin
       else 'VALID'
     end,
     'credential_id', latest.id,
-    'expiry_date', latest.expiry_date
+    'expiry_date', latest.expiry_date,
+    'verification_status', latest.verification_status,
+    'external_verification_url', latest.external_verification_url
   ))
     into v_compliance
   from unnest(v_required) as req_type
   left join lateral (
-    select c.id, c.expiry_date
+    select c.id, c.expiry_date, c.verification_status, c.external_verification_url
     from credentials c
     where c.worker_id = p_worker_id
       and c.credential_type = req_type
@@ -636,10 +643,69 @@ as $$
   order by s.check_in_at desc;
 $$;
 
+-- Mark a credential as MANUALLY_VERIFIED. Only callable by a medic. The
+-- medic confirms by opening the issuer's verification URL in a new tab,
+-- checking the result, then tapping "Mark verified" on the verify screen.
+-- We log who verified, when, and how (the verification_method).
+create or replace function mark_credential_verified(
+  p_credential_id uuid,
+  p_method text default 'MEDIC_REVIEW'
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_caller_type account_type;
+  v_worker_id uuid;
+begin
+  -- Caller must be a MEDIC.
+  select account_type into v_caller_type
+  from workers where id = auth.uid();
+  if v_caller_type is null or v_caller_type <> 'MEDIC' then
+    raise exception 'only medics can verify credentials';
+  end if;
+
+  select worker_id into v_worker_id
+  from credentials where id = p_credential_id;
+  if v_worker_id is null then
+    raise exception 'credential not found';
+  end if;
+
+  update credentials
+  set verification_status = 'MANUALLY_VERIFIED',
+      verification_method = p_method,
+      verified_at = now(),
+      verified_by = auth.uid()
+  where id = p_credential_id
+    -- Don't downgrade an already-issuer-verified credential.
+    and verification_status <> 'VERIFIED_BY_ISSUER';
+
+  insert into audit_log (actor_id, event_type, entity_type, entity_id, payload)
+  values (
+    auth.uid(),
+    'CREDENTIAL_VERIFIED',
+    'credential',
+    p_credential_id,
+    jsonb_build_object('worker_id', v_worker_id, 'method', p_method)
+  );
+end;
+$$;
+
+-- Workers can update verification_status only via the RPC. Allow medics
+-- (via SECURITY DEFINER) to update the relevant fields. RLS still blocks
+-- direct updates from clients.
+create policy "credentials medic update verification"
+  on credentials for update
+  using (false)   -- no direct update from anyone; updates only via RPC
+  with check (false);
+
 grant execute on function worker_compliance_for_site(uuid, uuid) to authenticated;
 grant execute on function admit_worker(uuid, uuid, jsonb) to authenticated;
 grant execute on function active_sessions_for_site(uuid) to authenticated;
 grant execute on function daily_roster(uuid, date) to authenticated;
+grant execute on function mark_credential_verified(uuid, text) to authenticated;
 
 -- =============================================================================
 -- Storage bucket for credential photos and worker selfies.
