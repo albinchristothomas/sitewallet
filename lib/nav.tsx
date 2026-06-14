@@ -32,9 +32,14 @@ export async function NavBar() {
         </Link>
         <div className="flex items-center gap-1 text-sm">
           {type === "WORKER" && (
-            <Link href="/wallet" className={linkCls}>
-              Wallet
-            </Link>
+            <>
+              <Link href="/wallet" className={linkCls}>
+                Wallet
+              </Link>
+              <Link href="/wallet/profile" className={linkCls}>
+                Profile
+              </Link>
+            </>
           )}
           {type === "MEDIC" && (
             <>
@@ -43,6 +48,9 @@ export async function NavBar() {
               </Link>
               <Link href="/admin" className={linkCls}>
                 Setup
+              </Link>
+              <Link href="/medic/profile" className={linkCls}>
+                Profile
               </Link>
             </>
           )}
