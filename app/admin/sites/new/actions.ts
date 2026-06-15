@@ -82,5 +82,19 @@ export async function createSite(
     .single();
   if (siteErr) return { error: `Site: ${siteErr.message}` };
 
+  // 5. Auto-assign the creator as medic for this site, if they're a medic.
+  // The creator is almost always going to be scanning workers in at this
+  // site, so save them the click.
+  const { data: creator } = await supabase
+    .from("workers")
+    .select("account_type")
+    .eq("id", user.id)
+    .single();
+  if (creator?.account_type === "MEDIC") {
+    await supabase
+      .from("medic_assignments")
+      .insert({ medic_id: user.id, site_id: site.id });
+  }
+
   redirect(`/admin/sites/${site.id}?created=1`);
 }
