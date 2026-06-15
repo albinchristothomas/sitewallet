@@ -1,7 +1,7 @@
-// SiteWallet service worker — minimal app-shell + offline fallback.
+// Rigwise service worker — minimal app-shell + offline fallback.
 // Version bump CACHE_NAME to invalidate clients on deploy.
 
-const CACHE_NAME = "sitewallet-v1";
+const CACHE_NAME = "rigwise-v1";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [
   "/offline",

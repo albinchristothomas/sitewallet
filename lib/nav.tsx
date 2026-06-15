@@ -28,7 +28,7 @@ export async function NavBar() {
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
         <Link href="/" className="flex items-center gap-2.5">
           <SWMark size={28} />
-          <span className="text-sm font-bold tracking-tight">SiteWallet</span>
+          <span className="text-sm font-bold tracking-tight">Rigwise</span>
         </Link>
         <div className="flex items-center gap-1 text-sm">
           {type === "WORKER" && (

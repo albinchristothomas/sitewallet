@@ -1,6 +1,6 @@
-# Deploying SiteWallet
+# Deploying Rigwise
 
-This walks through getting SiteWallet from your laptop to a public HTTPS URL
+This walks through getting Rigwise from your laptop to a public HTTPS URL
 that a medic on a real worksite can use.
 
 ## Prerequisites
@@ -20,21 +20,21 @@ If you haven't done those, do them first.
 Vercel deploys from GitHub. Create a private repo, push this code.
 
 ```sh
-# Inside D:\Projects\sitewallet
+# Inside D:\Projects\rigwise
 git status                                 # confirm there are commits
-git remote add origin git@github.com:YOUR_USER/sitewallet.git
+git remote add origin git@github.com:YOUR_USER/rigwise.git
 git branch -M main
 git push -u origin main
 ```
 
 If you've never used GitHub from this machine: install [GitHub
 CLI](https://cli.github.com/) and run `gh auth login`, then
-`gh repo create sitewallet --private --source=. --remote=origin --push`.
+`gh repo create rigwise --private --source=. --remote=origin --push`.
 
 ## 2. Create a Vercel project
 
 1. Go to <https://vercel.com> and sign in with the same GitHub account.
-2. **Add New → Project** → pick the `sitewallet` repo.
+2. **Add New → Project** → pick the `rigwise` repo.
 3. Framework preset: **Next.js** (auto-detected).
 4. Build command, output directory, install command: **leave default**.
 5. Before clicking Deploy, expand **Environment Variables** and add:
@@ -49,7 +49,7 @@ CLI](https://cli.github.com/) and run `gh auth login`, then
 6. Click **Deploy**.
 
 After ~60 seconds, you'll get a URL like
-`sitewallet.vercel.app`. Open it. You should see the landing page.
+`rigwise.vercel.app`. Open it. You should see the landing page.
 
 ## 3. Tell Supabase about the new URL
 
@@ -58,16 +58,16 @@ Magic-link emails will only redirect back to URLs Supabase trusts.
 In Supabase dashboard:
 
 1. **Authentication → URL Configuration**
-2. **Site URL** → set to your Vercel URL (e.g. `https://sitewallet.vercel.app`).
+2. **Site URL** → set to your Vercel URL (e.g. `https://rigwise.vercel.app`).
    You can change this later when you have a custom domain.
 3. **Redirect URLs** → add:
-   - `https://sitewallet.vercel.app/auth/callback`
+   - `https://rigwise.vercel.app/auth/callback`
    - `http://localhost:3000/auth/callback` (for local dev — keep this)
 4. Save.
 
 ## 4. (Optional) Custom domain
 
-If you bought `sitewallet.ca` or similar:
+If you bought `rigwise.ca` or similar:
 
 1. In Vercel project → **Settings → Domains** → **Add**.
 2. Paste your domain. Vercel shows you which DNS record to set at your
@@ -75,8 +75,8 @@ If you bought `sitewallet.ca` or similar:
 3. Add the record. Wait 5–30 min for DNS propagation. Vercel auto-issues a
    Let's Encrypt cert.
 4. Go back to Supabase → **Authentication → URL Configuration** and:
-   - Update Site URL to `https://sitewallet.ca`
-   - Add `https://sitewallet.ca/auth/callback` to redirect URLs
+   - Update Site URL to `https://rigwise.ca`
+   - Add `https://rigwise.ca/auth/callback` to redirect URLs
 
 ## 5. Verify the deployment
 
@@ -89,7 +89,7 @@ Open the production URL on your phone. Run through:
 - [ ] Show `/wallet/qr` — QR renders
 - [ ] Add the app to your home screen (iOS Safari: Share → Add to Home Screen;
       Android Chrome: tap "Install app" prompt or use ⋮ menu)
-- [ ] Open from home screen — launches full-screen with the SiteWallet icon
+- [ ] Open from home screen — launches full-screen with the Rigwise icon
 - [ ] Create a site at `/admin/sites/new`
 - [ ] Assign yourself as medic
 - [ ] Open `/medic/<siteId>/scan` — camera permission prompt appears

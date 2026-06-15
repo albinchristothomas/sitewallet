@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { NavBar } from "@/lib/nav";
-import { BetaBanner } from "@/lib/beta-banner";
+import { BetaBanner as Footer } from "@/lib/beta-banner";
 import { ServiceWorkerRegister } from "@/lib/sw-register";
 import "./globals.css";
 
@@ -19,12 +19,12 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SiteWallet",
-    template: "%s · SiteWallet",
+    default: "Rigwise",
+    template: "%s · Rigwise",
   },
   description:
     "Digital safety credentials wallet for Canadian energy workers. Verified at the gate.",
-  applicationName: "SiteWallet",
+  applicationName: "Rigwise",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "SiteWallet",
+    title: "Rigwise",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
@@ -68,7 +68,7 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <NavBar />
         <div className="flex flex-1 flex-col">{children}</div>
-        <BetaBanner />
+        <Footer />
       </body>
     </html>
   );

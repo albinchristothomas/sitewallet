@@ -1,4 +1,4 @@
-# SiteWallet
+# Rigwise
 
 Digital safety credentials wallet and gate-verification system for the Canadian
 energy industry (oil & gas, mining, pipeline construction).

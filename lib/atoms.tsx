@@ -139,7 +139,8 @@ export function getInitials(name: string | null | undefined): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function SWMark({ size = 32 }: { size?: number }) {
+/** Brand mark — the yellow chip with "RW" inside. */
+export function BrandMark({ size = 32 }: { size?: number }) {
   return (
     <div
       className="flex items-center justify-center font-extrabold tracking-tight"
@@ -149,10 +150,13 @@ export function SWMark({ size = 32 }: { size?: number }) {
         borderRadius: size * 0.22,
         background: "var(--hi-yellow)",
         color: "#0E1116",
-        fontSize: size * 0.45,
+        fontSize: size * 0.4,
       }}
     >
-      SW
+      RW
     </div>
   );
 }
+
+// Legacy alias — kept so existing imports of SWMark keep compiling.
+export const SWMark = BrandMark;

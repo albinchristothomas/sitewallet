@@ -1,11 +1,11 @@
--- SiteWallet — Phase 1 core schema
+-- Rigwise — Phase 1 core schema
 -- Worker-centric data model. Credentials are append-only. Sessions are check-in/check-out pairs.
 --
--- This script is idempotent: dropping any existing SiteWallet objects first,
+-- This script is idempotent: dropping any existing Rigwise objects first,
 -- then recreating cleanly. Safe to re-run during pilot iteration.
 
 -- =============================================================================
--- Reset (drop existing SiteWallet objects, if any)
+-- Reset (drop existing Rigwise objects, if any)
 -- =============================================================================
 
 drop function if exists worker_compliance_for_site(uuid, uuid) cascade;

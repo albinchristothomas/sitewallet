@@ -1,4 +1,4 @@
-# Netlify config for SiteWallet (Next.js 16 + Supabase SSR)
+# Netlify config for Rigwise (Next.js 16 + Supabase SSR)
 # Netlify's @netlify/plugin-nextjs handles routing, ISR, and middleware (proxy)
 # automatically when this is set up. No additional config needed for routes.
 

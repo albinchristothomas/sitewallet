@@ -18,7 +18,7 @@ export default function NewSitePage() {
         </h1>
         <p className="mt-2 text-sm text-[color:var(--text-dim)]">
           Creates the operator company, project, requirements profile, and the
-          site in one go. Phase 2 will let you reuse existing ones.
+          site in one go.
         </p>
       </header>
       <div className="mt-7">

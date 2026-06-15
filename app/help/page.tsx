@@ -5,7 +5,7 @@ export default function HelpPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Help</h1>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Plain-English instructions for the pilot.
+        Plain-English instructions.
       </p>
 
       <section className="mt-8">
@@ -14,7 +14,7 @@ export default function HelpPage() {
           <li>
             <strong>Add the app to your home screen.</strong> Open this site in
             Safari (iPhone) or Chrome (Android). Tap the share icon and choose
-            "Add to Home Screen". After that, SiteWallet opens like a normal
+            "Add to Home Screen". After that, Rigwise opens like a normal
             app.
           </li>
           <li>

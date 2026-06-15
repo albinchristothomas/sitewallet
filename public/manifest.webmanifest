@@ -1,6 +1,6 @@
 {
-  "name": "SiteWallet",
-  "short_name": "SiteWallet",
+  "name": "Rigwise",
+  "short_name": "Rigwise",
   "description": "Digital safety credentials wallet for Canadian energy workers. Verified at the gate.",
   "start_url": "/",
   "display": "standalone",

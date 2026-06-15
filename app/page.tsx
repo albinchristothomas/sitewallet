@@ -36,10 +36,10 @@ export default async function Home() {
           For Canadian energy worksites
         </p>
         <h1 className="text-center text-4xl font-bold tracking-tight">
-          SiteWallet
+          Rigwise
         </h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-[15px] text-[color:var(--text-dim)]">
-          Pick how you&apos;ll use SiteWallet.
+          Pick how you&apos;ll use Rigwise.
         </p>
 
         <div className="mt-8 space-y-2.5">

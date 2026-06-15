@@ -147,7 +147,7 @@ export default async function EndOfDayReportPage(
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--text-faint)] print:text-[#666]">
-                SiteWallet · End-of-day report
+                Rigwise · End-of-day report
               </div>
               <h2 className="mt-1 text-[28px] font-bold leading-tight tracking-tight">
                 {site?.name}
@@ -319,8 +319,8 @@ export default async function EndOfDayReportPage(
             )}
           </div>
           <p className="mt-5 text-[10px] text-[color:var(--text-faint)] print:text-[#666]">
-            Generated {new Date().toLocaleString("en-CA")} by SiteWallet ·
-            sticketwalllet.netlify.app
+            Generated {new Date().toLocaleString("en-CA")} by Rigwise ·
+            rigwise.ca
           </p>
         </section>
       </article>
