@@ -139,22 +139,53 @@ export function getInitials(name: string | null | undefined): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Brand mark — the yellow chip with "RW" inside. */
+/** Brand mark — yellow safety chip with a derrick silhouette inside. */
 export function BrandMark({ size = 32 }: { size?: number }) {
   return (
-    <div
-      className="flex items-center justify-center font-extrabold tracking-tight"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.22,
-        background: "var(--hi-yellow)",
-        color: "#0E1116",
-        fontSize: size * 0.4,
-      }}
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="RigWise"
+      role="img"
+      style={{ display: "block" }}
     >
-      RW
-    </div>
+      <rect width="32" height="32" rx={Math.max(4, size * 0.18)} fill="var(--hi-yellow)" />
+      {/* Crown block (top of derrick) */}
+      <rect x="13.6" y="3" width="4.8" height="2.2" fill="#0E1116" />
+      {/* Derrick legs (tapered A-frame) */}
+      <path
+        d="M10.5 26 L14.7 5.6 L17.3 5.6 L21.5 26"
+        stroke="#0E1116"
+        strokeWidth="2"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+        fill="none"
+      />
+      {/* Cross beams */}
+      <line x1="12.4" y1="22" x2="19.6" y2="22" stroke="#0E1116" strokeWidth="1.6" strokeLinecap="square" />
+      <line x1="13.3" y1="17" x2="18.7" y2="17" stroke="#0E1116" strokeWidth="1.6" strokeLinecap="square" />
+      <line x1="14.1" y1="12" x2="17.9" y2="12" stroke="#0E1116" strokeWidth="1.6" strokeLinecap="square" />
+      {/* Ground line */}
+      <line x1="7.5" y1="27.2" x2="24.5" y2="27.2" stroke="#0E1116" strokeWidth="1.8" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+/** Wordmark — "Rig" + highlighted "Wise". Use when you want the brand
+ *  as plain text. The brand convention is capital R and capital W. */
+export function BrandWordmark({
+  className,
+  highlightClassName = "text-[color:var(--hi-yellow)]",
+}: {
+  className?: string;
+  highlightClassName?: string;
+}) {
+  return (
+    <span className={className}>
+      Rig<span className={highlightClassName}>Wise</span>
+    </span>
   );
 }
 

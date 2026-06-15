@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { SWMark } from "@/lib/atoms";
+import { BrandMark, BrandWordmark } from "@/lib/atoms";
 import { signOutAction } from "@/lib/auth-actions";
 import { type AccountType } from "@/lib/roles";
 
@@ -27,8 +27,8 @@ export async function NavBar() {
     <nav className="sticky top-0 z-20 border-b border-[color:var(--hair)] bg-[color:var(--ink-1)]/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
         <Link href="/" className="flex items-center gap-2.5">
-          <SWMark size={28} />
-          <span className="text-sm font-bold tracking-tight">Rigwise</span>
+          <BrandMark size={28} />
+          <BrandWordmark className="text-sm font-bold tracking-tight" />
         </Link>
         <div className="flex items-center gap-1 text-sm">
           {type === "WORKER" && (

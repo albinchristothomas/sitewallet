@@ -16,7 +16,7 @@ export function BetaBanner() {
         Contact
       </a>
       <span className="mx-2 text-[color:var(--text-faint)]/40">·</span>
-      <span>© Rigwise</span>
+      <span>© RigWise</span>
     </footer>
   );
 }

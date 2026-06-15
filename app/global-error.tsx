@@ -41,7 +41,7 @@ export default function GlobalError({
             App crashed
           </p>
           <h1 style={{ fontSize: 22, fontWeight: 600, marginTop: 8 }}>
-            Rigwise stopped working.
+            RigWise stopped working.
           </h1>
           <p
             style={{

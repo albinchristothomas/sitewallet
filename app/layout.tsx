@@ -19,12 +19,12 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Rigwise",
-    template: "%s · Rigwise",
+    default: "RigWise",
+    template: "%s · RigWise",
   },
   description:
     "Digital safety credentials wallet for Canadian energy workers. Verified at the gate.",
-  applicationName: "Rigwise",
+  applicationName: "RigWise",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Rigwise",
+    title: "RigWise",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {

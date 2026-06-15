@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { SWMark } from "@/lib/atoms";
+import { BrandMark, BrandWordmark } from "@/lib/atoms";
 import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } from "@/lib/roles";
 import { LoginForm } from "./login-form";
 
@@ -37,9 +37,11 @@ export default async function LoginPage(props: PageProps<"/login">) {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex justify-center">
-            <SWMark size={48} />
+            <BrandMark size={56} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Rigwise</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <BrandWordmark />
+          </h1>
           {as ? (
             <>
               <p className="mt-3 inline-block rounded-full border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--hi-yellow)]">

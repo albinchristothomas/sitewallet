@@ -14,7 +14,7 @@ export default function HelpPage() {
           <li>
             <strong>Add the app to your home screen.</strong> Open this site in
             Safari (iPhone) or Chrome (Android). Tap the share icon and choose
-            "Add to Home Screen". After that, Rigwise opens like a normal
+            "Add to Home Screen". After that, RigWise opens like a normal
             app.
           </li>
           <li>
@@ -117,10 +117,10 @@ export default function HelpPage() {
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           Email{" "}
           <a
-            href="mailto:feedback@sitewallet.ca"
+            href="mailto:feedback@rigwise.ca"
             className="font-medium underline"
           >
-            feedback@sitewallet.ca
+            feedback@rigwise.ca
           </a>{" "}
           with what you were doing and what happened. Screenshots help.
         </p>

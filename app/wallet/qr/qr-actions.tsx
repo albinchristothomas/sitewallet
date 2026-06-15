@@ -69,7 +69,7 @@ export function QrActions({
     if (!nav.share) return;
     try {
       await nav.share({
-        title: `${workerName} — Rigwise ID`,
+        title: `${workerName} — RigWise ID`,
         text: workerId,
       });
     } catch {

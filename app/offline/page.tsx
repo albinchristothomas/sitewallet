@@ -11,7 +11,7 @@ export default function OfflinePage() {
           You're offline right now.
         </h1>
         <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-          Rigwise needs a network connection for most actions. Your existing
+          RigWise needs a network connection for most actions. Your existing
           data is safe on the server.
         </p>
         <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">

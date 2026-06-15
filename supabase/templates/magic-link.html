@@ -1,0 +1,152 @@
+<!--
+  RigWise — Magic-link sign-in email.
+
+  Paste the body of this file into Supabase Dashboard:
+    Authentication → Email Templates → Magic Link → HTML body
+
+  Subject line: Sign in to RigWise
+
+  Notes:
+  - All styles inline (Gmail strips <style> blocks).
+  - Inline SVG logo renders in Apple Mail, Gmail web, and most modern clients.
+    Older Outlook strips it — alt text "RigWise" shows instead.
+  - Table-based layout for broad client compatibility.
+  - {{ .ConfirmationURL }} is the Supabase magic-link token; do not edit.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<title>Sign in to RigWise</title>
+</head>
+<body style="margin:0;padding:0;background:#F4F2EC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0E1116;-webkit-font-smoothing:antialiased;">
+
+<!-- Preview text (hidden in body, shown in inbox preview) -->
+<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F4F2EC;opacity:0;">
+  Tap to sign in to RigWise — your safety credential wallet. Link expires in 1 hour.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F4F2EC;padding:32px 16px;">
+  <tr>
+    <td align="center">
+
+      <!-- Card -->
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#FFFFFF;border-radius:14px;overflow:hidden;border:1px solid #E5E1D6;">
+
+        <!-- Black brand bar -->
+        <tr>
+          <td style="background:#0E1116;padding:22px 28px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" style="padding-right:12px;">
+                  <!-- Logomark: yellow chip with derrick -->
+                  <svg width="36" height="36" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:block;" aria-label="RigWise">
+                    <rect width="32" height="32" rx="6" fill="#FACC15"/>
+                    <rect x="13.6" y="3" width="4.8" height="2.2" fill="#0E1116"/>
+                    <path d="M10.5 26 L14.7 5.6 L17.3 5.6 L21.5 26" stroke="#0E1116" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
+                    <line x1="12.4" y1="22" x2="19.6" y2="22" stroke="#0E1116" stroke-width="1.6"/>
+                    <line x1="13.3" y1="17" x2="18.7" y2="17" stroke="#0E1116" stroke-width="1.6"/>
+                    <line x1="14.1" y1="12" x2="17.9" y2="12" stroke="#0E1116" stroke-width="1.6"/>
+                    <line x1="7.5" y1="27.2" x2="24.5" y2="27.2" stroke="#0E1116" stroke-width="1.8"/>
+                  </svg>
+                </td>
+                <td valign="middle">
+                  <div style="font-size:18px;font-weight:800;letter-spacing:-0.01em;color:#FFFFFF;line-height:1;">
+                    Rig<span style="color:#FACC15;">Wise</span>
+                  </div>
+                  <div style="margin-top:4px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#7A8290;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
+                    Safety credentials
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Hero / heading -->
+        <tr>
+          <td style="padding:40px 36px 8px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#FACC15;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
+              Sign-in link
+            </div>
+            <h1 style="margin:10px 0 0;font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-0.01em;color:#0E1116;">
+              Tap to sign in.
+            </h1>
+            <p style="margin:14px 0 0;font-size:15px;line-height:1.55;color:#3C414B;">
+              You requested a one-time sign-in link for your RigWise wallet.
+              This link is good for one use and expires in 60 minutes.
+            </p>
+          </td>
+        </tr>
+
+        <!-- CTA button -->
+        <tr>
+          <td style="padding:28px 36px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td>
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:block;background:#FACC15;color:#0E1116;text-decoration:none;font-size:16px;font-weight:700;letter-spacing:-0.005em;padding:16px 24px;border-radius:10px;text-align:center;border:1px solid #E5B411;">
+                    Sign in to RigWise &rarr;
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:14px 0 0;font-size:12px;line-height:1.55;color:#7A8290;">
+              Button not working? Copy and paste this URL into your browser:
+            </p>
+            <p style="margin:6px 0 0;font-size:12px;line-height:1.4;color:#3C414B;word-break:break-all;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
+              {{ .ConfirmationURL }}
+            </p>
+          </td>
+        </tr>
+
+        <!-- Why a magic link / reassurance -->
+        <tr>
+          <td style="padding:32px 36px 8px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E5E1D6;">
+              <tr>
+                <td style="padding-top:22px;">
+                  <div style="font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7A8290;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
+                    Why am I getting this?
+                  </div>
+                  <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#3C414B;">
+                    Someone &mdash; hopefully you &mdash; entered this email address
+                    to sign in to RigWise at <a href="https://rigwise.ca" style="color:#0E1116;text-decoration:underline;">rigwise.ca</a>.
+                    We use one-time links instead of passwords. If this wasn't you,
+                    you can safely ignore this email and nothing will happen.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:28px 36px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E5E1D6;">
+              <tr>
+                <td style="padding-top:18px;font-size:11px;line-height:1.6;color:#9CA2AE;">
+                  RigWise &middot; Digital safety credentials for Canadian energy worksites<br>
+                  Questions? <a href="mailto:hello@rigwise.ca" style="color:#3C414B;text-decoration:underline;">hello@rigwise.ca</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Tiny footer outside the card -->
+      <div style="margin-top:14px;font-size:10px;color:#9CA2AE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;letter-spacing:0.04em;">
+        &copy; RigWise &middot; rigwise.ca
+      </div>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
