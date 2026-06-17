@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { BrandMark, BrandWordmark } from "@/lib/atoms";
+import { BrandMark, BrandWordmark, Eyebrow } from "@/lib/atoms";
 import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } from "@/lib/roles";
 import { LoginForm } from "./login-form";
 
@@ -33,31 +34,44 @@ export default async function LoginPage(props: PageProps<"/login">) {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-5 flex justify-center">
-            <BrandMark size={56} />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">
+    <main className="flex flex-1 items-center justify-center px-5 py-12">
+      <div className="rw-enter w-full max-w-[400px]">
+        {/* Brand block */}
+        <div className="mb-8 flex flex-col items-center text-center">
+          <BrandMark size={48} />
+          <h1 className="mt-4 text-[26px] font-bold leading-none tracking-[-0.02em]">
             <BrandWordmark />
           </h1>
           {as ? (
             <>
-              <p className="mt-3 inline-block rounded-full border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--hi-yellow)]">
-                Signing in as {ROLE_LABELS[as]}
-              </p>
-              <p className="mt-3 text-sm text-[color:var(--text-dim)]">
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-1)] px-3 py-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--brand)]" />
+                <span className="mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-dim)]">
+                  Signing in as {ROLE_LABELS[as]}
+                </span>
+              </div>
+              <p className="mt-3 max-w-[300px] text-[13px] leading-relaxed text-[color:var(--text-dim)]">
                 {INTENT_DESCRIPTION[as].long}
               </p>
             </>
           ) : (
-            <p className="mt-2 text-sm text-[color:var(--text-dim)]">
-              Your safety credentials, in your pocket. Verified at the gate.
-            </p>
+            <Eyebrow className="mt-3.5">Sign in with your work email</Eyebrow>
           )}
         </div>
+
+        {/* Form */}
         <LoginForm signupAs={as} />
+
+        {/* Help link */}
+        <p className="mt-8 text-center text-[11.5px] text-[color:var(--text-faint)]">
+          Trouble signing in?{" "}
+          <Link
+            href="/help"
+            className="font-medium text-[color:var(--text-dim)] underline-offset-4 transition-colors hover:text-[color:var(--text)] hover:underline"
+          >
+            Read the help guide
+          </Link>
+        </p>
       </div>
     </main>
   );

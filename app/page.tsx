@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HardHat, Stethoscope, ArrowRight } from "lucide-react";
+import { HardHat, Stethoscope, ArrowRight, ShieldCheck, QrCode, ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { BrandMark, BrandWordmark } from "@/lib/atoms";
+import { BrandMark, BrandWordmark, Eyebrow } from "@/lib/atoms";
 import { homeForType, type SignupIntent, type AccountType } from "@/lib/roles";
 
 export default async function Home() {
@@ -24,207 +24,187 @@ export default async function Home() {
   const intents: Array<{
     key: SignupIntent;
     icon: React.ReactNode;
-    label: string;
+    title: string;
     sub: string;
   }> = [
     {
       key: "worker",
-      icon: <HardHat size={26} strokeWidth={1.75} />,
-      label: "I'm a worker",
+      icon: <HardHat size={22} strokeWidth={1.6} />,
+      title: "I'm a worker",
       sub: "Carry my tickets",
     },
     {
       key: "medic",
-      icon: <Stethoscope size={26} strokeWidth={1.75} />,
-      label: "I'm a medic",
+      icon: <Stethoscope size={22} strokeWidth={1.6} />,
+      title: "I'm a medic",
       sub: "Scan at the gate",
     },
   ];
 
   return (
-    <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-14">
-      {/* Engineered grid backdrop */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--text) 1px, transparent 1px), linear-gradient(90deg, var(--text) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-        }}
-      />
+    <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-5 py-10">
+      <GridBackdrop />
 
-      <div className="relative w-full max-w-md">
-        {/* Brand */}
+      <div className="rw-enter relative w-full max-w-[420px]">
+        {/* Brand block */}
         <div className="flex flex-col items-center">
-          <BrandMark size={64} />
-          <h1 className="mt-5 text-[40px] font-extrabold leading-none tracking-tight">
+          <BrandMark size={56} />
+          <h1 className="mt-5 text-[40px] font-bold leading-none tracking-[-0.025em]">
             <BrandWordmark />
           </h1>
-          <p className="mt-3 font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] text-[color:var(--text-faint)]">
+          <Eyebrow className="mt-3.5">
             Safety credentials · verified at the gate
-          </p>
+          </Eyebrow>
         </div>
 
-        {/* Visual flow: phone QR → scanner → checkmark */}
-        <FlowDiagram />
+        {/* Flow strip — Worker → Scanner → Admitted */}
+        <FlowStrip />
 
-        {/* Two strong CTAs */}
-        <div className="mt-7 grid grid-cols-2 gap-2.5">
-          {intents.map(({ key, icon, label, sub }) => (
+        {/* Two CTAs */}
+        <div className="mt-7 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {intents.map(({ key, icon, title, sub }) => (
             <Link
               key={key}
               href={`/login?as=${key}`}
-              className="group relative flex flex-col items-start gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-5 transition hover:border-[color:var(--hi-yellow)] hover:bg-[color:var(--ink-3)]"
+              className="group rw-hoverable relative flex items-center gap-3.5 rounded-[10px] border border-[color:var(--line)] bg-[color:var(--surface-1)] p-4 hover:border-[color:var(--line-strong)] hover:bg-[color:var(--surface-2)]"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)] transition group-hover:bg-[color:var(--hi-yellow)] group-hover:text-[color:var(--ink-1)]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[7px] border border-[color:var(--line)] bg-[color:var(--surface-2)] text-[color:var(--text-dim)] transition-colors group-hover:border-[color:var(--brand)] group-hover:bg-[color:var(--brand)] group-hover:text-[color:var(--text-on-yellow)]">
                 {icon}
               </div>
-              <div className="min-w-0">
-                <div className="text-[15px] font-bold leading-tight">
-                  {label}
+              <div className="min-w-0 flex-1">
+                <div className="text-[14px] font-semibold leading-tight text-[color:var(--text)]">
+                  {title}
                 </div>
-                <div className="mt-1 text-[12px] leading-snug text-[color:var(--text-dim)]">
+                <div className="mt-1 text-[12px] leading-snug text-[color:var(--text-faint)]">
                   {sub}
                 </div>
               </div>
               <ArrowRight
-                size={16}
-                className="absolute right-3 top-3 text-[color:var(--text-faint)] transition group-hover:text-[color:var(--hi-yellow)]"
+                size={15}
+                strokeWidth={1.8}
+                className="shrink-0 text-[color:var(--text-faint)] transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-[color:var(--text)]"
               />
             </Link>
           ))}
         </div>
 
+        {/* Sign in link */}
         <p className="mt-7 text-center text-[12px] text-[color:var(--text-faint)]">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-[color:var(--text-dim)] underline-offset-2 hover:text-[color:var(--text)] hover:underline"
+            className="font-medium text-[color:var(--text-dim)] underline-offset-4 transition-colors hover:text-[color:var(--text)] hover:underline"
           >
             Sign in
           </Link>
         </p>
       </div>
+
+      {/* Bottom corner pill — trust signal */}
+      <div className="relative mt-12 inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-1)] px-3 py-1.5 mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[color:var(--text-faint)]">
+        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--ok)]" />
+        Built for Canadian energy worksites
+      </div>
     </main>
   );
 }
 
-/** Worker → Scanner → Admitted. Communicates the product in one glance. */
-function FlowDiagram() {
+/* ============================================================
+   Backdrop: subtle engineered grid, masked to a radial fade.
+   No gradients, no blobs — just hairlines.
+   ============================================================ */
+function GridBackdrop() {
   return (
-    <div className="mt-9 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2">
-      <FlowNode label="Worker" sub="QR code">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          {/* Phone outline */}
-          <rect x="12" y="6" width="16" height="28" rx="2.5" stroke="currentColor" strokeWidth="1.5" />
-          {/* QR squares inside */}
-          <rect x="15" y="11" width="3" height="3" fill="currentColor" />
-          <rect x="22" y="11" width="3" height="3" fill="currentColor" />
-          <rect x="15" y="18" width="3" height="3" fill="currentColor" />
-          <rect x="20" y="18" width="2" height="2" fill="currentColor" />
-          <rect x="23.5" y="18" width="1.5" height="3" fill="currentColor" />
-          <rect x="15" y="22.5" width="2" height="2" fill="currentColor" />
-          <rect x="19" y="22.5" width="3" height="2" fill="currentColor" />
-          <rect x="23" y="22.5" width="2" height="2" fill="currentColor" />
-          <rect x="15" y="26" width="3" height="3" fill="currentColor" />
-        </svg>
-      </FlowNode>
-      <FlowArrow />
-      <FlowNode label="Medic" sub="Scans QR" accent>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          {/* Camera viewfinder corners */}
-          <path d="M8 14 L8 10 L12 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
-          <path d="M28 10 L32 10 L32 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
-          <path d="M8 26 L8 30 L12 30" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
-          <path d="M28 30 L32 30 L32 26" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
-          {/* Reticle */}
-          <line x1="20" y1="13" x2="20" y2="27" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2" />
-          <line x1="13" y1="20" x2="27" y2="20" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 2" />
-          <circle cx="20" cy="20" r="3" stroke="currentColor" strokeWidth="1.4" />
-        </svg>
-      </FlowNode>
-      <FlowArrow />
-      <FlowNode label="Gate" sub="Admit · deny">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-          {/* Shield silhouette */}
-          <path
-            d="M20 6 L31 10 L31 20 C31 27 26 31.5 20 34 C14 31.5 9 27 9 20 L9 10 Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="miter"
-            fill="none"
-          />
-          {/* Inner checkmark */}
-          <path
-            d="M15 20.5 L18.5 24 L25 16.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            fill="none"
-          />
-        </svg>
-      </FlowNode>
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 opacity-[0.04]"
+      style={{
+        backgroundImage:
+          "linear-gradient(var(--text) 1px, transparent 1px), linear-gradient(90deg, var(--text) 1px, transparent 1px)",
+        backgroundSize: "44px 44px",
+        maskImage:
+          "radial-gradient(ellipse at center, black 35%, transparent 75%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse at center, black 35%, transparent 75%)",
+      }}
+    />
+  );
+}
+
+/* ============================================================
+   FlowStrip — Worker → Scanner → Admitted in a single rail.
+   Compact, hairline, no decoration beyond the icons themselves.
+   ============================================================ */
+function FlowStrip() {
+  return (
+    <div className="mt-9 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-1.5">
+      <FlowCell icon={<QrCode size={20} strokeWidth={1.6} />} label="Worker" sub="QR ID" />
+      <FlowDash />
+      <FlowCell icon={<ScanLine size={20} strokeWidth={1.6} />} label="Medic" sub="Scans" accent />
+      <FlowDash />
+      <FlowCell icon={<ShieldCheck size={20} strokeWidth={1.6} />} label="Gate" sub="Admit" />
     </div>
   );
 }
 
-function FlowNode({
-  children,
+function FlowCell({
+  icon,
   label,
   sub,
   accent = false,
 }: {
-  children: React.ReactNode;
+  icon: React.ReactNode;
   label: string;
   sub: string;
   accent?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center text-center">
+    <div
+      className={`flex flex-col items-center gap-2 rounded-[8px] border bg-[color:var(--surface-1)] px-2 py-3 ${
+        accent
+          ? "border-[color:var(--brand)]"
+          : "border-[color:var(--line)]"
+      }`}
+    >
       <div
-        className={`flex h-16 w-16 items-center justify-center rounded-xl border ${
+        className={`flex h-9 w-9 items-center justify-center rounded-[6px] ${
           accent
-            ? "border-[color:var(--hi-yellow)] bg-[color:var(--ink-2)] text-[color:var(--hi-yellow)]"
-            : "border-[color:var(--hair)] bg-[color:var(--ink-2)] text-[color:var(--text-dim)]"
+            ? "bg-[color:var(--brand)] text-[color:var(--text-on-yellow)]"
+            : "bg-[color:var(--surface-2)] text-[color:var(--text-dim)]"
         }`}
       >
-        {children}
+        {icon}
       </div>
-      <div className="mt-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--text)]">
-        {label}
-      </div>
-      <div className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-[color:var(--text-faint)]">
-        {sub}
+      <div className="text-center">
+        <div className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[color:var(--text)]">
+          {label}
+        </div>
+        <div className="mono mt-0.5 text-[9.5px] uppercase tracking-[0.1em] text-[color:var(--text-faint)]">
+          {sub}
+        </div>
       </div>
     </div>
   );
 }
 
-function FlowArrow() {
+function FlowDash() {
   return (
-    <svg width="22" height="12" viewBox="0 0 22 12" fill="none" aria-hidden>
+    <svg
+      width="20"
+      height="40"
+      viewBox="0 0 20 40"
+      fill="none"
+      aria-hidden
+      className="self-center"
+    >
       <line
         x1="2"
-        y1="6"
+        y1="20"
         x2="18"
-        y2="6"
-        stroke="var(--text-faint)"
-        strokeWidth="1.4"
-        strokeDasharray="2 2"
-      />
-      <path
-        d="M14 2 L20 6 L14 10"
-        stroke="var(--text-faint)"
-        strokeWidth="1.4"
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-        fill="none"
+        y2="20"
+        stroke="var(--line-strong)"
+        strokeWidth="1.2"
+        strokeDasharray="2 3"
       />
     </svg>
   );

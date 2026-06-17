@@ -1,77 +1,119 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Rigwise design tokens
+   RigWise — design tokens (dark, professional)
+   Inspired by Linear / Vercel / Cursor / Resend.
+   Restrained palette, hairline borders, system font stack,
+   considered motion. No gradients, no glass, no soft shadows.
    ============================================================ */
 
 :root {
-  /* dark surfaces (worker + medic) */
-  --bg: #0b0d11;
-  --ink-1: #0e1116;
-  --ink-2: #1a1d23;
-  --ink-3: #232830;
-  --hair: rgba(255, 255, 255, 0.07);
-  --hair-strong: rgba(255, 255, 255, 0.14);
+  /* Surfaces — true near-black with subtle elevation steps */
+  --bg: #09090B;
+  --surface-1: #131316;
+  --surface-2: #18181B;
+  --surface-3: #1F1F23;
+  --surface-hover: #232328;
 
-  /* text */
-  --text: #f4f5f7;
-  --text-dim: #a0a6b0;
-  --text-faint: #6b7280;
+  /* Hairlines — used everywhere a border lives */
+  --line: #27272A;
+  --line-strong: #3F3F46;
+  --line-focus: #FACC15;
 
-  /* status */
-  --ok: #10b981;
-  --ok-glow: rgba(16, 185, 129, 0.18);
-  --warn: #f59e0b;
-  --bad: #ef4444;
+  /* Text */
+  --text: #FAFAFA;
+  --text-dim: #A1A1AA;
+  --text-faint: #71717A;
+  --text-mute: #52525B;
+  --text-on-yellow: #0A0A0A;
 
-  /* brand accents */
-  --hi-yellow: #facc15;
-  --hi-orange: #f97316;
+  /* Brand accent — used sparingly, mostly for the logomark + primary CTA */
+  --brand: #FACC15;
+  --brand-hover: #FDE047;
+  --brand-press: #EAB308;
 
-  /* light "paper" surfaces (admin) */
-  --paper: #f6f6f4;
-  --paper-2: #ffffff;
-  --paper-line: #e4e4e0;
-  --paper-line-strong: #d2d2cc;
-  --paper-ink: #14171c;
-  --paper-dim: #5b6068;
-  --paper-faint: #8a8f98;
+  /* Status */
+  --ok: #22C55E;
+  --ok-bg: rgba(34, 197, 94, 0.10);
+  --ok-line: rgba(34, 197, 94, 0.35);
+  --warn: #F59E0B;
+  --warn-bg: rgba(245, 158, 11, 0.10);
+  --warn-line: rgba(245, 158, 11, 0.35);
+  --bad: #EF4444;
+  --bad-bg: rgba(239, 68, 68, 0.10);
+  --bad-line: rgba(239, 68, 68, 0.35);
+  --info: #3B82F6;
+  --info-bg: rgba(59, 130, 246, 0.10);
+  --info-line: rgba(59, 130, 246, 0.35);
+
+  /* Radius */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+
+  /* Motion — Linear-ish snap */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 120ms;
+  --t-base: 180ms;
+  --t-slow: 280ms;
+
+  /* Shadow — almost none. Used only for floating menus. */
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.4),
+                0 1px 0 rgba(255, 255, 255, 0.05) inset;
+
+  /* Legacy aliases — kept so existing screens keep compiling.
+     New code should use the names above. */
+  --ink-1: var(--bg);
+  --ink-2: var(--surface-1);
+  --ink-3: var(--surface-2);
+  --hair: var(--line);
+  --hair-strong: var(--line-strong);
+  --hi-yellow: var(--brand);
+  --hi-orange: var(--brand);
 }
 
 /* Expose tokens to Tailwind v4 utilities */
 @theme inline {
   --color-bg: var(--bg);
-  --color-ink-1: var(--ink-1);
-  --color-ink-2: var(--ink-2);
-  --color-ink-3: var(--ink-3);
-  --color-hair: var(--hair);
-  --color-hair-strong: var(--hair-strong);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
   --color-text-faint: var(--text-faint);
+  --color-text-mute: var(--text-mute);
+  --color-brand: var(--brand);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-bad: var(--bad);
-  --color-hi-yellow: var(--hi-yellow);
-  --color-hi-orange: var(--hi-orange);
-  --color-paper: var(--paper);
-  --color-paper-2: var(--paper-2);
-  --color-paper-line: var(--paper-line);
-  --color-paper-line-strong: var(--paper-line-strong);
-  --color-paper-ink: var(--paper-ink);
-  --color-paper-dim: var(--paper-dim);
-  --color-paper-faint: var(--paper-faint);
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --color-info: var(--info);
+
+  /* legacy aliases */
+  --color-ink-1: var(--bg);
+  --color-ink-2: var(--surface-1);
+  --color-ink-3: var(--surface-2);
+  --color-hair: var(--line);
+  --color-hair-strong: var(--line-strong);
+  --color-hi-yellow: var(--brand);
+  --color-hi-orange: var(--brand);
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
-/* App-wide defaults — dark background, Inter font */
+/* App-wide defaults */
 html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-feature-settings: "cv11", "ss01";
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv11", "ss01", "ss03", "cv02", "tnum";
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -79,50 +121,200 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Standalone PWA — avoid iOS rubber-banding around the QR / scanner UI */
+/* Selection — yellow on near-black */
+::selection {
+  background: var(--brand);
+  color: var(--text-on-yellow);
+}
+
+/* Focus ring — visible only on keyboard nav */
+*:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* Scrollbar — quiet, dark */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--line-strong);
+}
+
+/* PWA standalone — no rubber-banding around QR/scanner */
 @media (display-mode: standalone) {
   html, body {
     overscroll-behavior-y: none;
   }
 }
 
-/* Light theme override — applied only on /admin/* via the admin layout */
-.theme-paper {
-  background: var(--paper);
-  color: var(--paper-ink);
-}
-.theme-paper body,
-body.theme-paper {
-  background: var(--paper);
-  color: var(--paper-ink);
-}
+/* ============================================================
+   Utility-ish classes used across screens
+   ============================================================ */
 
-/* Common utility-ish classes used across the design */
 .eyebrow {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
+
 .mono {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-feature-settings: "tnum", "zero";
 }
 
-/* QR pulse animation used on /wallet/qr */
-@keyframes sw-pulse {
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Motion primitives — page enter, content fade, skeletons
+   ============================================================ */
+
+@keyframes rw-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rw-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rw-shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+@keyframes rw-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-.sw-pulse {
-  animation: sw-pulse 1.5s ease-in-out infinite;
+  50%      { opacity: 0.4; }
 }
 
-/* Scanner line animation */
-@keyframes sw-scan {
+@keyframes rw-scan {
   0%, 100% { transform: translateY(-110px); }
-  50% { transform: translateY(110px); }
+  50%      { transform: translateY(110px); }
 }
-.sw-scan {
-  animation: sw-scan 2.4s ease-in-out infinite;
+
+@keyframes rw-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.rw-enter {
+  animation: rw-enter var(--t-base) var(--ease-out) both;
+}
+
+.rw-enter-stagger > * {
+  animation: rw-enter var(--t-base) var(--ease-out) both;
+}
+.rw-enter-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.rw-enter-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.rw-enter-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.rw-enter-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.rw-enter-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.rw-enter-stagger > *:nth-child(6) { animation-delay: 200ms; }
+.rw-enter-stagger > *:nth-child(7) { animation-delay: 240ms; }
+.rw-enter-stagger > *:nth-child(8) { animation-delay: 280ms; }
+
+.rw-pulse {
+  animation: rw-pulse 1.6s var(--ease-in-out) infinite;
+}
+
+.rw-scan {
+  animation: rw-scan 2.4s var(--ease-in-out) infinite;
+}
+
+.rw-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-1) 0%,
+    var(--surface-2) 50%,
+    var(--surface-1) 100%
+  );
+  background-size: 200% 100%;
+  animation: rw-shimmer 1.4s linear infinite;
+}
+
+/* Hover lift — for interactive cards. Border crispens, no transform. */
+.rw-hoverable {
+  transition: border-color var(--t-fast) var(--ease-out),
+              background-color var(--t-fast) var(--ease-out);
+}
+
+/* Press state for buttons — subtle brightness shift */
+.rw-pressable {
+  transition: filter var(--t-fast) var(--ease-out),
+              background-color var(--t-fast) var(--ease-out),
+              border-color var(--t-fast) var(--ease-out);
+}
+.rw-pressable:active {
+  filter: brightness(0.93);
+}
+
+/* View Transitions API — smooth navigation between routes.
+   Browsers without support gracefully ignore this. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t-base);
+  animation-timing-function: var(--ease-out);
+}
+
+/* ============================================================
+   Reduced motion — respect OS preference
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Print stylesheet — kept clean for the EOD report.
+   The report page itself overrides further with its own
+   print: classes; this is the global baseline.
+   ============================================================ */
+
+@media print {
+  html, body {
+    background: #FFFFFF;
+    color: #000000;
+  }
+  body {
+    font-feature-settings: normal;
+  }
+}
+
+/* ============================================================
+   Legacy class names — kept so existing screens compile.
+   Will be removed once every screen is migrated to the new
+   atom components.
+   ============================================================ */
+
+.sw-pulse { animation: rw-pulse 1.5s ease-in-out infinite; }
+.sw-scan  { animation: rw-scan 2.4s ease-in-out infinite; }
+
+.theme-paper {
+  background: var(--bg);
+  color: var(--text);
 }

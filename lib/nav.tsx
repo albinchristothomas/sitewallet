@@ -21,16 +21,19 @@ export async function NavBar() {
   const type: AccountType = (worker?.account_type ?? "WORKER") as AccountType;
 
   const linkCls =
-    "rounded-md px-2.5 py-1.5 text-sm font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]";
+    "rounded-md px-2.5 py-1.5 text-[12.5px] font-medium text-[color:var(--text-dim)] transition-colors hover:bg-[color:var(--surface-1)] hover:text-[color:var(--text)]";
 
   return (
-    <nav className="sticky top-0 z-20 border-b border-[color:var(--hair)] bg-[color:var(--ink-1)]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-3">
-        <Link href="/" className="flex items-center gap-2.5">
-          <BrandMark size={28} />
-          <BrandWordmark className="text-sm font-bold tracking-tight" />
+    <nav className="sticky top-0 z-20 border-b border-[color:var(--line)] bg-[color:var(--bg)]/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2.5">
+        <Link
+          href="/"
+          className="rw-pressable flex items-center gap-2.5 rounded-md py-1"
+        >
+          <BrandMark size={22} />
+          <BrandWordmark className="text-[14px] font-bold tracking-[-0.01em]" />
         </Link>
-        <div className="flex items-center gap-1 text-sm">
+        <div className="flex items-center gap-0.5 text-sm">
           {type === "WORKER" && (
             <>
               <Link href="/wallet" className={linkCls}>
@@ -54,10 +57,10 @@ export async function NavBar() {
               </Link>
             </>
           )}
-          <form action={signOutAction} className="ml-2">
+          <form action={signOutAction} className="ml-1.5">
             <button
               type="submit"
-              className="rounded-md border border-[color:var(--hair-strong)] px-2.5 py-1.5 text-xs font-medium text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+              className="rw-pressable rounded-md border border-[color:var(--line)] bg-[color:var(--surface-1)] px-2.5 py-1.5 text-[11.5px] font-semibold text-[color:var(--text-dim)] transition-colors hover:border-[color:var(--line-strong)] hover:text-[color:var(--text)]"
             >
               Sign out
             </button>
