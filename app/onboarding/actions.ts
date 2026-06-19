@@ -42,30 +42,29 @@ export async function completeOnboarding(payload: OnboardingPayload) {
   const type = existing.account_type as AccountType;
 
   // Build a single update with role-appropriate fields. Trim every string.
+  // Built directly as a Record so the worker/medic branches don't produce a
+  // union type with `undefined` keys (which the prod build rejects).
   const trim = (s: string | undefined) => (s ?? "").trim() || null;
 
-  const base = {
+  const merged: Record<string, string | null> = {
     full_name: trim(payload.full_name),
     phone: trim(payload.phone),
   };
 
-  const roleFields =
-    type === "WORKER"
-      ? {
-          contractor_company: trim(payload.contractor_company),
-          employee_number: trim(payload.employee_number),
-          drivers_license_number: trim(payload.drivers_license_number),
-          emergency_contact_name: trim(payload.emergency_contact_name),
-          emergency_contact_phone: trim(payload.emergency_contact_phone),
-          allergies: trim(payload.allergies),
-          medical_conditions: trim(payload.medical_conditions),
-        }
-      : {
-          medic_firm: trim(payload.medic_firm),
-          medic_license_number: trim(payload.medic_license_number),
-        };
+  if (type === "WORKER") {
+    merged.contractor_company = trim(payload.contractor_company);
+    merged.employee_number = trim(payload.employee_number);
+    merged.drivers_license_number = trim(payload.drivers_license_number);
+    merged.emergency_contact_name = trim(payload.emergency_contact_name);
+    merged.emergency_contact_phone = trim(payload.emergency_contact_phone);
+    merged.allergies = trim(payload.allergies);
+    merged.medical_conditions = trim(payload.medical_conditions);
+  } else {
+    merged.medic_firm = trim(payload.medic_firm);
+    merged.medic_license_number = trim(payload.medic_license_number);
+  }
 
-  const required: Record<AccountType, Array<keyof typeof base | string>> = {
+  const required: Record<AccountType, string[]> = {
     WORKER: [
       "full_name",
       "phone",
@@ -77,9 +76,8 @@ export async function completeOnboarding(payload: OnboardingPayload) {
     MEDIC: ["full_name", "phone", "medic_firm", "medic_license_number"],
   };
 
-  const merged = { ...base, ...roleFields } as Record<string, string | null>;
   for (const k of required[type]) {
-    if (!merged[k as string]) {
+    if (!merged[k]) {
       return { ok: false, error: `Missing required field: ${k}` };
     }
   }
