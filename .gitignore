@@ -44,3 +44,7 @@ next-env.d.ts
 .claude/
 .vscode/
 .idea/
+
+# local design artifacts (not part of the app)
+design-brief-v2/
+references/
