@@ -71,12 +71,18 @@ export default async function MedicSitePage(
             </p>
           )}
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
           <Link
             href={`/medic/${siteId}/roster`}
             className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
           >
             Roster
+          </Link>
+          <Link
+            href={`/medic/${siteId}/walk-in`}
+            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+          >
+            Add walk-in
           </Link>
           <Link
             href={`/medic/${siteId}/scan`}
@@ -98,15 +104,23 @@ export default async function MedicSitePage(
         <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
           <p className="text-[15px] font-semibold">Quiet right now</p>
           <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
-            No one&apos;s checked in yet. As workers arrive at the gate, scan
-            their QR and they&apos;ll appear here.
+            No one&apos;s checked in yet. Scan a worker&apos;s QR, or add a
+            walk-in for anyone without the app.
           </p>
-          <Link
-            href={`/medic/${siteId}/scan`}
-            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
-          >
-            Open scanner
-          </Link>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Link
+              href={`/medic/${siteId}/scan`}
+              className="inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+            >
+              Scan worker
+            </Link>
+            <Link
+              href={`/medic/${siteId}/walk-in`}
+              className="inline-block rounded-lg border border-[color:var(--hair-strong)] px-4 py-2.5 text-sm font-bold hover:bg-[color:var(--ink-3)]"
+            >
+              Add walk-in
+            </Link>
+          </div>
         </div>
       ) : (
         <ul className="mt-4 space-y-2">

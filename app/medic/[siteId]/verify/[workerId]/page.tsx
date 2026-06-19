@@ -4,6 +4,7 @@ import { Eye, Check, X, ShieldCheck, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
+import { faceUrl } from "@/lib/photos";
 import { admitWorker, markVerified } from "./actions";
 
 type Compliance = {
@@ -79,7 +80,8 @@ export default async function VerifyWorkerPage(
 
   const payload = data as CompliancePayload;
   const allPass = payload.compliance.every((c) => c.status === "VALID");
-  const hasPhoto = Boolean(payload.worker.photo_url);
+  const facePhoto = await faceUrl(payload.worker.photo_url);
+  const hasPhoto = Boolean(facePhoto);
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-8 pt-4">
@@ -105,6 +107,7 @@ export default async function VerifyWorkerPage(
           <Avatar
             initials={getInitials(payload.worker.full_name)}
             size={84}
+            photoUrl={facePhoto}
           />
           <div className="min-w-0 flex-1">
             <div

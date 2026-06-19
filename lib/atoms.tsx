@@ -98,11 +98,14 @@ export function Avatar({
   initials,
   size = 40,
   tone = "dark",
+  photoUrl,
   className,
 }: {
   initials: string;
   size?: number;
   tone?: "dark" | "light" | "yellow";
+  /** When set, the face photo is shown instead of initials. */
+  photoUrl?: string | null;
   className?: string;
 }) {
   const palette =
@@ -111,6 +114,24 @@ export function Avatar({
       : tone === "light"
         ? { bg: "var(--surface-3)", fg: "var(--text)" }
         : { bg: "var(--surface-2)", fg: "var(--text)" };
+
+  if (photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoUrl}
+        alt={initials}
+        className={`shrink-0 object-cover ${className ?? ""}`}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 4,
+          background: palette.bg,
+        }}
+      />
+    );
+  }
+
   return (
     <div
       className={`flex shrink-0 items-center justify-center font-bold tracking-tight ${className ?? ""}`}
