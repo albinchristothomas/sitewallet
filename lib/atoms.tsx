@@ -24,15 +24,15 @@ const STATUS_STYLE: Record<
   StatusKind,
   { fg: string; bg: string; line: string; dot: string; label: string }
 > = {
-  valid:    { fg: "#4ADE80", bg: "rgba(34,197,94,0.10)",  line: "rgba(34,197,94,0.35)",  dot: "#22C55E", label: "Valid" },
-  ok:       { fg: "#4ADE80", bg: "rgba(34,197,94,0.10)",  line: "rgba(34,197,94,0.35)",  dot: "#22C55E", label: "OK" },
-  expiring: { fg: "#FBBF24", bg: "rgba(245,158,11,0.10)", line: "rgba(245,158,11,0.35)", dot: "#F59E0B", label: "Expiring soon" },
-  warn:     { fg: "#FBBF24", bg: "rgba(245,158,11,0.10)", line: "rgba(245,158,11,0.35)", dot: "#F59E0B", label: "Warning" },
-  expired:  { fg: "#F87171", bg: "rgba(239,68,68,0.10)",  line: "rgba(239,68,68,0.35)",  dot: "#EF4444", label: "Expired" },
-  bad:      { fg: "#F87171", bg: "rgba(239,68,68,0.10)",  line: "rgba(239,68,68,0.35)",  dot: "#EF4444", label: "Failed" },
-  missing:  { fg: "#F87171", bg: "rgba(239,68,68,0.10)",  line: "rgba(239,68,68,0.35)",  dot: "#EF4444", label: "Missing" },
-  info:     { fg: "#93C5FD", bg: "rgba(59,130,246,0.10)", line: "rgba(59,130,246,0.35)", dot: "#3B82F6", label: "Info" },
-  neutral:  { fg: "#A1A1AA", bg: "rgba(255,255,255,0.04)", line: "rgba(255,255,255,0.10)", dot: "#71717A", label: "—" },
+  valid:    { fg: "#7ff0a8", bg: "rgba(47,200,106,0.12)", line: "rgba(47,200,106,0.5)",  dot: "#2fd072", label: "Valid" },
+  ok:       { fg: "#7ff0a8", bg: "rgba(47,200,106,0.12)", line: "rgba(47,200,106,0.5)",  dot: "#2fd072", label: "OK" },
+  expiring: { fg: "#ffd27a", bg: "rgba(242,164,12,0.14)", line: "rgba(242,164,12,0.55)", dot: "#f2a40c", label: "Expiring" },
+  warn:     { fg: "#ffd27a", bg: "rgba(242,164,12,0.14)", line: "rgba(242,164,12,0.55)", dot: "#f2a40c", label: "Warning" },
+  expired:  { fg: "#ff9a8f", bg: "rgba(239,65,53,0.14)",  line: "rgba(239,65,53,0.55)",  dot: "#ef4135", label: "Expired" },
+  bad:      { fg: "#ff9a8f", bg: "rgba(239,65,53,0.14)",  line: "rgba(239,65,53,0.55)",  dot: "#ef4135", label: "Failed" },
+  missing:  { fg: "#ff9a8f", bg: "rgba(239,65,53,0.14)",  line: "rgba(239,65,53,0.55)",  dot: "#ef4135", label: "Missing" },
+  info:     { fg: "#a9defc", bg: "rgba(110,200,255,0.12)", line: "rgba(110,200,255,0.4)", dot: "#6ec8ff", label: "Info" },
+  neutral:  { fg: "#9aa3ab", bg: "rgba(255,255,255,0.04)", line: "rgba(255,255,255,0.10)", dot: "#5d666f", label: "—" },
 };
 
 export function StatusPill({
@@ -55,7 +55,7 @@ export function StatusPill({
     >
       <span
         className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-        style={{ background: s.dot }}
+        style={{ background: s.dot, boxShadow: `0 0 6px ${s.dot}` }}
       />
       {label ?? s.label}
     </span>
@@ -160,68 +160,47 @@ export function getInitials(name: string | null | undefined): string {
    BRAND
    ============================================================ */
 
-/** The yellow safety chip with a derrick silhouette. */
-export function BrandMark({
-  size = 32,
-  variant = "chip",
-}: {
-  size?: number;
-  /** "chip" = yellow square; "ghost" = monochrome on dark bg. */
-  variant?: "chip" | "ghost";
-}) {
-  const isChip = variant === "chip";
-  const bg = isChip ? "var(--brand)" : "transparent";
-  const stroke = isChip ? "#0A0A0A" : "var(--text)";
+/** The brand mark — a safety-orange rounded square with a dark inner square,
+ *  exactly as in the approved design system. */
+export function BrandMark({ size = 28 }: { size?: number; variant?: "chip" | "ghost" }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      xmlns="http://www.w3.org/2000/svg"
+    <div
       aria-label="RigWise"
       role="img"
-      style={{ display: "block" }}
+      style={{
+        width: size,
+        height: size,
+        background: "var(--brand)",
+        borderRadius: Math.max(3, size * 0.16),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 0 0 1px rgba(255,255,255,0.12) inset",
+        flex: "none",
+      }}
     >
-      <rect
-        width="32"
-        height="32"
-        rx={Math.max(4, size * 0.18)}
-        fill={bg}
-        stroke={isChip ? "none" : "var(--line)"}
-        strokeWidth={isChip ? 0 : 1}
+      <div
+        style={{
+          width: size * 0.36,
+          height: size * 0.36,
+          background: "var(--on-brand)",
+        }}
       />
-      {/* Crown block (top of derrick) */}
-      <rect x="13.6" y="3" width="4.8" height="2.2" fill={stroke} />
-      {/* Derrick legs (tapered A-frame) */}
-      <path
-        d="M10.5 26 L14.7 5.6 L17.3 5.6 L21.5 26"
-        stroke={stroke}
-        strokeWidth="2"
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-        fill="none"
-      />
-      {/* Cross beams */}
-      <line x1="12.4" y1="22" x2="19.6" y2="22" stroke={stroke} strokeWidth="1.6" strokeLinecap="square" />
-      <line x1="13.3" y1="17" x2="18.7" y2="17" stroke={stroke} strokeWidth="1.6" strokeLinecap="square" />
-      <line x1="14.1" y1="12" x2="17.9" y2="12" stroke={stroke} strokeWidth="1.6" strokeLinecap="square" />
-      {/* Ground line */}
-      <line x1="7.5" y1="27.2" x2="24.5" y2="27.2" stroke={stroke} strokeWidth="1.8" strokeLinecap="square" />
-    </svg>
+    </div>
   );
 }
 
-/** Plain-text wordmark: "Rig" + "Wise". "Wise" gets the brand color. */
+/** Wordmark: "RIG" in text color + "WISE" muted, matching the design system. */
 export function BrandWordmark({
   className,
-  highlightClassName = "text-[color:var(--brand)]",
+  highlightClassName = "text-[color:var(--wordmark-muted)] font-semibold",
 }: {
   className?: string;
   highlightClassName?: string;
 }) {
   return (
-    <span className={className}>
-      Rig<span className={highlightClassName}>Wise</span>
+    <span className={className} style={{ fontWeight: 800, letterSpacing: "-0.01em" }}>
+      RIG<span className={highlightClassName}>WISE</span>
     </span>
   );
 }
@@ -261,13 +240,13 @@ export function Button({
   };
   const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
     primary:
-      "bg-[color:var(--brand)] text-[color:var(--text-on-yellow)] border border-[color:var(--brand-press)] hover:bg-[color:var(--brand-hover)]",
+      "bg-[color:var(--brand)] text-[color:var(--on-brand)] border border-[color:var(--brand-press)] shadow-[var(--shadow-brand)] hover:bg-[color:var(--brand-hover)]",
     secondary:
-      "bg-[color:var(--surface-1)] text-[color:var(--text)] border border-[color:var(--line)] hover:bg-[color:var(--surface-2)] hover:border-[color:var(--line-strong)]",
+      "bg-[color:var(--surface-2)] text-[color:var(--text)] border border-[color:var(--line-strong)] hover:bg-[color:var(--surface-hover)]",
     ghost:
-      "bg-transparent text-[color:var(--text-dim)] border border-transparent hover:bg-[color:var(--surface-1)] hover:text-[color:var(--text)]",
+      "bg-transparent text-[color:var(--text-dim)] border border-transparent hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text)]",
     danger:
-      "bg-[color:var(--bad-bg)] text-[#FCA5A5] border border-[color:var(--bad-line)] hover:bg-[rgba(239,68,68,0.18)] hover:text-[#FECACA]",
+      "bg-[color:var(--bad)] text-[#2a0d0a] border border-[color:var(--bad-line)] hover:brightness-110",
   };
 
   return (

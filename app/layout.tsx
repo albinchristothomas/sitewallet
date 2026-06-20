@@ -1,20 +1,31 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Archivo, JetBrains_Mono, Caveat } from "next/font/google";
 import { NavBar } from "@/lib/nav";
 import { BetaBanner as Footer } from "@/lib/beta-banner";
 import { ServiceWorkerRegister } from "@/lib/sw-register";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Display / UI face. Archivo is a sturdy industrial grotesk — the approved
+// design uses 800–900 for big confident headers.
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+// Every number, date, ID, label, status — monospace, tabular. The "official
+// document" signal.
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
+});
+
+// Signatures only (EOD report, card back).
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  weight: ["600"],
 });
 
 export const metadata: Metadata = {
@@ -49,8 +60,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0e1116" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1116" },
+    { media: "(prefers-color-scheme: light)", color: "#0d0f12" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0f12" },
   ],
 };
 
@@ -62,7 +73,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${archivo.variable} ${jetbrainsMono.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-[var(--bg)] text-[var(--text)]">
         <ServiceWorkerRegister />

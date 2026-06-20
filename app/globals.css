@@ -1,73 +1,85 @@
 @import "tailwindcss";
 
 /* ============================================================
-   RigWise — design tokens (dark, professional)
-   Inspired by Linear / Vercel / Cursor / Resend.
-   Restrained palette, hairline borders, system font stack,
-   considered motion. No gradients, no glass, no soft shadows.
+   RigWise — design tokens (FIELD-GRADE).
+   Ported from the approved "Credential Card" design system:
+   Archivo + JetBrains Mono, deep steel #0d0f12 base, safety
+   orange #f2581c accent, security-document materials.
    ============================================================ */
 
 :root {
-  /* Surfaces — true near-black with subtle elevation steps */
-  --bg: #09090B;
-  --surface-1: #131316;
-  --surface-2: #18181B;
-  --surface-3: #1F1F23;
-  --surface-hover: #232328;
+  /* Surfaces */
+  --bg: #0d0f12;
+  /* Radial field glow used on full-screen backgrounds */
+  --bg-radial: radial-gradient(120% 90% at 50% -10%, #161a1f 0%, #0d0f12 60%);
+  /* The signature panel/card gradient (steel) */
+  --surface-gradient: linear-gradient(152deg, #222831 0%, #191d23 52%, #14171c 100%);
+  --surface-1: #191d23;   /* solid panel approximation */
+  --surface-2: #15191e;   /* inputs / controls */
+  --surface-3: #222831;   /* raised */
+  --surface-hover: #1d222a;
 
-  /* Hairlines — used everywhere a border lives */
-  --line: #27272A;
-  --line-strong: #3F3F46;
-  --line-focus: #FACC15;
+  /* Hairlines */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --line-focus: #f2581c;
 
   /* Text */
-  --text: #FAFAFA;
-  --text-dim: #A1A1AA;
-  --text-faint: #71717A;
-  --text-mute: #52525B;
-  --text-on-yellow: #0A0A0A;
+  --text: #f4f6f7;
+  --text-dim: #9aa3ab;
+  --text-faint: #5d666f;
+  --text-mute: #3a3f45;
+  --text-2: #c4ccd2;       /* secondary bright */
+  --on-brand: #0d0f12;     /* dark text on the orange button */
+  --text-on-yellow: #0d0f12; /* legacy alias */
 
-  /* Brand accent — used sparingly, mostly for the logomark + primary CTA */
-  --brand: #FACC15;
-  --brand-hover: #FDE047;
-  --brand-press: #EAB308;
+  /* Brand — safety orange */
+  --brand: #f2581c;
+  --brand-hover: #ff6a30;
+  --brand-press: #c2440f;
+  --brand-glow: rgba(242, 88, 28, 0.6);
+  --wordmark-muted: #8b949c;
 
-  /* Status */
-  --ok: #22C55E;
-  --ok-bg: rgba(34, 197, 94, 0.10);
-  --ok-line: rgba(34, 197, 94, 0.35);
-  --warn: #F59E0B;
-  --warn-bg: rgba(245, 158, 11, 0.10);
-  --warn-line: rgba(245, 158, 11, 0.35);
-  --bad: #EF4444;
-  --bad-bg: rgba(239, 68, 68, 0.10);
-  --bad-line: rgba(239, 68, 68, 0.35);
-  --info: #3B82F6;
-  --info-bg: rgba(59, 130, 246, 0.10);
-  --info-line: rgba(59, 130, 246, 0.35);
+  /* Status — green / amber / red, with dot + text variants */
+  --ok: #2fd072;
+  --ok-text: #7ff0a8;
+  --ok-bg: rgba(47, 200, 106, 0.12);
+  --ok-line: rgba(47, 200, 106, 0.5);
+  --warn: #f2a40c;
+  --warn-text: #ffd27a;
+  --warn-bg: rgba(242, 164, 12, 0.14);
+  --warn-line: rgba(242, 164, 12, 0.55);
+  --bad: #ef4135;
+  --bad-text: #ff9a8f;
+  --bad-bg: rgba(239, 65, 53, 0.14);
+  --bad-line: rgba(239, 65, 53, 0.55);
+  --info: #6ec8ff;
+  --info-bg: rgba(110, 200, 255, 0.10);
+  --info-line: rgba(110, 200, 255, 0.35);
 
   /* Radius */
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
-  --r-xl: 12px;
+  --r-sm: 5px;
+  --r-md: 9px;
+  --r-lg: 12px;
+  --r-xl: 14px;
+  --r-card: 22px;
 
-  /* Motion — Linear-ish snap */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --t-fast: 120ms;
+  --t-fast: 140ms;
   --t-base: 180ms;
-  --t-slow: 280ms;
+  --t-slow: 260ms;
 
-  /* Shadow — almost none. Used only for floating menus. */
-  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.4),
-                0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  /* Shadows */
+  --shadow-panel: 0 30px 60px -20px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 10px 24px -16px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  --shadow-brand: 0 8px 20px -8px var(--brand-glow);
 
-  /* Legacy aliases — kept so existing screens keep compiling.
-     New code should use the names above. */
+  /* Legacy aliases — keep existing screens compiling */
   --ink-1: var(--bg);
   --ink-2: var(--surface-1);
-  --ink-3: var(--surface-2);
+  --ink-3: var(--surface-3);
   --hair: var(--line);
   --hair-strong: var(--line-strong);
   --hi-yellow: var(--brand);
@@ -86,7 +98,7 @@
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
   --color-text-faint: var(--text-faint);
-  --color-text-mute: var(--text-mute);
+  --color-text-2: var(--text-2);
   --color-brand: var(--brand);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
@@ -96,13 +108,13 @@
   /* legacy aliases */
   --color-ink-1: var(--bg);
   --color-ink-2: var(--surface-1);
-  --color-ink-3: var(--surface-2);
+  --color-ink-3: var(--surface-3);
   --color-hair: var(--line);
   --color-hair-strong: var(--line-strong);
   --color-hi-yellow: var(--brand);
   --color-hi-orange: var(--brand);
 
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-archivo), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -111,30 +123,31 @@ html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-feature-settings: "cv11", "ss01", "ss03", "cv02", "tnum";
+  font-family: var(--font-archivo), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.005em;
   text-rendering: optimizeLegibility;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Subtle field glow behind the whole app */
+  background: var(--bg-radial);
+  background-attachment: fixed;
 }
 
-/* Selection — yellow on near-black */
 ::selection {
   background: var(--brand);
-  color: var(--text-on-yellow);
+  color: var(--on-brand);
 }
 
-/* Focus ring — visible only on keyboard nav */
 *:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
   border-radius: var(--r-sm);
 }
 
-/* Scrollbar — quiet, dark */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -151,7 +164,6 @@ body {
   background: var(--line-strong);
 }
 
-/* PWA standalone — no rubber-banding around QR/scanner */
 @media (display-mode: standalone) {
   html, body {
     overscroll-behavior-y: none;
@@ -159,14 +171,14 @@ body {
 }
 
 /* ============================================================
-   Utility-ish classes used across screens
+   Utility classes
    ============================================================ */
 
 .eyebrow {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
@@ -180,44 +192,61 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* The signature steel panel surface */
+.rw-panel {
+  background: var(--surface-gradient);
+  box-shadow: var(--shadow-card);
+}
+
+/* Safety spine — orange left edge on key cards/panels */
+.rw-spine {
+  position: relative;
+}
+.rw-spine::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--brand);
+}
+
+/* Guilloché security pattern overlay (apply to a positioned ::before host) */
+.rw-guilloche {
+  background-image:
+    repeating-radial-gradient(circle at 30% 24%, transparent 0 6px, rgba(255, 255, 255, 0.045) 6px 7px),
+    conic-gradient(from 20deg at 50% 50%, rgba(255, 255, 255, 0.04), transparent 40%, rgba(255, 255, 255, 0.035) 70%, transparent 100%);
+}
+
 /* ============================================================
-   Motion primitives — page enter, content fade, skeletons
+   Motion primitives
    ============================================================ */
 
 @keyframes rw-enter {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes rw-fade {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
 @keyframes rw-shimmer {
   from { background-position: -200% 0; }
   to   { background-position: 200% 0; }
 }
-
 @keyframes rw-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.4; }
 }
-
 @keyframes rw-scan {
   0%, 100% { transform: translateY(-110px); }
   50%      { transform: translateY(110px); }
 }
 
-@keyframes rw-ring {
-  0%   { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.4); opacity: 0; }
-}
-
 .rw-enter {
   animation: rw-enter var(--t-base) var(--ease-out) both;
 }
-
 .rw-enter-stagger > * {
   animation: rw-enter var(--t-base) var(--ease-out) both;
 }
@@ -230,56 +259,39 @@ body {
 .rw-enter-stagger > *:nth-child(7) { animation-delay: 240ms; }
 .rw-enter-stagger > *:nth-child(8) { animation-delay: 280ms; }
 
-.rw-pulse {
-  animation: rw-pulse 1.6s var(--ease-in-out) infinite;
-}
-
-.rw-scan {
-  animation: rw-scan 2.4s var(--ease-in-out) infinite;
-}
+.rw-pulse { animation: rw-pulse 1.6s var(--ease-in-out) infinite; }
+.rw-scan  { animation: rw-scan 2.4s var(--ease-in-out) infinite; }
 
 .rw-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface-1) 0%,
-    var(--surface-2) 50%,
-    var(--surface-1) 100%
-  );
+  background: linear-gradient(90deg, var(--surface-1) 0%, var(--surface-3) 50%, var(--surface-1) 100%);
   background-size: 200% 100%;
   animation: rw-shimmer 1.4s linear infinite;
 }
 
-/* Hover lift — for interactive cards. Border crispens, no transform. */
 .rw-hoverable {
   transition: border-color var(--t-fast) var(--ease-out),
               background-color var(--t-fast) var(--ease-out);
 }
 
-/* Press state for buttons — subtle brightness shift */
 .rw-pressable {
   transition: filter var(--t-fast) var(--ease-out),
               background-color var(--t-fast) var(--ease-out),
-              border-color var(--t-fast) var(--ease-out);
+              border-color var(--t-fast) var(--ease-out),
+              transform var(--t-fast) var(--ease-out);
 }
 .rw-pressable:active {
   filter: brightness(0.93);
+  transform: translateY(0.5px);
 }
 
-/* View Transitions API — smooth navigation between routes.
-   Browsers without support gracefully ignore this. */
 @view-transition {
   navigation: auto;
 }
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--t-base);
   animation-timing-function: var(--ease-out);
 }
-
-/* ============================================================
-   Reduced motion — respect OS preference
-   ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -289,15 +301,9 @@ body {
   }
 }
 
-/* ============================================================
-   Print stylesheet — kept clean for the EOD report.
-   The report page itself overrides further with its own
-   print: classes; this is the global baseline.
-   ============================================================ */
-
 @media print {
   html, body {
-    background: #FFFFFF;
+    background: #ffffff;
     color: #000000;
   }
   body {
@@ -305,15 +311,9 @@ body {
   }
 }
 
-/* ============================================================
-   Legacy class names — kept so existing screens compile.
-   Will be removed once every screen is migrated to the new
-   atom components.
-   ============================================================ */
-
+/* Legacy class names kept so existing screens compile */
 .sw-pulse { animation: rw-pulse 1.5s ease-in-out infinite; }
 .sw-scan  { animation: rw-scan 2.4s ease-in-out infinite; }
-
 .theme-paper {
   background: var(--bg);
   color: var(--text);
