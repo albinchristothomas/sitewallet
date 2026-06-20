@@ -37,7 +37,8 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/login") ||
     path.startsWith("/auth/") ||
     path.startsWith("/_next") ||
-    path === "/offline";
+    path === "/offline" ||
+    path === "/card-demo";
 
   // Anonymous user hitting a private route → /login.
   if (!user && !isPublic) {
