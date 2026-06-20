@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   const { data: worker } = await supabase
     .from("workers")
     .select(
-      "account_type, full_name, phone, contractor_company, employee_number, drivers_license_number, emergency_contact_name, emergency_contact_phone, allergies, medical_conditions, medic_firm, medic_license_number, profile_completed_at",
+      "account_type, full_name, phone, contractor_company, current_worksite, employee_number, drivers_license_number, emergency_contact_name, emergency_contact_phone, allergies, medical_conditions, medic_firm, medic_license_number, profile_completed_at",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -36,6 +36,7 @@ export default async function OnboardingPage() {
           full_name: worker?.full_name ?? "",
           phone: worker?.phone ?? "",
           contractor_company: worker?.contractor_company ?? "",
+          current_worksite: worker?.current_worksite ?? "",
           employee_number: worker?.employee_number ?? "",
           drivers_license_number: worker?.drivers_license_number ?? "",
           emergency_contact_name: worker?.emergency_contact_name ?? "",

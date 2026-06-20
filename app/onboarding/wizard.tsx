@@ -10,6 +10,7 @@ type FormState = Required<{
   full_name: string;
   phone: string;
   contractor_company: string;
+  current_worksite: string;
   employee_number: string;
   drivers_license_number: string;
   emergency_contact_name: string;
@@ -20,7 +21,9 @@ type FormState = Required<{
   medic_license_number: string;
 }>;
 
-const WORKER_STEPS = ["intro", "you", "work", "emergency", "health"] as const;
+// Worker setup is intentionally tiny: name, who they work for, where they're
+// going. Everything else is optional and captured later.
+const WORKER_STEPS = ["intro", "details"] as const;
 const MEDIC_STEPS = ["intro", "you", "credentials"] as const;
 
 type StepKey =
@@ -51,21 +54,16 @@ export function OnboardingWizard({
     setState((s) => ({ ...s, [k]: v }));
 
   const validateCurrent = (): string | null => {
+    if (step === "details") {
+      if (!state.full_name.trim()) return "Enter your full name.";
+      if (!state.contractor_company.trim())
+        return "Which company do you work for?";
+      if (!state.current_worksite.trim())
+        return "Which site are you going to?";
+    }
     if (step === "you") {
       if (!state.full_name.trim()) return "Enter your full legal name.";
       if (!state.phone.trim()) return "Enter your phone number.";
-    }
-    if (step === "work") {
-      if (!state.contractor_company.trim())
-        return "Which company are you working for?";
-      if (!state.drivers_license_number.trim())
-        return "Enter your driver's license number.";
-    }
-    if (step === "emergency") {
-      if (!state.emergency_contact_name.trim())
-        return "Who should we call in an emergency?";
-      if (!state.emergency_contact_phone.trim())
-        return "Emergency contact phone is required.";
     }
     if (step === "credentials") {
       if (!state.medic_firm.trim())
@@ -95,12 +93,7 @@ export function OnboardingWizard({
               full_name: state.full_name,
               phone: state.phone,
               contractor_company: state.contractor_company,
-              employee_number: state.employee_number,
-              drivers_license_number: state.drivers_license_number,
-              emergency_contact_name: state.emergency_contact_name,
-              emergency_contact_phone: state.emergency_contact_phone,
-              allergies: state.allergies,
-              medical_conditions: state.medical_conditions,
+              current_worksite: state.current_worksite,
             }
           : {
               full_name: state.full_name,
@@ -161,15 +154,11 @@ export function OnboardingWizard({
           {step === "intro" && (
             <IntroStep accountType={accountType} email={email} />
           )}
+          {step === "details" && (
+            <WorkerDetailsStep state={state} update={update} />
+          )}
           {step === "you" && (
             <YouStep state={state} update={update} accountType={accountType} />
-          )}
-          {step === "work" && <WorkStep state={state} update={update} />}
-          {step === "emergency" && (
-            <EmergencyStep state={state} update={update} />
-          )}
-          {step === "health" && (
-            <HealthStep state={state} update={update} />
           )}
           {step === "credentials" && (
             <CredentialsStep state={state} update={update} />
@@ -336,10 +325,9 @@ function IntroStep({
       <ul className="mt-5 space-y-2 text-[13px] text-[#525866]">
         {(accountType === "WORKER"
           ? [
-              "Name + phone",
-              "Employer + driver's license",
-              "Emergency contact",
-              "Allergies & medical (optional)",
+              "Your name",
+              "Company you work for",
+              "Site you're going to",
             ]
           : ["Name + phone", "Medic firm + license"]
         ).map((s, i) => (
@@ -396,7 +384,7 @@ function YouStep({
   );
 }
 
-function WorkStep({
+function WorkerDetailsStep({
   state,
   update,
 }: {
@@ -406,102 +394,39 @@ function WorkStep({
   return (
     <>
       <StepHeader
-        eyebrow="Work info"
-        title="Who do you work for?"
-        body="Your employer or contractor on this rotation. You can change this later when you switch sites."
+        eyebrow="Your details"
+        title="Quick setup."
+        body="Three things and you're in. You can add more to your profile later."
       />
       <div className="space-y-6">
         <Field
-          label="Employer / contractor"
+          label="Full name"
+          value={state.full_name}
+          onChange={update("full_name")}
+          placeholder="Albin Christo Thomas"
+          autoFocus
+        />
+        <Field
+          label="Company you work for"
           value={state.contractor_company}
           onChange={update("contractor_company")}
           placeholder="Trican Well Service"
-          autoFocus
+          hint="The employer or contractor you represent on site."
         />
         <Field
-          label="Driver's license number"
-          value={state.drivers_license_number}
-          onChange={update("drivers_license_number")}
-          placeholder="Class 5 license #"
-          hint="Required at most gates for ID verification."
+          label="Site you're going to"
+          value={state.current_worksite}
+          onChange={update("current_worksite")}
+          placeholder="e.g. Tourmaline N144"
+          hint="The rig or wellsite for this rotation. You can change it when you move."
         />
         <Field
-          label="Employee number"
-          value={state.employee_number}
-          onChange={update("employee_number")}
-          placeholder="EMP-0142"
-          optional
-        />
-      </div>
-    </>
-  );
-}
-
-function EmergencyStep({
-  state,
-  update,
-}: {
-  state: FormState;
-  update: (k: keyof FormState) => (v: string) => void;
-}) {
-  return (
-    <>
-      <StepHeader
-        eyebrow="Emergency contact"
-        title="Who do we call if something happens?"
-        body="The medic at the gate sees this only if there's an emergency."
-      />
-      <div className="space-y-6">
-        <Field
-          label="Contact name"
-          value={state.emergency_contact_name}
-          onChange={update("emergency_contact_name")}
-          placeholder="e.g. Spouse / parent / next of kin"
-          autoFocus
-        />
-        <Field
-          label="Contact phone"
-          value={state.emergency_contact_phone}
-          onChange={update("emergency_contact_phone")}
-          placeholder="403-555-0199"
+          label="Phone"
+          value={state.phone}
+          onChange={update("phone")}
+          placeholder="403-555-0123"
           type="tel"
-        />
-      </div>
-    </>
-  );
-}
-
-function HealthStep({
-  state,
-  update,
-}: {
-  state: FormState;
-  update: (k: keyof FormState) => (v: string) => void;
-}) {
-  return (
-    <>
-      <StepHeader
-        eyebrow="Health info"
-        title="Anything we should know?"
-        body="Both fields are optional. If you'd rather tell the medic in person, leave them blank."
-      />
-      <div className="space-y-6">
-        <Field
-          label="Allergies"
-          value={state.allergies}
-          onChange={update("allergies")}
-          placeholder="e.g. Peanuts, penicillin"
           optional
-          multiline
-          autoFocus
-        />
-        <Field
-          label="Medical conditions"
-          value={state.medical_conditions}
-          onChange={update("medical_conditions")}
-          placeholder="e.g. Asthma, diabetes"
-          optional
-          multiline
         />
       </div>
     </>

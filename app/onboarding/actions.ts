@@ -8,7 +8,8 @@ export type OnboardingPayload = {
   full_name: string;
   phone: string;
   // worker-only
-  contractor_company?: string;
+  contractor_company?: string; // who they work for
+  current_worksite?: string;   // the site/rig they're going to
   employee_number?: string;
   drivers_license_number?: string;
   emergency_contact_name?: string;
@@ -53,6 +54,8 @@ export async function completeOnboarding(payload: OnboardingPayload) {
 
   if (type === "WORKER") {
     merged.contractor_company = trim(payload.contractor_company);
+    merged.current_worksite = trim(payload.current_worksite);
+    // Optional extras — captured later (profile or by the medic at the gate).
     merged.employee_number = trim(payload.employee_number);
     merged.drivers_license_number = trim(payload.drivers_license_number);
     merged.emergency_contact_name = trim(payload.emergency_contact_name);
@@ -64,16 +67,11 @@ export async function completeOnboarding(payload: OnboardingPayload) {
     merged.medic_license_number = trim(payload.medic_license_number);
   }
 
+  // Minimal required set. Worker: name + who they work for + where they're
+  // going. Phone/license/emergency are optional now (face is not required).
   const required: Record<AccountType, string[]> = {
-    WORKER: [
-      "full_name",
-      "phone",
-      "contractor_company",
-      "drivers_license_number",
-      "emergency_contact_name",
-      "emergency_contact_phone",
-    ],
-    MEDIC: ["full_name", "phone", "medic_firm", "medic_license_number"],
+    WORKER: ["full_name", "contractor_company", "current_worksite"],
+    MEDIC: ["full_name", "medic_firm", "medic_license_number"],
   };
 
   for (const k of required[type]) {
