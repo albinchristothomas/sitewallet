@@ -17,22 +17,64 @@ export default async function NewCredentialPage(
   const wasPrefilled = Object.values(prefill).some((v) => v.length > 0);
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-0 pb-0 pt-2">
-      <div className="flex h-14 items-center justify-between px-5">
+    <main className="mx-auto flex w-full max-w-[384px] flex-1 flex-col">
+      {/* header */}
+      <div
+        style={{
+          padding: "14px 24px 0",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
         <Link
           href="/wallet"
-          className="flex items-center gap-1.5 text-[15px] font-medium text-[color:var(--text)]"
+          aria-label="Back to wallet"
+          style={{ display: "inline-flex", lineHeight: 0 }}
         >
-          ✕
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#9aa3ab"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </Link>
-        <div className="text-[16px] font-bold">Add credential</div>
-        <div className="w-5" />
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 24,
+            letterSpacing: "-0.02em",
+            color: "#f4f6f7",
+          }}
+        >
+          Add a ticket
+        </div>
       </div>
+
       {wasPrefilled && (
-        <div className="mx-5 mb-2 rounded-lg border border-[color:rgba(16,185,129,0.32)] bg-[color:rgba(16,185,129,0.10)] px-3 py-2 text-[12px] text-[color:#34D399]">
-          ✓ Auto-filled from your photo. Review and save.
+        <div
+          className="mono"
+          style={{
+            margin: "14px 24px 0",
+            borderRadius: 9,
+            border: "1px solid rgba(47,200,106,0.5)",
+            background: "rgba(47,200,106,0.12)",
+            padding: "10px 14px",
+            fontSize: 10,
+            letterSpacing: "0.1em",
+            color: "#7ff0a8",
+          }}
+        >
+          ✓ AUTO-FILLED FROM YOUR PHOTO · REVIEW AND SAVE
         </div>
       )}
+
       <AddCredentialForm prefill={prefill} />
     </main>
   );

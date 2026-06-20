@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HardHat, Stethoscope, ArrowRight, ShieldCheck, QrCode, ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { BrandMark, BrandWordmark, Eyebrow } from "@/lib/atoms";
 import { homeForType, type SignupIntent, type AccountType } from "@/lib/roles";
 
 export default async function Home() {
@@ -21,191 +19,229 @@ export default async function Home() {
     redirect(homeForType(type));
   }
 
-  const intents: Array<{
+  // Arrow glyph reused on both role cards (safety-orange CTA chevron).
+  const arrow = (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#f2581c"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+
+  const roles: Array<{
     key: SignupIntent;
+    spine: string;
     icon: React.ReactNode;
     title: string;
     sub: string;
   }> = [
     {
       key: "worker",
-      icon: <HardHat size={22} strokeWidth={1.6} />,
+      spine: "#f2581c",
+      icon: (
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#9aa3ab"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" />
+        </svg>
+      ),
       title: "I'm a worker",
-      sub: "Carry my tickets",
+      sub: "Carry your tickets. Show one QR pass at the gate.",
     },
     {
       key: "medic",
-      icon: <Stethoscope size={22} strokeWidth={1.6} />,
+      spine: "#2fd072",
+      icon: (
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#9aa3ab"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 12l2 2 4-4" />
+          <path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z" />
+        </svg>
+      ),
       title: "I'm a medic",
-      sub: "Scan at the gate",
+      sub: "Run the gate. Admit, deny, file the day.",
     },
   ];
 
   return (
-    <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-5 py-10">
-      <GridBackdrop />
+    <main className="relative flex flex-1 flex-col px-6 py-10 sm:px-12 sm:py-14">
+      {/* Guilloché security overlay — matches the approved landing block. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          opacity: 0.4,
+          backgroundImage:
+            "repeating-radial-gradient(circle at 78% 30%, transparent 0 9px, rgba(255,255,255,0.04) 9px 10px),conic-gradient(from 40deg at 72% 45%, rgba(255,255,255,0.04), transparent 35%, rgba(255,255,255,0.03) 65%, transparent 95%)",
+        }}
+      />
 
-      <div className="rw-enter relative w-full max-w-[420px]">
-        {/* Brand block */}
-        <div className="flex flex-col items-center">
-          <BrandMark size={56} />
-          <h1 className="mt-5 text-[40px] font-bold leading-none tracking-[-0.025em]">
-            <BrandWordmark />
-          </h1>
-          <Eyebrow className="mt-3.5">
-            Safety credentials · verified at the gate
-          </Eyebrow>
+      {/* Giant ghost wordmark */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute select-none text-[120px] leading-[0.8] sm:text-[230px]"
+        style={{
+          right: -30,
+          bottom: -40,
+          fontWeight: 900,
+          letterSpacing: "-0.04em",
+          color: "rgba(255,255,255,0.03)",
+        }}
+      >
+        RW
+      </div>
+
+      <div className="rw-enter relative mx-auto flex w-full max-w-[1000px] flex-1 flex-col">
+        {/* top brand */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-[13px]">
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 30,
+                height: 30,
+                background: "#f2581c",
+                borderRadius: 4,
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.12) inset",
+              }}
+            >
+              <div style={{ width: 11, height: 11, background: "#0d0f12" }} />
+            </div>
+            <div style={{ lineHeight: 1 }}>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: 21,
+                  letterSpacing: "-0.01em",
+                  color: "#eef1f3",
+                }}
+              >
+                RIG
+                <span style={{ color: "#8b949c", fontWeight: 600 }}>WISE</span>
+              </div>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.18em",
+                  color: "#5d666f",
+                  marginTop: 3,
+                }}
+              >
+                GATE STATION
+              </div>
+            </div>
+          </div>
+          <div
+            className="mono text-right"
+            style={{ fontSize: 11, letterSpacing: "0.12em", color: "#9aa3ab" }}
+          >
+            EST · ALBERTA · BC · SK
+          </div>
         </div>
 
-        {/* Flow strip — Worker → Scanner → Admitted */}
-        <FlowStrip />
+        {/* value prop */}
+        <div className="mt-12 max-w-[560px] sm:mt-auto">
+          <div
+            className="mono text-[10px] sm:text-[11px]"
+            style={{ letterSpacing: "0.2em", color: "#f2581c" }}
+          >
+            SAFETY CREDENTIALS · VERIFIED AT THE GATE
+          </div>
+          <div
+            className="mt-4 text-[34px] sm:mt-[18px] sm:text-[56px]"
+            style={{
+              fontWeight: 900,
+              lineHeight: 1.0,
+              letterSpacing: "-0.025em",
+              color: "#f4f6f7",
+              textWrap: "balance",
+            }}
+          >
+            Every ticket, every worker, checked before the boot hits the lease.
+          </div>
+        </div>
 
-        {/* Two CTAs */}
-        <div className="mt-7 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {intents.map(({ key, icon, title, sub }) => (
+        {/* role choices — stacked on mobile, side-by-side on desktop */}
+        <div className="mt-9 flex flex-col gap-[18px] sm:mt-[42px] sm:flex-row">
+          {roles.map(({ key, spine, icon, title, sub }) => (
             <Link
               key={key}
               href={`/login?as=${key}`}
-              className="group rw-hoverable relative flex items-center gap-3.5 rounded-[10px] border border-[color:var(--line)] bg-[color:var(--surface-1)] p-4 hover:border-[color:var(--line-strong)] hover:bg-[color:var(--surface-2)]"
+              className="rw-pressable relative flex-1 overflow-hidden"
+              style={{
+                borderRadius: 12,
+                background:
+                  "linear-gradient(152deg,#222831 0%,#191d23 52%,#14171c 100%)",
+                boxShadow:
+                  "0 20px 40px -22px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.07)",
+                padding: "24px 26px",
+              }}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[7px] border border-[color:var(--line)] bg-[color:var(--surface-2)] text-[color:var(--text-dim)] transition-colors group-hover:border-[color:var(--brand)] group-hover:bg-[color:var(--brand)] group-hover:text-[color:var(--text-on-yellow)]">
-                {icon}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[14px] font-semibold leading-tight text-[color:var(--text)]">
-                  {title}
-                </div>
-                <div className="mt-1 text-[12px] leading-snug text-[color:var(--text-faint)]">
-                  {sub}
-                </div>
-              </div>
-              <ArrowRight
-                size={15}
-                strokeWidth={1.8}
-                className="shrink-0 text-[color:var(--text-faint)] transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-[color:var(--text)]"
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 5,
+                  background: spine,
+                }}
               />
+              <div className="flex items-center justify-between">
+                {icon}
+                {arrow}
+              </div>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: 23,
+                  letterSpacing: "-0.01em",
+                  color: "#eef1f3",
+                  marginTop: 16,
+                }}
+              >
+                {title}
+              </div>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 11,
+                  color: "#9aa3ab",
+                  marginTop: 6,
+                  letterSpacing: "0.04em",
+                  lineHeight: 1.5,
+                }}
+              >
+                {sub}
+              </div>
             </Link>
           ))}
         </div>
-
-        {/* Sign in link */}
-        <p className="mt-7 text-center text-[12px] text-[color:var(--text-faint)]">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-[color:var(--text-dim)] underline-offset-4 transition-colors hover:text-[color:var(--text)] hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
-      </div>
-
-      {/* Bottom corner pill — trust signal */}
-      <div className="relative mt-12 inline-flex items-center gap-2 rounded-full border border-[color:var(--line)] bg-[color:var(--surface-1)] px-3 py-1.5 mono text-[10.5px] font-medium uppercase tracking-[0.12em] text-[color:var(--text-faint)]">
-        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--ok)]" />
-        Built for Canadian energy worksites
       </div>
     </main>
-  );
-}
-
-/* ============================================================
-   Backdrop: subtle engineered grid, masked to a radial fade.
-   No gradients, no blobs — just hairlines.
-   ============================================================ */
-function GridBackdrop() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 opacity-[0.04]"
-      style={{
-        backgroundImage:
-          "linear-gradient(var(--text) 1px, transparent 1px), linear-gradient(90deg, var(--text) 1px, transparent 1px)",
-        backgroundSize: "44px 44px",
-        maskImage:
-          "radial-gradient(ellipse at center, black 35%, transparent 75%)",
-        WebkitMaskImage:
-          "radial-gradient(ellipse at center, black 35%, transparent 75%)",
-      }}
-    />
-  );
-}
-
-/* ============================================================
-   FlowStrip — Worker → Scanner → Admitted in a single rail.
-   Compact, hairline, no decoration beyond the icons themselves.
-   ============================================================ */
-function FlowStrip() {
-  return (
-    <div className="mt-9 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-1.5">
-      <FlowCell icon={<QrCode size={20} strokeWidth={1.6} />} label="Worker" sub="QR ID" />
-      <FlowDash />
-      <FlowCell icon={<ScanLine size={20} strokeWidth={1.6} />} label="Medic" sub="Scans" accent />
-      <FlowDash />
-      <FlowCell icon={<ShieldCheck size={20} strokeWidth={1.6} />} label="Gate" sub="Admit" />
-    </div>
-  );
-}
-
-function FlowCell({
-  icon,
-  label,
-  sub,
-  accent = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  sub: string;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={`flex flex-col items-center gap-2 rounded-[8px] border bg-[color:var(--surface-1)] px-2 py-3 ${
-        accent
-          ? "border-[color:var(--brand)]"
-          : "border-[color:var(--line)]"
-      }`}
-    >
-      <div
-        className={`flex h-9 w-9 items-center justify-center rounded-[6px] ${
-          accent
-            ? "bg-[color:var(--brand)] text-[color:var(--text-on-yellow)]"
-            : "bg-[color:var(--surface-2)] text-[color:var(--text-dim)]"
-        }`}
-      >
-        {icon}
-      </div>
-      <div className="text-center">
-        <div className="text-[11.5px] font-bold uppercase tracking-[0.08em] text-[color:var(--text)]">
-          {label}
-        </div>
-        <div className="mono mt-0.5 text-[9.5px] uppercase tracking-[0.1em] text-[color:var(--text-faint)]">
-          {sub}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FlowDash() {
-  return (
-    <svg
-      width="20"
-      height="40"
-      viewBox="0 0 20 40"
-      fill="none"
-      aria-hidden
-      className="self-center"
-    >
-      <line
-        x1="2"
-        y1="20"
-        x2="18"
-        y2="20"
-        stroke="var(--line-strong)"
-        strokeWidth="1.2"
-        strokeDasharray="2 3"
-      />
-    </svg>
   );
 }

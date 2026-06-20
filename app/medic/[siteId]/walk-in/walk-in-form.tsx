@@ -1,10 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Camera, Plus, Trash2, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/lib/atoms";
-import { CREDENTIAL_TYPES } from "@/lib/credentials";
+import { CREDENTIAL_TYPES, getCredentialLabel } from "@/lib/credentials";
 import { createWalkIn, type WalkInTicket } from "./actions";
 
 type LocalTicket = {
@@ -19,6 +17,29 @@ type LocalTicket = {
 function newKey() {
   return Math.random().toString(36).slice(2);
 }
+
+// repeating diagonal hatch used for capture surfaces in the design
+const HATCH =
+  "repeating-linear-gradient(135deg,#232932 0 10px,#1b2027 10px 20px)";
+const HATCH_SM =
+  "repeating-linear-gradient(135deg,#232932 0 7px,#1b2027 7px 14px)";
+
+const monoLabel: React.CSSProperties = {
+  fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
+  fontSize: "9px",
+  letterSpacing: "0.12em",
+  color: "#5d666f",
+  textTransform: "uppercase",
+};
+
+const fieldShell: React.CSSProperties = {
+  height: "50px",
+  borderRadius: "9px",
+  background: "#15191e",
+  border: "1px solid rgba(255,255,255,0.1)",
+  display: "flex",
+  alignItems: "center",
+};
 
 export function WalkInForm({ siteId }: { siteId: string }) {
   const supabase = createClient();
@@ -96,8 +117,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
     }
   }
 
-  const anyUploading =
-    faceUploading || tickets.some((t) => t.uploading);
+  const anyUploading = faceUploading || tickets.some((t) => t.uploading);
 
   function submit() {
     if (!fullName.trim()) {
@@ -131,40 +151,90 @@ export function WalkInForm({ siteId }: { siteId: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Face */}
-      <section>
-        <div className="mono mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-dim)]">
-          Worker's face
-        </div>
+    <div style={{ display: "flex", flex: 1, flexDirection: "column" }}>
+      {/* scrolling body */}
+      <div
+        style={{
+          flex: 1,
+          padding: "18px 22px 0",
+          display: "flex",
+          flexDirection: "column",
+          gap: "14px",
+        }}
+      >
+        {/* face capture (orange dashed) */}
         <button
           type="button"
           onClick={() => faceInputRef.current?.click()}
-          className="rw-pressable flex w-full items-center gap-4 rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-1)] p-4 text-left hover:border-[color:var(--line-strong)]"
+          className="rw-pressable"
+          style={{
+            height: "128px",
+            borderRadius: "12px",
+            position: "relative",
+            overflow: "hidden",
+            border: "1.5px solid rgba(242,88,28,0.4)",
+            background: facePreview ? "#1b2027" : HATCH,
+            padding: 0,
+            width: "100%",
+            cursor: "pointer",
+            display: "block",
+          }}
         >
+          {facePreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={facePreview}
+              alt="face"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : null}
           <div
-            className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-2)] text-[color:var(--text-faint)]"
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "9px",
+              background: facePreview ? "rgba(13,15,18,0.45)" : "transparent",
+            }}
           >
-            {facePreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={facePreview}
-                alt="face"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Camera size={26} strokeWidth={1.6} />
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="text-[14px] font-semibold text-[color:var(--text)]">
-              {facePreview ? "Retake photo" : "Take a photo"}
-            </div>
-            <div className="mt-0.5 text-[12px] text-[color:var(--text-faint)]">
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f2581c"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="11" r="3.4" />
+              <path d="M5 20c0-3.4 3.1-5 7-5s7 1.6 7 5" />
+              <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
+            </svg>
+            <span
+              style={{
+                fontFamily:
+                  "var(--font-jetbrains-mono), ui-monospace, monospace",
+                fontSize: "10px",
+                letterSpacing: "0.12em",
+                color: "#c4ccd2",
+              }}
+            >
               {faceUploading
-                ? "Uploading…"
-                : "This is the face you'll match at the gate."}
-            </div>
+                ? "UPLOADING…"
+                : facePreview
+                  ? "TAP TO RETAKE FACE"
+                  : "TAP TO CAPTURE FACE"}
+            </span>
           </div>
         </button>
         <input
@@ -178,186 +248,377 @@ export function WalkInForm({ siteId }: { siteId: string }) {
             if (f) onFace(f);
           }}
         />
-      </section>
 
-      {/* Identity */}
-      <section className="space-y-4">
-        <Field
-          label="Full name"
-          value={fullName}
-          onChange={setFullName}
-          placeholder="Albin Christo Thomas"
-          autoFocus
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <Field
-            label="Employer"
-            value={employer}
-            onChange={setEmployer}
-            placeholder="Trican Well Service"
-          />
-          <Field
-            label="Phone"
-            value={phone}
-            onChange={setPhone}
-            placeholder="403-555-0123"
-            type="tel"
-          />
-        </div>
-      </section>
-
-      {/* Tickets */}
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <div className="mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-dim)]">
-            Safety tickets ({tickets.length})
+        {/* fields */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "11px" }}>
+          <div>
+            <div style={{ ...monoLabel, marginBottom: "7px" }}>FULL NAME</div>
+            <div style={{ ...fieldShell, padding: "0 15px" }}>
+              <input
+                autoFocus
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Dale Hutchins"
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  color: "#eef1f3",
+                }}
+              />
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={addTicket}
-            className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-[color:var(--brand)] hover:underline"
-          >
-            <Plus size={14} strokeWidth={2} /> Add ticket
-          </button>
+          <div style={{ display: "flex", gap: "11px" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ ...monoLabel, marginBottom: "7px" }}>EMPLOYER</div>
+              <div style={{ ...fieldShell, padding: "0 13px" }}>
+                <input
+                  value={employer}
+                  onChange={(e) => setEmployer(e.target.value)}
+                  placeholder="Borealis Vac"
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    color: "#eef1f3",
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ ...monoLabel, marginBottom: "7px" }}>PHONE</div>
+              <div style={{ ...fieldShell, padding: "0 13px" }}>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="780·555·0148"
+                  className="mono"
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    fontSize: "13px",
+                    color: "#d6dce0",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {tickets.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-[color:var(--line)] px-3 py-4 text-center text-[12.5px] text-[color:var(--text-faint)]">
-            No tickets yet. Add each card the worker shows you and snap a photo —
-            you'll verify them on the next screen.
-          </p>
-        ) : (
-          <ul className="space-y-3">
+        {/* cards */}
+        <div>
+          <div style={{ ...monoLabel, marginBottom: "10px" }}>
+            PHOTOGRAPH EACH SAFETY CARD
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             {tickets.map((t) => (
-              <li
+              <TicketTile
                 key={t.key}
-                className="rounded-xl border border-[color:var(--line)] bg-[color:var(--surface-1)] p-3.5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <select
-                    value={t.credential_type}
-                    onChange={(e) =>
-                      patchTicket(t.key, { credential_type: e.target.value })
-                    }
-                    className="h-10 flex-1 rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-2)] px-2.5 text-[13.5px] text-[color:var(--text)] focus:border-[color:var(--brand)] focus:outline-none"
-                  >
-                    {CREDENTIAL_TYPES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => removeTicket(t.key)}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[color:var(--line)] text-[color:var(--text-faint)] hover:border-[color:var(--bad)] hover:text-[color:var(--bad)]"
-                    aria-label="Remove ticket"
-                  >
-                    <Trash2 size={15} strokeWidth={1.8} />
-                  </button>
-                </div>
-
-                <div className="mt-3 flex items-center gap-3">
-                  <label className="rw-pressable flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-2)] text-[color:var(--text-faint)]">
-                    {t.previewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={t.previewUrl}
-                        alt="ticket"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Camera size={20} strokeWidth={1.6} />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) onTicketPhoto(t.key, f);
-                      }}
-                    />
-                  </label>
-                  <div className="min-w-0 flex-1">
-                    <div className="mono text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-faint)]">
-                      Expiry (optional)
-                    </div>
-                    <input
-                      type="date"
-                      value={t.expiry_date}
-                      onChange={(e) =>
-                        patchTicket(t.key, { expiry_date: e.target.value })
-                      }
-                      className="mt-1 h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-2)] px-2.5 text-[13px] text-[color:var(--text)] focus:border-[color:var(--brand)] focus:outline-none"
-                    />
-                    <div className="mt-1 text-[11px] text-[color:var(--text-faint)]">
-                      {t.uploading
-                        ? "Uploading photo…"
-                        : t.photo_path
-                          ? "Photo attached"
-                          : "Snap the card (optional)"}
-                    </div>
-                  </div>
-                </div>
-              </li>
+                ticket={t}
+                onPickType={(v) => patchTicket(t.key, { credential_type: v })}
+                onPhoto={(f) => onTicketPhoto(t.key, f)}
+                onExpiry={(v) => patchTicket(t.key, { expiry_date: v })}
+                onRemove={() => removeTicket(t.key)}
+              />
             ))}
-          </ul>
-        )}
-      </section>
 
-      {error && (
-        <div className="rounded-lg border border-[color:var(--bad-line)] bg-[color:var(--bad-bg)] px-3.5 py-2.5 text-[13px] text-[#FCA5A5]">
-          {error}
+            {/* add tile */}
+            <button
+              type="button"
+              onClick={addTicket}
+              className="rw-pressable"
+              style={{
+                flex: "1 1 90px",
+                minWidth: "90px",
+                height: "74px",
+                borderRadius: "9px",
+                border: "1.5px dashed rgba(255,255,255,0.18)",
+                background: "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+              aria-label="Add safety card"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f2581c"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
         </div>
-      )}
 
-      <Button
-        variant="primary"
-        size="lg"
-        fullWidth
-        onClick={submit}
-        loading={pending}
-        iconLeft={!pending ? <UserPlus size={17} strokeWidth={2} /> : undefined}
+        {error && (
+          <div
+            style={{
+              borderRadius: "9px",
+              border: "1px solid rgba(239,65,53,0.4)",
+              background: "rgba(239,65,53,0.1)",
+              padding: "10px 14px",
+              fontSize: "13px",
+              color: "#ff9a8f",
+            }}
+          >
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* sticky footer CTA */}
+      <div
+        style={{
+          padding: "14px 22px 22px",
+          background: "linear-gradient(0deg,#0d0f12 60%,transparent)",
+        }}
       >
-        {pending ? "Creating…" : "Create & review"}
-      </Button>
-      <p className="text-center text-[11.5px] text-[color:var(--text-faint)]">
-        Next you'll confirm their tickets and admit them.
-      </p>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={pending}
+          className="rw-pressable"
+          style={{
+            width: "100%",
+            height: "54px",
+            borderRadius: "9px",
+            background: "#f2581c",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "9px",
+            boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+            border: "none",
+            cursor: pending ? "default" : "pointer",
+            opacity: pending ? 0.7 : 1,
+          }}
+        >
+          <span style={{ fontWeight: 800, fontSize: "15px", color: "#0d0f12" }}>
+            {pending ? "Saving…" : "Save & verify"}
+          </span>
+          {!pending && (
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#0d0f12"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  autoFocus = false,
+function TicketTile({
+  ticket,
+  onPickType,
+  onPhoto,
+  onExpiry,
+  onRemove,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-  autoFocus?: boolean;
+  ticket: LocalTicket;
+  onPickType: (v: string) => void;
+  onPhoto: (f: File) => void;
+  onExpiry: (v: string) => void;
+  onRemove: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const shortLabel = getCredentialLabel(ticket.credential_type)
+    .replace(/\(.*\)/, "")
+    .trim();
+
   return (
-    <label className="block">
-      <span className="mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-dim)]">
-        {label}
-      </span>
-      <input
-        autoFocus={autoFocus}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        type={type}
-        className="mt-1.5 h-11 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--surface-1)] px-3 text-[14px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--brand)] focus:outline-none"
-      />
-    </label>
+    <div style={{ flex: "1 1 90px", minWidth: "90px" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="rw-pressable"
+        style={{
+          width: "100%",
+          height: "74px",
+          borderRadius: "9px",
+          background: ticket.previewUrl ? "#1b2027" : HATCH_SM,
+          boxShadow: "0 0 0 1px rgba(255,255,255,0.08) inset",
+          display: "flex",
+          alignItems: "flex-end",
+          padding: "7px",
+          position: "relative",
+          overflow: "hidden",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {ticket.previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={ticket.previewUrl}
+            alt="card"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        ) : null}
+        <span
+          style={{
+            position: "relative",
+            fontFamily: "var(--font-jetbrains-mono), ui-monospace, monospace",
+            fontSize: "8px",
+            color: ticket.photo_path ? "#7ff0a8" : "#c4ccd2",
+            textShadow: ticket.previewUrl ? "0 1px 3px rgba(0,0,0,0.8)" : "none",
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: "100%",
+          }}
+        >
+          {shortLabel} {ticket.photo_path ? "✓" : ticket.uploading ? "…" : ""}
+        </span>
+      </button>
+
+      {open && (
+        <div
+          style={{
+            marginTop: "8px",
+            borderRadius: "9px",
+            background: "#15191e",
+            border: "1px solid rgba(255,255,255,0.1)",
+            padding: "10px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          <select
+            value={ticket.credential_type}
+            onChange={(e) => onPickType(e.target.value)}
+            className="mono"
+            style={{
+              width: "100%",
+              height: "34px",
+              borderRadius: "7px",
+              background: "#0d0f12",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#eef1f3",
+              fontSize: "11px",
+              padding: "0 8px",
+              outline: "none",
+            }}
+          >
+            {CREDENTIAL_TYPES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="mono rw-pressable"
+            style={{
+              width: "100%",
+              height: "34px",
+              borderRadius: "7px",
+              background: "#0d0f12",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: ticket.photo_path ? "#7ff0a8" : "#c4ccd2",
+              fontSize: "10px",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            {ticket.uploading
+              ? "Uploading…"
+              : ticket.photo_path
+                ? "Photo attached ✓"
+                : "Snap card"}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onPhoto(f);
+            }}
+          />
+
+          <div>
+            <div style={{ ...monoLabel, marginBottom: "5px" }}>
+              EXPIRY (OPTIONAL)
+            </div>
+            <input
+              type="date"
+              value={ticket.expiry_date}
+              onChange={(e) => onExpiry(e.target.value)}
+              className="mono"
+              style={{
+                width: "100%",
+                height: "34px",
+                borderRadius: "7px",
+                background: "#0d0f12",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "#d6dce0",
+                fontSize: "11px",
+                padding: "0 8px",
+                outline: "none",
+              }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={onRemove}
+            className="mono rw-pressable"
+            style={{
+              width: "100%",
+              height: "30px",
+              borderRadius: "7px",
+              background: "transparent",
+              border: "1px solid rgba(239,65,53,0.4)",
+              color: "#ef4135",
+              fontSize: "9px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

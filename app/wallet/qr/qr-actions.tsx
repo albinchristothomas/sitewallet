@@ -81,38 +81,86 @@ export function QrActions({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-3 h-12 w-full rounded-xl border border-[color:var(--hair-strong)] bg-transparent text-[13px] font-semibold text-[color:var(--text-dim)] transition hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+        className="mono"
         style={{
+          marginTop: 14,
+          height: 44,
+          width: "100%",
+          borderRadius: 9,
+          border: "1px solid rgba(255,255,255,0.1)",
+          background: "#15191e",
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          color: "#9aa3ab",
           marginBottom: "calc(env(safe-area-inset-bottom, 0px))",
         }}
       >
-        Camera not working? Show ID
+        CAMERA NOT WORKING? SHOW ID
       </button>
     );
   }
 
   return (
     <div
-      className="mt-3 rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-3"
-      style={{ marginBottom: "calc(env(safe-area-inset-bottom, 0px))" }}
+      style={{
+        marginTop: 14,
+        borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.1)",
+        background: "#15191e",
+        padding: 12,
+        marginBottom: "calc(env(safe-area-inset-bottom, 0px))",
+      }}
     >
-      <div className="select-all break-all rounded-lg bg-[color:var(--ink-1)] px-3 py-3 text-center font-mono text-[12px] leading-relaxed text-[color:var(--text)]">
+      <div
+        className="mono"
+        style={{
+          userSelect: "all",
+          wordBreak: "break-all",
+          borderRadius: 9,
+          background: "#0d0f12",
+          padding: "12px",
+          textAlign: "center",
+          fontSize: 12,
+          lineHeight: 1.6,
+          color: "#d6dce0",
+        }}
+      >
         {workerId}
       </div>
       <div
-        className="mt-2 grid gap-2"
-        style={{ gridTemplateColumns: hasShare ? "1fr 1fr" : "1fr" }}
+        style={{
+          marginTop: 8,
+          display: "grid",
+          gap: 8,
+          gridTemplateColumns: hasShare ? "1fr 1fr" : "1fr",
+        }}
       >
         <button
           onClick={copy}
-          className="h-12 rounded-lg bg-[color:var(--ink-3)] text-[14px] font-semibold text-[color:var(--text)] active:scale-[0.98]"
+          style={{
+            height: 48,
+            borderRadius: 9,
+            background: "#2a2f35",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#eef1f3",
+          }}
         >
           {copied ? "✓ Copied" : "Copy ID"}
         </button>
         {hasShare && (
           <button
             onClick={share}
-            className="h-12 rounded-lg bg-[color:var(--hi-yellow)] text-[14px] font-bold text-[color:var(--ink-1)] active:scale-[0.98]"
+            style={{
+              height: 48,
+              borderRadius: 9,
+              background: "#f2581c",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0d0f12",
+              boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+            }}
           >
             Share
           </button>
@@ -120,9 +168,17 @@ export function QrActions({
       </div>
       <button
         onClick={() => setOpen(false)}
-        className="mt-2 h-9 w-full text-[12px] text-[color:var(--text-faint)] hover:text-[color:var(--text-dim)]"
+        className="mono"
+        style={{
+          marginTop: 8,
+          height: 36,
+          width: "100%",
+          fontSize: 10,
+          letterSpacing: "0.1em",
+          color: "#5d666f",
+        }}
       >
-        Hide
+        HIDE
       </button>
     </div>
   );

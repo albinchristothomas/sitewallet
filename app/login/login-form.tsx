@@ -1,14 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { Mail, CheckCircle2 } from "lucide-react";
-import { Button } from "@/lib/atoms";
 import { sendMagicLink } from "./actions";
 import type { SignupIntent } from "@/lib/roles";
 
 type State = { error?: string; sent?: boolean; email?: string };
 
 const initialState: State = {};
+
+const MONO = "'JetBrains Mono', monospace";
 
 export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
   const [state, action, pending] = useActionState<State, FormData>(
@@ -19,22 +19,79 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
   // Success state — magic link sent
   if (state.sent) {
     return (
-      <div className="rw-enter rounded-[10px] border border-[color:var(--ok-line)] bg-[color:var(--ok-bg)] p-5 text-center">
-        <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--ok-line)] bg-[color:var(--surface-1)] text-[color:var(--ok)]">
-          <CheckCircle2 size={20} strokeWidth={1.8} />
+      <div
+        className="rw-enter"
+        style={{
+          borderRadius: 8,
+          background: "rgba(47,200,106,0.07)",
+          border: "1px solid rgba(47,200,106,0.25)",
+          padding: "18px 16px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            margin: "0 auto 12px",
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            background: "rgba(47,200,106,0.12)",
+            border: "1px solid rgba(47,200,106,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2fd072"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
         </div>
-        <div className="mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[color:#4ADE80]">
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: "0.16em",
+            color: "#7ff0a8",
+            textTransform: "uppercase",
+          }}
+        >
           Check your email
         </div>
-        <p className="mt-2 text-[14px] text-[color:var(--text)]">
+        <p style={{ marginTop: 10, fontSize: 14, color: "#d6dce0" }}>
           We sent a sign-in link to
         </p>
-        <p className="mono mt-1 text-[13px] font-medium text-[color:var(--text)]">
+        <p
+          style={{
+            fontFamily: MONO,
+            marginTop: 4,
+            fontSize: 13,
+            fontWeight: 500,
+            color: "#f4f6f7",
+            wordBreak: "break-all",
+          }}
+        >
           {state.email}
         </p>
-        <p className="mt-3 text-[12px] leading-relaxed text-[color:var(--text-dim)]">
-          Tap the link on this device. Link expires in 1 hour.
-          If you don&apos;t see it, check spam.
+        <p
+          style={{
+            marginTop: 12,
+            fontSize: 12,
+            lineHeight: 1.6,
+            color: "#9aa3ab",
+          }}
+        >
+          Tap the link on this device. Link expires in 1 hour. If you don&apos;t
+          see it, check spam.
         </p>
       </div>
     );
@@ -42,55 +99,129 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
 
   // Form
   return (
-    <form action={action} className="space-y-3.5">
+    <form action={action}>
       {signupAs && <input type="hidden" name="signup_as" value={signupAs} />}
 
       {/* Email field */}
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block mono text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[color:var(--text-dim)]"
+          style={{
+            display: "block",
+            fontFamily: MONO,
+            fontSize: 9,
+            letterSpacing: "0.16em",
+            color: "#5d666f",
+            marginBottom: 9,
+            textTransform: "uppercase",
+          }}
         >
           Work email
         </label>
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[color:var(--text-faint)]">
-            <Mail size={16} strokeWidth={1.7} />
-          </div>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="you@company.ca"
-            className="h-12 w-full rounded-[8px] border border-[color:var(--line)] bg-[color:var(--surface-1)] pl-10 pr-3.5 text-[14px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] transition-colors focus:border-[color:var(--brand)] focus:outline-none"
-          />
-        </div>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="you@crew.ca"
+          className="rw-login-input"
+          style={{
+            height: 54,
+            width: "100%",
+            borderRadius: 8,
+            background: "#15191e",
+            border: "1px solid rgba(255,255,255,0.1)",
+            padding: "0 16px",
+            fontFamily: MONO,
+            fontSize: 14,
+            color: "#d6dce0",
+            outline: "none",
+          }}
+        />
+        <style>{`
+          .rw-login-input::placeholder { color: #5d666f; }
+          .rw-login-input:focus { border-color: #f2581c; }
+        `}</style>
       </div>
 
       {/* Error */}
       {state.error && (
-        <div className="rw-enter flex items-start gap-2 rounded-[8px] border border-[color:var(--bad-line)] bg-[color:var(--bad-bg)] px-3 py-2.5">
-          <span className="mt-0.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--bad)]" />
-          <p className="text-[13px] text-[#FCA5A5]">{state.error}</p>
+        <div
+          className="rw-enter"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 8,
+            marginTop: 12,
+            borderRadius: 8,
+            background: "rgba(239,65,53,0.14)",
+            border: "1px solid rgba(239,65,53,0.55)",
+            padding: "10px 12px",
+          }}
+        >
+          <span
+            style={{
+              marginTop: 3,
+              display: "inline-block",
+              width: 6,
+              height: 6,
+              flex: "none",
+              borderRadius: "50%",
+              background: "#ef4135",
+              boxShadow: "0 0 6px #ef4135",
+            }}
+          />
+          <p style={{ fontSize: 13, color: "#ff9a8f" }}>{state.error}</p>
         </div>
       )}
 
       {/* Submit */}
-      <Button
+      <button
         type="submit"
-        variant="primary"
-        size="lg"
-        fullWidth
-        loading={pending}
+        disabled={pending}
+        className="rw-pressable"
+        style={{
+          height: 54,
+          width: "100%",
+          borderRadius: 8,
+          background: "#f2581c",
+          border: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 9,
+          marginTop: 16,
+          boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+          cursor: pending ? "not-allowed" : "pointer",
+          opacity: pending ? 0.7 : 1,
+        }}
       >
-        {pending ? "Sending link…" : "Email me a sign-in link"}
-      </Button>
-
-      <p className="pt-1 text-center text-[11.5px] leading-relaxed text-[color:var(--text-faint)]">
-        No password. We send a one-time link you tap to sign in.
-      </p>
+        <span
+          style={{
+            fontWeight: 800,
+            fontSize: 15,
+            color: "#0d0f12",
+            letterSpacing: "0.01em",
+          }}
+        >
+          {pending ? "Sending link…" : "Send magic link"}
+        </span>
+        {!pending && (
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#0d0f12"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        )}
+      </button>
     </form>
   );
 }

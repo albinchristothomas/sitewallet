@@ -1,15 +1,40 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ScanLine, IdCard, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getCredentialLabel,
-  getExpiryStatus,
-} from "@/lib/credentials";
-import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
+import { getCredentialLabel, getExpiryStatus } from "@/lib/credentials";
 
 function shortId(uuid: string): string {
   return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+}
+
+function firstName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "there";
+  const first = trimmed.split(/\s+/)[0];
+  if (first.includes("@")) return first.split("@")[0];
+  return first;
+}
+
+function timeGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Morning";
+  if (h < 18) return "Afternoon";
+  return "Evening";
+}
+
+function fmtDate(value: string): string {
+  return new Date(value)
+    .toLocaleDateString("en-CA", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .toUpperCase();
+}
+
+function daysUntil(value: string): number {
+  const ms = new Date(value).getTime() - new Date().getTime();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
 export default async function WalletPage(props: PageProps<"/wallet">) {
@@ -64,224 +89,601 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
 
   const fullName = worker?.full_name ?? user.email ?? "Worker";
 
+  // Numeral display tokens from the approved design ("Display grotesk").
+  const numFont = "'Archivo',sans-serif";
+  const numWeight = 800 as const;
+  const numLs = "-0.03em";
+
   return (
-    <main className="mx-auto w-full max-w-md flex-1 px-5 pb-10 pt-5">
-      <header className="mb-5 flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <Eyebrow className="mb-1.5">Wallet</Eyebrow>
-          <div className="truncate text-2xl font-bold leading-tight tracking-tight">
-            {fullName}
-          </div>
-          <div className="mt-1 font-mono text-[12px] text-[color:var(--text-dim)]">
-            {shortId(user.id)}
-          </div>
-        </div>
-        <Avatar initials={getInitials(fullName)} size={46} />
-      </header>
-
-      {justSaved && (
+    <main className="mx-auto w-full max-w-md flex-1">
+      <div style={{ padding: "14px 22px 0" }}>
+        {/* greeting */}
         <div
-          className="mb-5 flex items-center gap-3 rounded-2xl border px-4 py-3"
           style={{
-            background: "rgba(16,185,129,0.10)",
-            borderColor: "rgba(16,185,129,0.32)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
+          <div style={{ minWidth: 0 }}>
+            <div
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                color: "#5d666f",
+              }}
+            >
+              WALLET
+            </div>
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 26,
+                letterSpacing: "-0.02em",
+                color: "#f4f6f7",
+                marginTop: 3,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {timeGreeting()}, {firstName(fullName)}
+            </div>
+          </div>
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-            style={{ background: "rgba(16,185,129,0.30)", color: "#10B981" }}
-          >
-            ✓
-          </div>
-          <div className="text-[13px]">
-            <span className="font-semibold text-[color:#34D399]">
-              {getCredentialLabel(justSaved)}
-            </span>{" "}
-            <span className="text-[color:var(--text-dim)]">
-              added to your wallet.
-            </span>
-          </div>
-        </div>
-      )}
-
-      {activeSession && (
-        <Link
-          href="/wallet/session"
-          className="mb-5 flex items-center gap-3.5 rounded-2xl border px-4 py-3.5 transition hover:brightness-110"
-          style={{
-            background: "rgba(16,185,129,0.10)",
-            borderColor: "rgba(16,185,129,0.32)",
-          }}
-        >
-          <span
-            className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
             style={{
-              background: "#10B981",
-              boxShadow: "0 0 0 6px rgba(16,185,129,0.18)",
+              width: 42,
+              height: 42,
+              flex: "none",
+              borderRadius: 10,
+              background:
+                "repeating-linear-gradient(135deg,#232932 0 5px,#1b2027 5px 10px)",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.1) inset",
             }}
           />
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:#34D399]">
-              On site now
-            </div>
-            <div className="mt-0.5 truncate text-[15px] font-semibold">
-              {activeSite?.name}
-              {activeSite?.rig_name && <> · {activeSite.rig_name}</>}
+        </div>
+        <div
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.04em",
+            color: "#9aa3ab",
+            marginTop: 6,
+          }}
+        >
+          WORKER ID · {shortId(user.id)}
+        </div>
+
+        {justSaved && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 16,
+              borderRadius: 9,
+              background: "rgba(47,200,106,0.07)",
+              border: "1px solid rgba(47,200,106,0.25)",
+              padding: "11px 13px",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                flex: "none",
+                borderRadius: "50%",
+                background: "#2fd072",
+                boxShadow: "0 0 6px #2fd072",
+              }}
+            />
+            <div className="mono" style={{ fontSize: 10, letterSpacing: "0.04em" }}>
+              <span style={{ color: "#7ff0a8", fontWeight: 700 }}>
+                {getCredentialLabel(justSaved).toUpperCase()}
+              </span>
+              <span style={{ color: "#9aa3ab" }}> ADDED TO YOUR WALLET</span>
             </div>
           </div>
-          <span className="text-[color:#34D399]">›</span>
-        </Link>
-      )}
+        )}
 
-      <div className="mb-3 grid grid-cols-[1.4fr_1fr] gap-2.5">
+        {activeSession && (
+          <Link
+            href="/wallet/session"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 16,
+              borderRadius: 9,
+              background: "rgba(47,200,106,0.07)",
+              border: "1px solid rgba(47,200,106,0.25)",
+              padding: "11px 13px",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                flex: "none",
+                borderRadius: "50%",
+                background: "#2fd072",
+                boxShadow: "0 0 6px #2fd072",
+              }}
+            />
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.1em",
+                  color: "#7ff0a8",
+                  fontWeight: 700,
+                }}
+              >
+                ON SITE NOW
+              </div>
+              <div
+                style={{
+                  marginTop: 2,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#f4f6f7",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {activeSite?.name}
+                {activeSite?.rig_name && <> · {activeSite.rig_name}</>}
+              </div>
+            </div>
+            <span style={{ color: "#7ff0a8" }}>›</span>
+          </Link>
+        )}
+
+        {/* summary stats */}
+        <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
+          <div
+            style={{
+              flex: 1,
+              borderRadius: 9,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              padding: "11px 12px",
+            }}
+          >
+            <div
+              className="mono"
+              style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
+            >
+              TOTAL
+            </div>
+            <div
+              style={{
+                fontFamily: numFont,
+                fontSize: 26,
+                fontWeight: numWeight,
+                letterSpacing: numLs,
+                color: "#eef1f3",
+                marginTop: 1,
+              }}
+            >
+              {credentialsList.length}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              borderRadius: 9,
+              background: "rgba(47,200,106,0.07)",
+              border: "1px solid rgba(47,200,106,0.25)",
+              padding: "11px 12px",
+            }}
+          >
+            <div
+              className="mono"
+              style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
+            >
+              VALID
+            </div>
+            <div
+              style={{
+                fontFamily: numFont,
+                fontSize: 26,
+                fontWeight: numWeight,
+                letterSpacing: numLs,
+                color: "#7ff0a8",
+                marginTop: 1,
+              }}
+            >
+              {validCount}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              borderRadius: 9,
+              background: "rgba(242,164,12,0.07)",
+              border: "1px solid rgba(242,164,12,0.25)",
+              padding: "11px 12px",
+            }}
+          >
+            <div
+              className="mono"
+              style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
+            >
+              EXP
+            </div>
+            <div
+              style={{
+                fontFamily: numFont,
+                fontSize: 26,
+                fontWeight: numWeight,
+                letterSpacing: numLs,
+                color: "#ffd27a",
+                marginTop: 1,
+              }}
+            >
+              {expiringCount}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              borderRadius: 9,
+              background: "rgba(239,65,53,0.07)",
+              border: "1px solid rgba(239,65,53,0.25)",
+              padding: "11px 12px",
+            }}
+          >
+            <div
+              className="mono"
+              style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
+            >
+              DEAD
+            </div>
+            <div
+              style={{
+                fontFamily: numFont,
+                fontSize: 26,
+                fontWeight: numWeight,
+                letterSpacing: numLs,
+                color: "#ff9a8f",
+                marginTop: 1,
+              }}
+            >
+              {expiredCount}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* card list */}
+      <div
+        style={{
+          padding: "18px 22px 0",
+          display: "flex",
+          flexDirection: "column",
+          gap: 11,
+        }}
+      >
+        <div
+          className="mono"
+          style={{ fontSize: 9, letterSpacing: "0.16em", color: "#5d666f" }}
+        >
+          YOUR TICKETS
+        </div>
+
+        {credentialsList.length === 0 ? (
+          <div
+            style={{
+              position: "relative",
+              borderRadius: 12,
+              overflow: "hidden",
+              background:
+                "linear-gradient(152deg,#222831 0%,#191d23 60%,#14171c 100%)",
+              boxShadow:
+                "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
+              padding: "26px 18px",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 4,
+                background: "#f2581c",
+              }}
+            />
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 17,
+                letterSpacing: "-0.01em",
+                color: "#f4f6f7",
+              }}
+            >
+              Add your first ticket
+            </div>
+            <div
+              className="mono"
+              style={{
+                fontSize: 9.5,
+                color: "#9aa3ab",
+                letterSpacing: "0.04em",
+                marginTop: 8,
+                lineHeight: 1.6,
+              }}
+            >
+              H2S ALIVE · FIRST AID · CSO · WHATEVER YOU CARRY
+            </div>
+            <Link
+              href="/wallet/credentials/new"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                marginTop: 16,
+                height: 46,
+                padding: "0 18px",
+                borderRadius: 9,
+                background: "#f2581c",
+                boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+                fontWeight: 800,
+                fontSize: 14,
+                color: "#0d0f12",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#0d0f12"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Add credential
+            </Link>
+          </div>
+        ) : (
+          credentialsList.map((c) => {
+            const status = getExpiryStatus(c.expiry_date);
+            const isExpired = status === "expired";
+            const isExpiring = status === "expiring_soon";
+
+            const spine = isExpired
+              ? "#5d666f"
+              : isExpiring
+                ? "#f2a40c"
+                : "#f2581c";
+
+            const titleColor = isExpired ? "#c4ccd2" : "#f4f6f7";
+
+            // sub-line text + color
+            let subText: string;
+            let subColor: string;
+            if (!c.expiry_date) {
+              subText = "NO EXPIRY";
+              subColor = "#9aa3ab";
+            } else if (isExpired) {
+              subText = `EXPIRED ${fmtDate(c.expiry_date)}`;
+              subColor = "#ff9a8f";
+            } else if (isExpiring) {
+              const d = daysUntil(c.expiry_date);
+              subText = `EXPIRES IN ${d} DAY${d === 1 ? "" : "S"}`;
+              subColor = "#ffd27a";
+            } else {
+              subText = `VALID TO ${fmtDate(c.expiry_date)}`;
+              subColor = "#9aa3ab";
+            }
+
+            // status pill
+            const pill = isExpired
+              ? {
+                  bg: "rgba(239,65,53,0.14)",
+                  line: "rgba(239,65,53,0.55)",
+                  dot: "#ef4135",
+                  fg: "#ff9a8f",
+                  text: "EXPIRED",
+                }
+              : isExpiring
+                ? {
+                    bg: "rgba(242,164,12,0.14)",
+                    line: "rgba(242,164,12,0.55)",
+                    dot: "#f2a40c",
+                    fg: "#ffd27a",
+                    text: "EXPIRING",
+                  }
+                : {
+                    bg: "rgba(47,200,106,0.12)",
+                    line: "rgba(47,200,106,0.5)",
+                    dot: "#2fd072",
+                    fg: "#7ff0a8",
+                    text: "VALID",
+                  };
+
+            return (
+              <div
+                key={c.id}
+                style={{
+                  position: "relative",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  background: isExpired
+                    ? "linear-gradient(152deg,#1c2026 0%,#16191e 60%,#121418 100%)"
+                    : "linear-gradient(152deg,#222831 0%,#191d23 60%,#14171c 100%)",
+                  filter: isExpired ? "grayscale(0.4) brightness(0.9)" : undefined,
+                  boxShadow: isExpired
+                    ? "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.05)"
+                    : "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
+                  padding: "14px 15px 14px 18px",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 4,
+                    background: spine,
+                  }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: 17,
+                        letterSpacing: "-0.01em",
+                        color: titleColor,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {getCredentialLabel(c.credential_type)}
+                    </div>
+                    <div
+                      className="mono"
+                      style={{
+                        fontSize: 9.5,
+                        color: subColor,
+                        marginTop: 4,
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {subText}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      flex: "none",
+                      padding: "5px 9px",
+                      borderRadius: 5,
+                      background: pill.bg,
+                      border: `1px solid ${pill.line}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: pill.dot,
+                        boxShadow: `0 0 6px ${pill.dot}`,
+                      }}
+                    />
+                    <span
+                      className="mono"
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: "0.12em",
+                        color: pill.fg,
+                      }}
+                    >
+                      {pill.text}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* bottom actions */}
+      <div
+        style={{
+          position: "sticky",
+          bottom: 0,
+          marginTop: 18,
+          padding: "14px 22px 22px",
+          display: "flex",
+          gap: 10,
+          background: "linear-gradient(0deg,#0d0f12 60%,transparent)",
+        }}
+      >
         <Link
           href="/wallet/qr"
-          className="flex h-[124px] flex-col justify-between rounded-2xl bg-[color:var(--hi-yellow)] p-5 text-[color:var(--ink-1)] transition hover:brightness-95"
+          style={{
+            flex: 1,
+            height: 52,
+            borderRadius: 9,
+            background: "#f2581c",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+          }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3.5" y="3.5" width="6" height="6" rx="1" />
-            <rect x="14.5" y="3.5" width="6" height="6" rx="1" />
-            <rect x="3.5" y="14.5" width="6" height="6" rx="1" />
-            <path d="M14.5 14.5h2.5v2.5M20.5 14.5v3M14.5 18.5v2M17.5 20.5h3M20.5 17.5v3" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#0d0f12"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <path d="M14 14h3v3M21 21v.01M17 21h.01M21 17v.01" />
           </svg>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.08em] opacity-60">
-              Gate
-            </div>
-            <div className="mt-0.5 text-[19px] font-bold leading-tight">
-              Show my QR
-            </div>
-          </div>
+          <span style={{ fontWeight: 800, fontSize: 14, color: "#0d0f12" }}>
+            Show gate pass
+          </span>
         </Link>
         <Link
           href="/wallet/credentials/new"
-          className="flex h-[124px] flex-col justify-between rounded-2xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-5 transition hover:bg-[color:var(--ink-3)]"
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 9,
+            background: "#15191e",
+            border: "1px solid rgba(255,255,255,0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#f2581c"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M12 5v14M5 12h14" />
           </svg>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-faint)]">
-              Wallet
-            </div>
-            <div className="mt-0.5 text-[19px] font-bold leading-tight">
-              Add credential
-            </div>
-          </div>
         </Link>
       </div>
-
-      <Link
-        href="/wallet/credentials/scan"
-        className="mb-6 flex items-center gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3 transition hover:bg-[color:var(--ink-3)]"
-      >
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-          style={{ background: "rgba(250,204,21,0.15)", color: "#FACC15" }}
-        >
-          <ScanLine size={18} strokeWidth={1.75} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[14px] font-semibold">Scan a paper ticket</div>
-          <div className="text-[11px] text-[color:var(--text-faint)]">
-            Snap a photo, we auto-fill the form
-          </div>
-        </div>
-        <ChevronRight size={16} className="text-[color:var(--text-dim)]" />
-      </Link>
-
-      <div className="mb-3 flex items-center justify-between">
-        <Eyebrow>Credentials · {credentialsList.length}</Eyebrow>
-        <div className="font-mono text-[11px] text-[color:var(--text-faint)]">
-          {validCount} valid · {expiringCount} expiring · {expiredCount} expired
-        </div>
-      </div>
-
-      {credentialsList.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
-            <IdCard size={28} strokeWidth={1.75} />
-          </div>
-          <p className="mt-3 text-[15px] font-semibold">
-            Add your first ticket
-          </p>
-          <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
-            H2S Alive, First Aid, Ground Disturbance, CSO — whatever you carry
-            in your wallet today. Type in the dates and certificate number,
-            and you&apos;re set.
-          </p>
-          <Link
-            href="/wallet/credentials/new"
-            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
-          >
-            + Add credential
-          </Link>
-        </div>
-      ) : (
-        <ul className="space-y-2.5">
-          {credentialsList.map((c) => {
-            const status = getExpiryStatus(c.expiry_date);
-            const accent =
-              status === "valid"
-                ? "#10B981"
-                : status === "expiring_soon"
-                  ? "#F59E0B"
-                  : status === "expired"
-                    ? "#EF4444"
-                    : "#3F4651";
-            const pillStatus =
-              status === "expiring_soon"
-                ? "expiring"
-                : status === "no_expiry"
-                  ? "info"
-                  : status;
-            return (
-              <li
-                key={c.id}
-                className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4"
-                style={{ borderLeft: `3px solid ${accent}` }}
-              >
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[16px] font-bold leading-snug">
-                      {getCredentialLabel(c.credential_type)}
-                    </div>
-                    <div className="mt-0.5 text-[13px] text-[color:var(--text-dim)]">
-                      {c.issuer ?? "Issuer not recorded"}
-                    </div>
-                  </div>
-                  <StatusPill
-                    status={pillStatus}
-                    label={
-                      status === "no_expiry"
-                        ? "No expiry"
-                        : status === "expiring_soon"
-                          ? "Expiring"
-                          : undefined
-                    }
-                  />
-                </div>
-                <div className="mt-2.5 flex items-center justify-between border-t border-[color:var(--hair)] pt-2.5 font-mono text-[11px] text-[color:var(--text-faint)]">
-                  <span>
-                    {c.certificate_number ? `#${c.certificate_number}` : "—"}
-                  </span>
-                  <span>
-                    {c.expiry_date
-                      ? `EXP ${new Date(c.expiry_date)
-                          .toLocaleDateString("en-CA", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
-                          .toUpperCase()}`
-                      : "NO EXPIRY"}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </main>
   );
 }

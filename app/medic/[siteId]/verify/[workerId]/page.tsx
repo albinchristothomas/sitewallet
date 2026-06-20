@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Eye, Check, X, ShieldCheck, ExternalLink } from "lucide-react";
+import { ExternalLink, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
-import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
+import { getInitials } from "@/lib/atoms";
 import { faceUrl } from "@/lib/photos";
 import { admitWorker, markVerified } from "./actions";
 
@@ -31,7 +31,17 @@ type CompliancePayload = {
 };
 
 function shortId(uuid: string): string {
-  return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+  return `RW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+}
+
+function formatDate(value: string): string {
+  return new Date(value)
+    .toLocaleDateString("en-CA", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .toUpperCase();
 }
 
 export default async function VerifyWorkerPage(
@@ -83,68 +93,709 @@ export default async function VerifyWorkerPage(
   const facePhoto = await faceUrl(payload.worker.photo_url);
   const hasPhoto = Boolean(facePhoto);
 
+  const total = payload.compliance.length;
+  const expiredCount = payload.compliance.filter((c) => c.status === "EXPIRED").length;
+  const missingCount = payload.compliance.filter((c) => c.status === "MISSING").length;
+
+  const name = payload.worker.full_name ?? "Unnamed worker";
+  const idLine = shortId(payload.worker.id);
+
+  // ADMIT readout subline + DENY summary subline.
+  const admitSub = `ALL ${total} REQUIRED TICKET${total === 1 ? "" : "S"} VALID`;
+  const denyParts: string[] = [];
+  if (expiredCount > 0) denyParts.push(`${expiredCount} EXPIRED`);
+  if (missingCount > 0) denyParts.push(`${missingCount} MISSING`);
+  const denySub =
+    denyParts.length > 0 ? `NOT COMPLIANT — ${denyParts.join(", ")}` : "NOT COMPLIANT";
+
+  // Reason text for the DENY field.
+  const reasonParts: string[] = [];
+  if (expiredCount > 0)
+    reasonParts.push(expiredCount === 1 ? "1 ticket expired" : `${expiredCount} tickets expired`);
+  if (missingCount > 0)
+    reasonParts.push(missingCount === 1 ? "1 ticket missing" : `${missingCount} tickets missing`);
+  const reasonText = reasonParts.length > 0 ? reasonParts.join(", ") : "Not compliant";
+
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-5 pb-8 pt-4">
-      <Link
-        href={`/medic/${siteId}/scan`}
-        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
-      >
-        ← Scan another
-      </Link>
+    <main className="mx-auto w-full max-w-[420px] flex-1 pb-8">
+      <div className="px-5 pt-4">
+        <Link
+          href={`/medic/${siteId}/scan`}
+          className="mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
+        >
+          ← Scan another
+        </Link>
+      </div>
 
       <div
-        className="mt-3 overflow-hidden rounded-3xl"
+        className="mt-3 overflow-hidden rounded-[24px]"
         style={{
-          background: allPass
-            ? "linear-gradient(180deg, rgba(16,185,129,0.20) 0%, rgba(16,185,129,0.04) 100%)"
-            : "linear-gradient(180deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.04) 100%)",
-          border: allPass
-            ? "1px solid rgba(16,185,129,0.40)"
-            : "1px solid rgba(239,68,68,0.40)",
+          background: "#0d0f12",
+          boxShadow:
+            "0 30px 60px -20px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06)",
         }}
       >
-        <div className="flex items-center gap-5 p-6">
-          <Avatar
-            initials={getInitials(payload.worker.full_name)}
-            size={84}
-            photoUrl={facePhoto}
-          />
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col">
+          {/* gate header strip */}
+          <div
+            className="flex h-[30px] items-center justify-between px-[22px]"
+            style={{ background: "#0d0f12" }}
+          >
+            <span
+              className="mono text-[11px]"
+              style={{ color: "#c4ccd2" }}
+            >
+              {idLine}
+            </span>
+            <span
+              className="mono text-[9px]"
+              style={{ color: "#c4ccd2", letterSpacing: "0.1em" }}
+            >
+              GATE · VERIFY
+            </span>
+          </div>
+
+          {/* big face panel */}
+          <div style={{ position: "relative", height: 300, overflow: "hidden" }}>
+            {hasPhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={facePhoto!}
+                alt={name}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: allPass
+                    ? "repeating-linear-gradient(135deg,#262c35 0 11px,#1d232b 11px 22px)"
+                    : "repeating-linear-gradient(135deg,#2b2530 0 11px,#231d24 11px 22px)",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 900,
+                    fontSize: 64,
+                    letterSpacing: "-0.02em",
+                    color: "rgba(244,246,247,0.22)",
+                  }}
+                >
+                  {getInitials(payload.worker.full_name)}
+                </div>
+              </div>
+            )}
             <div
-              className="text-[11px] font-bold uppercase tracking-[0.12em]"
               style={{
-                color: allPass ? "#34D399" : "#F87171",
+                position: "absolute",
+                inset: 0,
+                background: allPass
+                  ? "linear-gradient(160deg, rgba(47,200,106,0.14), transparent 45%, rgba(110,200,255,0.06))"
+                  : "linear-gradient(160deg, rgba(239,65,53,0.16), transparent 50%, rgba(80,80,90,0.1))",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(110% 80% at 50% 10%, transparent 45%, rgba(0,0,0,0.6))",
+              }}
+            />
+            <div
+              className="mono"
+              style={{
+                position: "absolute",
+                left: 16,
+                top: 14,
+                fontSize: 9,
+                letterSpacing: "0.16em",
+                color: "#7a838b",
               }}
             >
-              {allPass ? "Compliant · OK to admit" : "Not compliant"}
+              {hasPhoto ? "PHOTO ON FILE · COMPARE TO PERSON" : "NO PHOTO ON FILE · CHECK GOVT ID"}
             </div>
-            <div className="mt-1 truncate text-[28px] font-bold leading-tight">
-              {payload.worker.full_name ?? "Unnamed worker"}
-            </div>
-            <div className="mt-1 font-mono text-[12px] text-[color:var(--text-dim)]">
-              {shortId(payload.worker.id)}
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                padding: "16px 20px",
+                background:
+                  "linear-gradient(0deg,rgba(13,15,18,0.95),transparent)",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 30,
+                  letterSpacing: "-0.02em",
+                  color: "#f4f6f7",
+                }}
+              >
+                {name}
+              </div>
+              <div
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  color: "#9aa3ab",
+                  marginTop: 4,
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {idLine}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          className="px-6 py-3.5 text-center text-[44px] font-extrabold tracking-tight"
-          style={{
-            background: allPass ? "rgba(16,185,129,0.20)" : "rgba(239,68,68,0.20)",
-            color: allPass ? "#10B981" : "#EF4444",
-            borderTop: allPass
-              ? "1px solid rgba(16,185,129,0.30)"
-              : "1px solid rgba(239,68,68,0.30)",
-          }}
-        >
-          {allPass ? "PASS" : "FAIL"}
+          {/* verdict readout */}
+          {allPass ? (
+            <div
+              style={{
+                margin: "18px 20px 0",
+                borderRadius: 14,
+                background:
+                  "linear-gradient(180deg,rgba(47,200,106,0.18),rgba(47,200,106,0.07))",
+                border: "1.5px solid rgba(47,200,106,0.6)",
+                boxShadow: "0 0 30px -6px rgba(47,200,106,0.4)",
+                padding: "18px 20px",
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+              }}
+            >
+              <div
+                style={{
+                  width: 58,
+                  height: 58,
+                  borderRadius: "50%",
+                  background: "rgba(47,200,106,0.18)",
+                  border: "2px solid #2fd072",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flex: "none",
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#2fd072"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontWeight: 900,
+                    fontSize: 42,
+                    letterSpacing: "0.02em",
+                    color: "#7ff0a8",
+                    lineHeight: 0.9,
+                  }}
+                >
+                  ADMIT
+                </div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.1em",
+                    color: "#7ff0a8",
+                    marginTop: 5,
+                  }}
+                >
+                  {admitSub}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                margin: "18px 20px 0",
+                borderRadius: 14,
+                background:
+                  "linear-gradient(180deg,rgba(239,65,53,0.2),rgba(239,65,53,0.08))",
+                border: "1.5px solid rgba(239,65,53,0.65)",
+                boxShadow: "0 0 30px -6px rgba(239,65,53,0.45)",
+                padding: "18px 20px",
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+              }}
+            >
+              <div
+                style={{
+                  width: 58,
+                  height: 58,
+                  borderRadius: "50%",
+                  background: "rgba(239,65,53,0.2)",
+                  border: "2px solid #ef4135",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flex: "none",
+                }}
+              >
+                <svg
+                  width="30"
+                  height="30"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#ef4135"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontWeight: 900,
+                    fontSize: 42,
+                    letterSpacing: "0.02em",
+                    color: "#ff9a8f",
+                    lineHeight: 0.9,
+                  }}
+                >
+                  DENY
+                </div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: "#ff9a8f",
+                    marginTop: 5,
+                  }}
+                >
+                  {denySub}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* per-ticket list */}
+          <div
+            style={{
+              padding: "16px 20px 0",
+              display: "flex",
+              flexDirection: "column",
+              gap: 7,
+            }}
+          >
+            <div
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.16em",
+                color: "#5d666f",
+                marginBottom: 2,
+              }}
+            >
+              REQUIRED FOR THIS SITE
+            </div>
+
+            {payload.compliance.map((c) => {
+              const isValid = c.status === "VALID";
+              const isExpired = c.status === "EXPIRED";
+              const isMissing = c.status === "MISSING";
+              const isVerified =
+                c.verification_status === "MANUALLY_VERIFIED" ||
+                c.verification_status === "VERIFIED_BY_ISSUER";
+              const canVerify =
+                isValid &&
+                !isVerified &&
+                c.credential_id &&
+                c.external_verification_url;
+
+              // Row colour treatment.
+              const rowBg = isValid
+                ? "rgba(47,200,106,0.06)"
+                : "rgba(239,65,53,0.09)";
+              const rowBorder = isValid
+                ? "1px solid rgba(47,200,106,0.22)"
+                : "1px solid rgba(239,65,53,0.45)";
+              const titleColor = isValid ? "#eef1f3" : "#f4f6f7";
+              const metaColor = isValid ? "#9aa3ab" : "#ff9a8f";
+              const pillColor = isValid ? "#7ff0a8" : "#ff9a8f";
+              const pillLabel = isValid ? "VALID" : isExpired ? "EXPIRED" : "MISSING";
+
+              let meta = "";
+              if (isMissing) meta = "NOT ON FILE";
+              else if (isExpired)
+                meta = c.expiry_date ? `EXPIRED ${formatDate(c.expiry_date)}` : "EXPIRED";
+              else if (isValid)
+                meta = c.expiry_date ? `VALID TO ${formatDate(c.expiry_date)}` : "VALID · NO EXPIRY";
+
+              return (
+                <div key={c.credential_type}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "11px 13px",
+                      borderRadius: 9,
+                      background: rowBg,
+                      border: rowBorder,
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 14,
+                          color: titleColor,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 7,
+                        }}
+                      >
+                        {getCredentialLabel(c.credential_type)}
+                        {isVerified && (
+                          <span
+                            className="mono"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 3,
+                              fontSize: 8,
+                              fontWeight: 700,
+                              letterSpacing: "0.1em",
+                              color: "#7ff0a8",
+                              background: "rgba(47,200,106,0.18)",
+                              borderRadius: 999,
+                              padding: "2px 6px",
+                            }}
+                          >
+                            <ShieldCheck size={9} strokeWidth={2.4} /> VERIFIED
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className="mono"
+                        style={{ fontSize: 9, color: metaColor, marginTop: 2 }}
+                      >
+                        {meta}
+                      </div>
+                    </div>
+                    <span
+                      className="mono"
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        color: pillColor,
+                        flex: "none",
+                      }}
+                    >
+                      ● {pillLabel}
+                    </span>
+                  </div>
+
+                  {canVerify && (
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 8,
+                        marginTop: 7,
+                      }}
+                    >
+                      <a
+                        href={c.external_verification_url ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mono"
+                        style={{
+                          height: 38,
+                          borderRadius: 9,
+                          background: "#15191e",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 6,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.06em",
+                          color: "#c4ccd2",
+                        }}
+                      >
+                        <ExternalLink size={12} strokeWidth={1.9} /> ISSUER
+                      </a>
+                      <form
+                        action={markVerified.bind(
+                          null,
+                          siteId,
+                          workerId,
+                          c.credential_id!,
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          className="mono"
+                          style={{
+                            width: "100%",
+                            height: 38,
+                            borderRadius: 9,
+                            background: "rgba(47,200,106,0.18)",
+                            border: "1px solid rgba(47,200,106,0.4)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            color: "#7ff0a8",
+                          }}
+                        >
+                          <ShieldCheck size={12} strokeWidth={2.2} /> MARK VERIFIED
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {payload.compliance.length === 0 && (
+              <div
+                className="mono"
+                style={{
+                  padding: "11px 13px",
+                  borderRadius: 9,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  fontSize: 10,
+                  color: "#9aa3ab",
+                }}
+              >
+                NO REQUIRED CREDENTIALS CONFIGURED FOR THIS SITE
+              </div>
+            )}
+          </div>
+
+          {/* action footer */}
+          {allPass ? (
+            <div
+              style={{
+                padding: "14px 20px 22px",
+                display: "flex",
+                gap: 10,
+              }}
+            >
+              <Link
+                href={`/medic/${siteId}/scan`}
+                style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 9,
+                  background: "#15191e",
+                  border: "1px solid rgba(239,65,53,0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flex: "none",
+                }}
+              >
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#ff9a8f",
+                  }}
+                >
+                  DENY
+                </span>
+              </Link>
+              <form
+                action={admitWorker.bind(null, siteId, workerId, payload)}
+                style={{ flex: 1 }}
+              >
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%",
+                    height: 54,
+                    borderRadius: 9,
+                    background: "#2fd072",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    boxShadow: "0 8px 20px -8px rgba(47,200,106,0.6)",
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0d0f12"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  <span
+                    style={{ fontWeight: 800, fontSize: 16, color: "#0d2417" }}
+                  >
+                    Admit worker
+                  </span>
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div style={{ padding: "14px 20px 22px" }}>
+              <div
+                className="mono"
+                style={{
+                  minHeight: 42,
+                  borderRadius: 9,
+                  background: "#15191e",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 14px",
+                  fontSize: 11,
+                  color: "#6b747c",
+                  marginBottom: 10,
+                }}
+              >
+                REASON ·&nbsp;
+                <span style={{ color: "#c4ccd2" }}>{reasonText}</span>
+                <span
+                  style={{
+                    width: 2,
+                    height: 15,
+                    background: "#ef4135",
+                    marginLeft: 3,
+                  }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                {/* "Deny entry" = leave without admitting; back to scan. */}
+                <Link
+                  href={`/medic/${siteId}/scan`}
+                  style={{
+                    flex: 1,
+                    height: 54,
+                    borderRadius: 9,
+                    background: "#ef4135",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    boxShadow: "0 8px 20px -8px rgba(239,65,53,0.6)",
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0d0f12"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                  <span
+                    style={{ fontWeight: 800, fontSize: 16, color: "#2a0d0a" }}
+                  >
+                    Deny entry
+                  </span>
+                </Link>
+                {/* Override = admit anyway, recorded in the audit log. */}
+                <form
+                  action={admitWorker.bind(null, siteId, workerId, payload)}
+                  style={{ flex: "none" }}
+                >
+                  <button
+                    type="submit"
+                    style={{
+                      width: 84,
+                      height: 54,
+                      borderRadius: 9,
+                      background: "#15191e",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: 1,
+                    }}
+                  >
+                    <span
+                      className="mono"
+                      style={{ fontSize: 9, color: "#9aa3ab" }}
+                    >
+                      OVERRIDE
+                    </span>
+                    <span
+                      className="mono"
+                      style={{ fontSize: 8, color: "#5d666f", marginTop: 3 }}
+                    >
+                      ADMIT
+                    </span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Face-match prompt — the medic's job */}
-      <div className="mt-4 flex items-start gap-3 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
-          <Eye size={18} strokeWidth={1.75} />
+      {/* face-match prompt — the medic's job (kept from original logic) */}
+      <div
+        className="mt-4 flex items-start gap-3 px-5"
+      >
+        <div
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: "#15191e", color: "#f2581c" }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
         </div>
         <div className="text-[13px] leading-relaxed">
           <div className="font-semibold">Check the person at the gate</div>
@@ -156,110 +807,15 @@ export default async function VerifyWorkerPage(
         </div>
       </div>
 
-      <Eyebrow className="mt-6 mb-3">Required credentials</Eyebrow>
-
-      <ul className="space-y-2">
-        {payload.compliance.map((c) => {
-          const isValid = c.status === "VALID";
-          const isExpired = c.status === "EXPIRED";
-          const isMissing = c.status === "MISSING";
-          const tint = isValid ? "#10B981" : "#EF4444";
-          const isVerified =
-            c.verification_status === "MANUALLY_VERIFIED" ||
-            c.verification_status === "VERIFIED_BY_ISSUER";
-          const canVerify = isValid && !isVerified && c.credential_id && c.external_verification_url;
-          return (
-            <li
-              key={c.credential_type}
-              className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5"
-              style={{ borderLeft: `3px solid ${tint}` }}
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-bold">
-                      {getCredentialLabel(c.credential_type)}
-                    </span>
-                    {isVerified && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[color:rgba(16,185,129,0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:#34D399]">
-                        <ShieldCheck size={11} strokeWidth={2} /> Verified
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-faint)]">
-                    {isMissing && "Not in wallet"}
-                    {isExpired && c.expiry_date && (
-                      <>
-                        Expired{" "}
-                        {new Date(c.expiry_date).toLocaleDateString("en-CA", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </>
-                    )}
-                    {isValid && c.expiry_date && (
-                      <>
-                        Valid until{" "}
-                        {new Date(c.expiry_date).toLocaleDateString("en-CA", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </>
-                    )}
-                    {isValid && !c.expiry_date && "Valid · no expiry"}
-                  </div>
-                </div>
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    background: isValid
-                      ? "rgba(16,185,129,0.20)"
-                      : "rgba(239,68,68,0.20)",
-                    color: tint,
-                  }}
-                >
-                  {isValid ? (
-                    <Check size={18} strokeWidth={2.2} />
-                  ) : (
-                    <X size={18} strokeWidth={2.2} />
-                  )}
-                </div>
-              </div>
-              {canVerify && (
-                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[color:var(--hair)] pt-3">
-                  <a
-                    href={c.external_verification_url ?? "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[color:var(--hair-strong)] text-[12px] font-semibold text-[color:var(--text-dim)] hover:bg-[color:var(--ink-3)] hover:text-[color:var(--text)]"
-                  >
-                    <ExternalLink size={14} strokeWidth={1.75} /> Verify with issuer
-                  </a>
-                  <form action={markVerified.bind(null, siteId, workerId, c.credential_id!)}>
-                    <button
-                      type="submit"
-                      className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[color:rgba(16,185,129,0.18)] text-[12px] font-bold text-[color:#34D399] hover:bg-[color:rgba(16,185,129,0.28)]"
-                    >
-                      <ShieldCheck size={14} strokeWidth={2} /> Mark verified
-                    </button>
-                  </form>
-                </div>
-              )}
-            </li>
-          );
-        })}
-        {payload.compliance.length === 0 && (
-          <li className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-3.5 text-sm text-[color:var(--text-dim)]">
-            This site has no required credentials configured.
-          </li>
-        )}
-      </ul>
-
       {!allPass && (
-        <div className="mt-6 rounded-xl border border-[color:rgba(239,68,68,0.30)] bg-[color:rgba(239,68,68,0.10)] p-4 text-[13px] leading-relaxed">
-          <div className="font-semibold text-[color:#F87171]">
+        <div
+          className="mx-5 mt-4 rounded-xl p-4 text-[13px] leading-relaxed"
+          style={{
+            background: "rgba(239,65,53,0.1)",
+            border: "1px solid rgba(239,65,53,0.3)",
+          }}
+        >
+          <div className="font-semibold" style={{ color: "#ff9a8f" }}>
             Heads up — admitting anyway is an override
           </div>
           <div className="mt-1 text-[color:var(--text-dim)]">
@@ -269,29 +825,6 @@ export default async function VerifyWorkerPage(
           </div>
         </div>
       )}
-
-      <form
-        action={admitWorker.bind(null, siteId, workerId, payload)}
-        className="mt-4"
-      >
-        <button
-          type="submit"
-          className="h-[64px] w-full rounded-xl text-[17px] font-bold tracking-[0.01em]"
-          style={
-            allPass
-              ? {
-                  background: "#10B981",
-                  color: "#062B1F",
-                }
-              : {
-                  background: "var(--hi-yellow)",
-                  color: "var(--ink-1)",
-                }
-          }
-        >
-          {allPass ? "Admit worker" : "Admit anyway (override)"}
-        </button>
-      </form>
     </main>
   );
 }

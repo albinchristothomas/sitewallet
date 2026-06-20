@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { BrandMark, BrandWordmark } from "@/lib/atoms";
+import { useState, useTransition, type CSSProperties } from "react";
+import { BrandWordmark } from "@/lib/atoms";
 import { completeOnboarding, type OnboardingPayload } from "./actions";
 import type { AccountType } from "@/lib/roles";
 
@@ -29,6 +28,61 @@ const MEDIC_STEPS = ["intro", "you", "credentials"] as const;
 type StepKey =
   | (typeof WORKER_STEPS)[number]
   | (typeof MEDIC_STEPS)[number];
+
+/* ============================================================
+   Inline icons (match the design block's stroke SVGs exactly)
+   ============================================================ */
+
+function ArrowIcon({ size = 17 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#0d0f12"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function CheckIcon({ size = 17 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#0d0f12"
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+function ChevronLeft({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#9aa3ab"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
 
 export function OnboardingWizard({
   accountType,
@@ -116,36 +170,121 @@ export function OnboardingWizard({
   const formIdx = step === "intro" ? 0 : steps.indexOf(step);
 
   return (
-    <div className="w-full max-w-[460px]">
-      {/* Digital safety card — white sheet on dark surface */}
-      <div className="overflow-hidden rounded-[14px] border border-[color:var(--line)] bg-[#FAFAF7] text-[#0A0A0A] shadow-[0_2px_0_rgba(0,0,0,0.4)]">
-        {/* Top strip — like the TRICAN logo bar on a real ticket */}
-        <div className="flex items-center justify-between border-b border-[#0A0A0A]/12 bg-white px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <BrandMark size={22} />
-            <BrandWordmark
-              className="text-[14px] font-bold tracking-[-0.01em] text-[#0A0A0A]"
-              highlightClassName="text-[#EAB308]"
-            />
-          </div>
-          <div className="mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7A8290]">
-            Account setup
-          </div>
-        </div>
+    <div className="w-full max-w-[420px]">
+      {/* Dark steel panel — RigWise system surface on the dark bg */}
+      <div
+        style={{
+          position: "relative",
+          borderRadius: 16,
+          overflow: "hidden",
+          background:
+            "linear-gradient(152deg,#222831 0%,#191d23 52%,#14171c 100%)",
+          boxShadow:
+            "0 30px 60px -20px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.07)",
+        }}
+      >
+        {/* Faint guilloché sheen across the steel face */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            opacity: 0.35,
+            backgroundImage:
+              "conic-gradient(from 30deg at 50% 25%, rgba(255,255,255,0.04), transparent 40%, rgba(255,255,255,0.03) 70%, transparent 100%)",
+          }}
+        />
+        {/* Orange safety spine */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            background: "#f2581c",
+          }}
+        />
 
-        {/* Body */}
-        <div className="px-6 py-7 sm:px-7">
+        <div style={{ position: "relative", padding: "30px 28px" }}>
+          {/* Brand bar */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 26,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  background: "#f2581c",
+                  borderRadius: 5,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ width: 13, height: 13, background: "#0d0f12" }} />
+              </div>
+              <BrandWordmark
+                className="text-[22px] tracking-[-0.01em] text-[#eef1f3]"
+                highlightClassName="text-[#8b949c] font-semibold"
+              />
+            </div>
+            <div
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.16em",
+                color: "#5d666f",
+                textTransform: "uppercase",
+                fontWeight: 700,
+              }}
+            >
+              {accountType === "WORKER" ? "Worker setup" : "Medic setup"}
+            </div>
+          </div>
+
           {step !== "intro" && (
-            <div className="mb-5 flex items-center justify-between">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 22,
+              }}
+            >
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-[#525866] transition-colors hover:text-[#0A0A0A]"
                 disabled={pending}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 13,
+                  color: "#9aa3ab",
+                  background: "transparent",
+                  border: "none",
+                  cursor: pending ? "default" : "pointer",
+                }}
               >
-                <ArrowLeft size={14} strokeWidth={1.8} />
+                <ChevronLeft size={16} />
                 Back
               </button>
-              <div className="mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#7A8290]">
+              <div
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.18em",
+                  color: "#5d666f",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                }}
+              >
                 Step {formIdx} of {totalForms}
               </div>
             </div>
@@ -165,54 +304,128 @@ export function OnboardingWizard({
           )}
 
           {error && (
-            <div className="mt-5 rounded-[6px] border border-[rgba(220,38,38,0.4)] bg-[rgba(220,38,38,0.08)] px-3.5 py-2.5 text-[13px] text-[#B91C1C]">
+            <div
+              style={{
+                marginTop: 20,
+                borderRadius: 8,
+                background: "rgba(239,65,53,0.12)",
+                border: "1px solid rgba(239,65,53,0.5)",
+                padding: "11px 14px",
+                fontSize: 13,
+                color: "#ff9a8f",
+              }}
+            >
               {error}
             </div>
           )}
 
-          <div className="mt-7 flex items-center justify-end">
-            <button
-              onClick={onNext}
-              disabled={pending}
-              className="rw-pressable inline-flex h-12 items-center gap-2 rounded-[8px] border border-[#A16207] bg-[#FACC15] px-5 text-[14.5px] font-bold text-[#0A0A0A] disabled:opacity-60"
-            >
-              {pending ? (
-                "Saving…"
-              ) : isLast ? (
-                <>
-                  <Check size={16} strokeWidth={2.2} />
+          {/* Primary action — orange button identical to the LOGIN block */}
+          <button
+            onClick={onNext}
+            disabled={pending}
+            style={{
+              width: "100%",
+              height: 54,
+              borderRadius: 8,
+              background: "#f2581c",
+              border: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 9,
+              marginTop: 24,
+              boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+              cursor: pending ? "default" : "pointer",
+              opacity: pending ? 0.7 : 1,
+            }}
+          >
+            {pending ? (
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: 15,
+                  color: "#0d0f12",
+                  letterSpacing: "0.01em",
+                }}
+              >
+                Saving…
+              </span>
+            ) : isLast ? (
+              <>
+                <CheckIcon />
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 15,
+                    color: "#0d0f12",
+                    letterSpacing: "0.01em",
+                  }}
+                >
                   Complete setup
-                </>
-              ) : step === "intro" ? (
-                <>
-                  Get started
-                  <ArrowRight size={16} strokeWidth={2} />
-                </>
-              ) : (
-                <>
-                  Continue
-                  <ArrowRight size={16} strokeWidth={2} />
-                </>
-              )}
-            </button>
-          </div>
+                </span>
+              </>
+            ) : (
+              <>
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 15,
+                    color: "#0d0f12",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  {step === "intro" ? "Get started" : "Continue"}
+                </span>
+                <ArrowIcon />
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Card footer — encoded-serial style like the ESC card */}
-        <div className="border-t border-[#0A0A0A]/10 bg-[#F4F2EC] px-5 py-2.5 mono text-[9.5px] uppercase tracking-[0.18em] text-[#7A8290]">
-          RigWise · {accountType === "WORKER" ? "Worker enrollment" : "Medic enrollment"} · {new Date().getFullYear()}
+        {/* Encoded-serial footer — VOID IF SHARED treatment */}
+        <div
+          className="mono"
+          style={{
+            position: "relative",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            padding: "12px 28px",
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            lineHeight: 1.7,
+            color: "#5d666f",
+            textTransform: "uppercase",
+            textAlign: "center",
+          }}
+        >
+          RigWise ·{" "}
+          {accountType === "WORKER"
+            ? "Worker enrollment"
+            : "Medic enrollment"}{" "}
+          · {new Date().getFullYear()}
         </div>
       </div>
 
-      <p className="mt-4 px-1 text-center text-[11.5px] leading-relaxed text-[color:var(--text-faint)]">
-        Your information is stored against this account only. It travels with you between sites and stays current across renewals.
+      <p
+        className="mono"
+        style={{
+          marginTop: 16,
+          padding: "0 4px",
+          textAlign: "center",
+          fontSize: 9,
+          letterSpacing: "0.08em",
+          lineHeight: 1.7,
+          color: "#5d666f",
+          textTransform: "uppercase",
+        }}
+      >
+        Stored against this account only · Travels with you between sites
       </p>
     </div>
   );
 }
 
 /* ============================================================
-   STEP CONTENTS — paper-form aesthetic, underline-only inputs
+   STEP CONTENTS — dark steel system, mono labels, steel inputs
    ============================================================ */
 
 function StepHeader({
@@ -225,21 +438,61 @@ function StepHeader({
   body?: string;
 }) {
   return (
-    <header className="mb-6">
-      <div className="mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#EAB308]">
+    <header style={{ marginBottom: 26 }}>
+      <div
+        className="mono"
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: "0.16em",
+          color: "#f2581c",
+          textTransform: "uppercase",
+        }}
+      >
         {eyebrow}
       </div>
-      <h1 className="mt-1.5 text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#0A0A0A]">
+      <h1
+        style={{
+          marginTop: 10,
+          fontSize: 30,
+          fontWeight: 800,
+          lineHeight: 1.05,
+          letterSpacing: "-0.02em",
+          color: "#f4f6f7",
+        }}
+      >
         {title}
       </h1>
       {body && (
-        <p className="mt-2 text-[13.5px] leading-relaxed text-[#525866]">
+        <p
+          className="mono"
+          style={{
+            marginTop: 12,
+            fontSize: 11,
+            lineHeight: 1.6,
+            letterSpacing: "0.03em",
+            color: "#9aa3ab",
+          }}
+        >
           {body}
         </p>
       )}
     </header>
   );
 }
+
+const STEEL_INPUT: CSSProperties = {
+  width: "100%",
+  height: 54,
+  borderRadius: 8,
+  background: "#15191e",
+  border: "1px solid rgba(255,255,255,0.1)",
+  padding: "0 16px",
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: 14,
+  color: "#d6dce0",
+  outline: "none",
+};
 
 function Field({
   label,
@@ -263,14 +516,20 @@ function Field({
   multiline?: boolean;
 }) {
   return (
-    <label className="block">
-      <div className="flex items-center justify-between">
-        <span className="mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#525866]">
-          {label}
-          {optional && (
-            <span className="ml-1.5 text-[#7A8290]">(optional)</span>
-          )}
-        </span>
+    <label style={{ display: "block" }}>
+      <div
+        className="mono"
+        style={{
+          fontSize: 9,
+          fontWeight: 600,
+          letterSpacing: "0.16em",
+          color: "#5d666f",
+          textTransform: "uppercase",
+          marginBottom: 9,
+        }}
+      >
+        {label}
+        {optional && <span style={{ color: "#3a3f45" }}> (optional)</span>}
       </div>
       {multiline ? (
         <textarea
@@ -279,7 +538,13 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="mt-1.5 w-full resize-none border-0 border-b border-[#0A0A0A]/30 bg-transparent px-0 py-2 text-[15px] text-[#0A0A0A] placeholder:text-[#A0A6B0] focus:border-[#0A0A0A] focus:outline-none focus:ring-0"
+          style={{
+            ...STEEL_INPUT,
+            height: "auto",
+            padding: "12px 16px",
+            resize: "none",
+            lineHeight: 1.5,
+          }}
         />
       ) : (
         <input
@@ -288,10 +553,23 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           type={type}
-          className="mt-1.5 w-full border-0 border-b border-[#0A0A0A]/30 bg-transparent px-0 py-2 text-[15px] text-[#0A0A0A] placeholder:text-[#A0A6B0] focus:border-[#0A0A0A] focus:outline-none focus:ring-0"
+          style={STEEL_INPUT}
         />
       )}
-      {hint && <p className="mt-1.5 text-[11.5px] text-[#7A8290]">{hint}</p>}
+      {hint && (
+        <p
+          className="mono"
+          style={{
+            marginTop: 8,
+            fontSize: 9,
+            letterSpacing: "0.06em",
+            lineHeight: 1.6,
+            color: "#5d666f",
+          }}
+        >
+          {hint}
+        </p>
+      )}
     </label>
   );
 }
@@ -303,39 +581,81 @@ function IntroStep({
   accountType: AccountType;
   email: string;
 }) {
+  const checklist =
+    accountType === "WORKER"
+      ? ["Your name", "Company you work for", "Site you're going to"]
+      : ["Name + phone", "Medic firm + license"];
+
   return (
     <>
       <StepHeader
-        eyebrow={accountType === "WORKER" ? "Worker enrollment" : "Medic enrollment"}
-        title={accountType === "WORKER" ? "Set up your wallet." : "Set up your station."}
+        eyebrow={
+          accountType === "WORKER" ? "Worker enrollment" : "Medic enrollment"
+        }
+        title={
+          accountType === "WORKER"
+            ? "Set up your wallet."
+            : "Set up your station."
+        }
         body={
           accountType === "WORKER"
             ? "We need a few details once. After that, every gate you walk up to pulls the same data — no paper forms, no re-typing."
             : "We need a few details once so workers admitted under you are traceable to the right firm and license."
         }
       />
-      <div className="rounded-[6px] border border-[#0A0A0A]/10 bg-white px-3.5 py-3">
-        <div className="mono text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#7A8290]">
+
+      {/* Signed-in chip — steel inset, like the WORK EMAIL field */}
+      <div
+        style={{
+          borderRadius: 8,
+          background: "#15191e",
+          border: "1px solid rgba(255,255,255,0.1)",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          className="mono"
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: "0.16em",
+            color: "#5d666f",
+            textTransform: "uppercase",
+          }}
+        >
           Signed in as
         </div>
-        <div className="mt-1 mono text-[13px] font-medium text-[#0A0A0A]">
+        <div
+          className="mono"
+          style={{
+            marginTop: 6,
+            fontSize: 14,
+            color: "#d6dce0",
+          }}
+        >
           {email}
         </div>
       </div>
-      <ul className="mt-5 space-y-2 text-[13px] text-[#525866]">
-        {(accountType === "WORKER"
-          ? [
-              "Your name",
-              "Company you work for",
-              "Site you're going to",
-            ]
-          : ["Name + phone", "Medic firm + license"]
-        ).map((s, i) => (
-          <li key={s} className="flex items-center gap-2.5">
-            <span className="mono text-[10.5px] font-semibold text-[#A0A6B0]">
+
+      <ul style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 11 }}>
+        {checklist.map((s, i) => (
+          <li
+            key={s}
+            style={{ display: "flex", alignItems: "center", gap: 12 }}
+          >
+            <span
+              className="mono"
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                color: "#f2581c",
+                minWidth: 18,
+              }}
+            >
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span>{s}</span>
+            <span style={{ fontSize: 14, color: "#c4ccd2" }}>{s}</span>
           </li>
         ))}
       </ul>
@@ -363,7 +683,7 @@ function YouStep({
             : "Use the name on your medic license."
         }
       />
-      <div className="space-y-6">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
           label="Full legal name"
           value={state.full_name}
@@ -398,7 +718,7 @@ function WorkerDetailsStep({
         title="Quick setup."
         body="Three things and you're in. You can add more to your profile later."
       />
-      <div className="space-y-6">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
           label="Full name"
           value={state.full_name}
@@ -447,7 +767,7 @@ function CredentialsStep({
         title="Your medic firm + license."
         body="Workers you admit are tagged with this firm. Used on the daily report and incident logs."
       />
-      <div className="space-y-6">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
           label="Medic firm"
           value={state.medic_firm}

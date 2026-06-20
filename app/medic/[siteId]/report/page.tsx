@@ -1,9 +1,22 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Check, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 import { ReportControls } from "./report-controls";
+
+// Approved "Warm cream" paper palette (design block 10 · END-OF-DAY REPORT)
+const paperBg = "#f3efe6";
+const paperInk = "#221d15";
+const paperSub = "#6f6657";
+const paperLine = "#ddd6c7";
+const paperBand = "#2a251d";
+const paperBandInk = "#efe9dc";
+const paperRowAlt = "#ece7da";
+const paperRule = "#cdbfa3";
+// Display-grotesk numerals
+const rNumFont = "var(--font-archivo), sans-serif";
+const rNumWeight = 800;
+const rNumLs = "-0.02em";
 
 function isoToday(): string {
   return new Date().toISOString().slice(0, 10);
@@ -25,6 +38,34 @@ function fmtDateLong(iso: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+// "19 JUN 2026" — masthead DATE token
+function fmtDateMeta(iso: string): string {
+  return new Date(iso + "T00:00:00")
+    .toLocaleDateString("en-CA", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/\./g, "")
+    .toUpperCase();
+}
+
+// "19·06·26" — seal stamp
+function fmtSealDate(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  return `${d}·${m}·${y.slice(2)}`;
+}
+
+// "RW-DSR-20260619-1422" — official record id
+function fmtReportId(iso: string): string {
+  const compact = iso.replace(/-/g, "");
+  const now = new Date();
+  const stamp = `${String(now.getHours()).padStart(2, "0")}${String(
+    now.getMinutes(),
+  ).padStart(2, "0")}`;
+  return `RW-DSR-${compact}-${stamp}`;
 }
 
 export default async function EndOfDayReportPage(
@@ -114,10 +155,51 @@ export default async function EndOfDayReportPage(
     .eq("id", user.id)
     .single();
 
-  const jobSafe = incidents.length === 0;
+  // ── derived report figures ───────────────────────────────────────────
+  // A worker is "admitted" if they have a check-in; DENIED rows have no time.
+  const isAdmitted = (r: RosterRow) => Boolean(r.check_in_at);
+  const admittedCount = roster.filter(isAdmitted).length;
+  const deniedCount = roster.length - admittedCount;
+  const totalMinutes = roster.reduce(
+    (sum, r) => sum + (r.duration_minutes ?? 0),
+    0,
+  );
+  const crewHours = (totalMinutes / 60).toFixed(1);
+
+  // Crew table shows the full roster (design label reflects how many of total)
+  const shownCount = roster.length;
+  const totalCount = roster.length;
+
+  const wellLsd = site?.lsd_location || site?.well_number || "—";
+  const muster = site?.rig_name ? `${site.rig_name} muster point` : "Per site plan";
+
+  const medicName = medic?.full_name ?? "(unsigned)";
+  const medicFirm = medic?.medic_firm ?? "";
+  const medicLicense = medic?.medic_license_number ?? "";
+  // last name only for the cursive flourish — e.g. "A. Reyes"
+  const sigParts = medicName.split(" ").filter(Boolean);
+  const sigName =
+    sigParts.length >= 2
+      ? `${sigParts[0][0]}. ${sigParts[sigParts.length - 1]}`
+      : medicName;
+  const medicLine = [
+    "ATTENDING MEDIC",
+    medicName.toUpperCase(),
+    medicLicense || null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const incidentText =
+    incidents.length === 0
+      ? "None reported — 0 recordable"
+      : `${incidents.length} reported — ${incidents.filter((i) => i.severity === "recordable" || i.severity === "RECORDABLE").length} recordable`;
+  const incidentColor = incidents.length === 0 ? "#1e8a4c" : "#c0392b";
+
+  const mono = "var(--font-jetbrains-mono), ui-monospace, monospace";
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-10 pt-5">
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-5">
       {/* Header — hidden when printing */}
       <div className="print:hidden">
         <Link
@@ -126,7 +208,7 @@ export default async function EndOfDayReportPage(
         >
           ← Site
         </Link>
-        <header className="mt-3 flex items-end justify-between gap-4">
+        <header className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow className="mb-1">End-of-day report</Eyebrow>
             <h1 className="text-2xl font-bold tracking-tight">
@@ -138,213 +220,809 @@ export default async function EndOfDayReportPage(
         </header>
       </div>
 
-      {/* The printable report itself */}
-      <article
-        className="mt-6 rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-6 print:mt-0 print:border-0 print:bg-white print:p-8 print:text-black"
-        id="report"
-      >
-        <header className="border-b border-[color:var(--hair)] pb-5 print:border-[color:#ccc]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--text-faint)] print:text-[#666]">
-                RigWise · End-of-day report
+      {/* The printable report — light "paper" document */}
+      <div className="mt-6 print:mt-0" id="report-wrap">
+        <article
+          id="report"
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: 760,
+            margin: "0 auto",
+            borderRadius: 4,
+            overflow: "hidden",
+            background: paperBg,
+            boxShadow:
+              "0 30px 60px -20px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.08)",
+          }}
+        >
+          {/* print texture */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              display: "block",
+              opacity: 0.5,
+              mixBlendMode: "multiply",
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)' opacity='0.06'/%3E%3C/svg%3E\")",
+            }}
+          />
+          {/* faint guilloché watermark */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              opacity: 0.45,
+              backgroundImage:
+                "repeating-radial-gradient(circle at 84% 14%, transparent 0 11px, rgba(20,30,40,0.022) 11px 12px),conic-gradient(from 30deg at 80% 18%, rgba(20,30,40,0.018), transparent 40%, rgba(20,30,40,0.016) 70%, transparent 100%)",
+            }}
+          />
+          {/* orange safety spine */}
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 6,
+              background: "#f2581c",
+            }}
+          />
+
+          <div
+            style={{ position: "relative", padding: "46px 50px 40px 54px" }}
+            className="rw-report-body"
+          >
+            {/* masthead */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: 16,
+              }}
+            >
+              <div>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 11 }}
+                >
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      background: "#f2581c",
+                      borderRadius: 4,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      style={{ width: 11, height: 11, background: paperBg }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 17,
+                      letterSpacing: "-0.01em",
+                      color: paperInk,
+                    }}
+                  >
+                    RIG
+                    <span style={{ color: "#a59a8a", fontWeight: 600 }}>
+                      WISE
+                    </span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 9,
+                    letterSpacing: "0.18em",
+                    color: paperSub,
+                    marginTop: 14,
+                  }}
+                >
+                  OFFICIAL RECORD · NOT VALID WITHOUT MEDIC SIGNATURE
+                </div>
               </div>
-              <h2 className="mt-1 text-[28px] font-bold leading-tight tracking-tight">
-                {site?.name}
-              </h2>
-              <p className="mt-1 text-[14px] text-[color:var(--text-dim)] print:text-[#555]">
-                {fmtDateLong(day)}
-              </p>
+              <div style={{ textAlign: "right" }}>
+                <div
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 34,
+                    letterSpacing: "-0.025em",
+                    color: paperInk,
+                    lineHeight: 0.95,
+                  }}
+                >
+                  Daily Safety
+                  <br />
+                  Report
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 9,
+                    letterSpacing: "0.1em",
+                    color: paperSub,
+                    marginTop: 9,
+                  }}
+                >
+                  {fmtReportId(day)}
+                </div>
+              </div>
             </div>
             <div
-              className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-bold uppercase tracking-wide ${
-                jobSafe
-                  ? "bg-[color:rgba(16,185,129,0.20)] text-[color:#34D399] print:bg-[#dcfce7] print:text-[#15803d]"
-                  : "bg-[color:rgba(245,158,11,0.20)] text-[color:#FBBF24] print:bg-[#fef3c7] print:text-[#b45309]"
-              }`}
+              style={{
+                display: "flex",
+                gap: 0,
+                marginTop: 18,
+                height: 3,
+              }}
             >
-              {jobSafe ? (
-                <>
-                  <Check size={16} strokeWidth={2} /> Day completed safely
-                </>
-              ) : (
-                <>
-                  <AlertTriangle size={16} strokeWidth={2} /> {incidents.length} incident
-                  {incidents.length === 1 ? "" : "s"} reported
-                </>
-              )}
+              <div style={{ width: 64, background: "#f2581c" }} />
+              <div style={{ flex: 1, background: paperInk }} />
             </div>
-          </div>
 
-          <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-[12px] sm:grid-cols-3">
-            <ReportField label="Oil company" value={operator?.name} />
-            <ReportField label="Project" value={project?.name} />
-            <ReportField label="Contract" value={project?.contract_name} />
-            <ReportField
-              label="Contractor"
-              value={project?.contractor_company_name}
-            />
-            <ReportField
-              label="Rig"
-              value={
-                site?.rig_name
-                  ? `${site.rig_name}${site.rig_number ? ` · #${site.rig_number}` : ""}`
-                  : null
-              }
-            />
-            <ReportField label="Well" value={site?.well_number} />
-            <ReportField label="LSD" value={site?.lsd_location} />
-          </dl>
-        </header>
+            {/* meta — editorial row */}
+            <div
+              style={{ display: "flex", marginTop: 22, gap: 0 }}
+              className="rw-report-meta"
+            >
+              <div style={{ flex: 1.3 }}>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  WELL / LSD
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: paperInk,
+                    marginTop: 6,
+                  }}
+                >
+                  {wellLsd}
+                </div>
+              </div>
+              <div style={{ flex: 1.3 }}>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  OPERATOR
+                </div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    letterSpacing: "-0.01em",
+                    color: paperInk,
+                    marginTop: 5,
+                  }}
+                >
+                  {operator?.name ?? "—"}
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  CONTRACT
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: paperInk,
+                    marginTop: 6,
+                  }}
+                >
+                  {project?.contract_name ?? "—"}
+                </div>
+              </div>
+              <div style={{ flex: 0.9 }}>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  DATE
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: paperInk,
+                    marginTop: 6,
+                  }}
+                >
+                  {fmtDateMeta(day)}
+                </div>
+              </div>
+            </div>
 
-        <section className="mt-6">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="text-[18px] font-bold">Workers on site</h3>
-            <span className="font-mono text-[11px] text-[color:var(--text-faint)] print:text-[#666]">
-              {roster.length} session{roster.length === 1 ? "" : "s"}
-            </span>
-          </div>
-          {roster.length === 0 ? (
-            <p className="text-[13px] text-[color:var(--text-dim)] print:text-[#555]">
-              No workers signed in on this day.
-            </p>
-          ) : (
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="border-b border-[color:var(--hair)] text-left font-mono text-[10px] uppercase tracking-wide text-[color:var(--text-faint)] print:border-[#ccc] print:text-[#555]">
-                  <th className="py-2 pr-3">Worker</th>
-                  <th className="py-2 pr-3">Contractor</th>
-                  <th className="py-2 pr-3">Contact</th>
-                  <th className="py-2 pr-3">In</th>
-                  <th className="py-2 pr-3">Out</th>
-                  <th className="py-2 pr-3">Hours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roster.map((r) => {
-                  const w = workerMap.get(r.worker_id);
-                  const hrs = r.duration_minutes
-                    ? `${Math.floor(r.duration_minutes / 60)}h ${r.duration_minutes % 60}m`
-                    : r.check_out_at
-                      ? "—"
-                      : "on site";
-                  return (
-                    <tr
-                      key={r.session_id}
-                      className="border-b border-[color:var(--hair)] print:border-[#eee]"
-                    >
-                      <td className="py-2.5 pr-3">
-                        <div className="font-semibold">
+            {/* crew table */}
+            <div style={{ marginTop: 30 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  justifyContent: "space-between",
+                  marginBottom: 11,
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 15,
+                    letterSpacing: "-0.01em",
+                    color: paperInk,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Crew on site
+                </div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 9,
+                    letterSpacing: "0.12em",
+                    color: paperSub,
+                  }}
+                >
+                  {shownCount} OF {totalCount} SHOWN
+                </div>
+              </div>
+              <div
+                style={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  boxShadow: `0 0 0 1px ${paperLine}`,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    background: paperBand,
+                    color: paperBandInk,
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  <div style={{ flex: 2.2, padding: "10px 16px" }}>WORKER</div>
+                  <div style={{ flex: 1.8, padding: "10px 8px" }}>COMPANY</div>
+                  <div style={{ flex: 1.2, padding: "10px 8px" }}>TICKETS</div>
+                  <div style={{ flex: 0.9, padding: "10px 8px" }}>IN</div>
+                  <div style={{ flex: 0.9, padding: "10px 8px" }}>OUT</div>
+                  <div
+                    style={{
+                      flex: 0.7,
+                      padding: "10px 8px",
+                      textAlign: "right",
+                    }}
+                  >
+                    HRS
+                  </div>
+                </div>
+                {roster.length === 0 ? (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: paperSub,
+                      padding: "16px",
+                      textAlign: "center",
+                    }}
+                  >
+                    No workers signed in on this day.
+                  </div>
+                ) : (
+                  roster.map((r, idx) => {
+                    const w = workerMap.get(r.worker_id);
+                    const admitted = isAdmitted(r);
+                    const hrs = r.duration_minutes
+                      ? (r.duration_minutes / 60).toFixed(1)
+                      : admitted
+                        ? "0.0"
+                        : "0.0";
+                    const isLast = idx === roster.length - 1;
+                    return (
+                      <div
+                        key={r.session_id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          fontSize: 13,
+                          color: paperInk,
+                          ...(isLast
+                            ? {}
+                            : { borderBottom: `1px solid ${paperLine}` }),
+                          ...(idx % 2 === 1
+                            ? { background: paperRowAlt }
+                            : {}),
+                        }}
+                      >
+                        <div
+                          style={{
+                            flex: 2.2,
+                            padding: "11px 16px",
+                            fontWeight: 700,
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
                           {r.worker_name ?? "—"}
                         </div>
-                        {w?.employee_number && (
-                          <div className="mt-0.5 font-mono text-[10px] text-[color:var(--text-faint)] print:text-[#666]">
-                            #{w.employee_number}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-2.5 pr-3 text-[color:var(--text-dim)] print:text-[#555]">
-                        {w?.contractor_company ?? "—"}
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono text-[color:var(--text-dim)] print:text-[#555]">
-                        {w?.phone ?? "—"}
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono">
-                        {fmtTime(r.check_in_at)}
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono">
-                        {fmtTime(r.check_out_at)}
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono">{hrs}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </section>
+                        <div
+                          style={{
+                            flex: 1.8,
+                            padding: "11px 8px",
+                            fontSize: 12,
+                            color: paperSub,
+                          }}
+                        >
+                          {w?.contractor_company ?? "—"}
+                        </div>
+                        <div
+                          style={{
+                            flex: 1.2,
+                            padding: "11px 8px",
+                            fontFamily: mono,
+                            fontSize: 9.5,
+                            color: admitted ? "#1e8a4c" : "#c0392b",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {admitted ? "● VALID" : "● DENIED"}
+                        </div>
+                        <div
+                          style={{
+                            flex: 0.9,
+                            padding: "11px 8px",
+                            fontFamily: mono,
+                            fontSize: 11,
+                            ...(admitted ? {} : { color: paperSub }),
+                          }}
+                        >
+                          {admitted ? fmtTime(r.check_in_at) : "—"}
+                        </div>
+                        <div
+                          style={{
+                            flex: 0.9,
+                            padding: "11px 8px",
+                            fontFamily: mono,
+                            fontSize: 11,
+                            ...(admitted && r.check_out_at
+                              ? {}
+                              : { color: paperSub }),
+                          }}
+                        >
+                          {admitted ? fmtTime(r.check_out_at) : "—"}
+                        </div>
+                        <div
+                          style={{
+                            flex: 0.7,
+                            padding: "11px 8px",
+                            textAlign: "right",
+                            fontFamily: mono,
+                            fontSize: 11,
+                            ...(admitted ? {} : { color: paperSub }),
+                          }}
+                        >
+                          {hrs}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
 
-        {incidents.length > 0 && (
-          <section className="mt-7">
-            <h3 className="mb-3 text-[18px] font-bold">Incidents</h3>
-            <ul className="space-y-2">
-              {incidents.map((i) => (
-                <li
-                  key={i.id}
-                  className="rounded-lg border border-[color:rgba(239,68,68,0.30)] bg-[color:rgba(239,68,68,0.10)] p-3 text-[13px] print:border-[#f87171] print:bg-[#fee2e2]"
+            {/* summary band — big figures */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginTop: 26,
+                borderTop: `2px solid ${paperInk}`,
+                paddingTop: 18,
+                gap: 26,
+              }}
+              className="rw-report-summary"
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
                 >
-                  <div className="flex items-center justify-between gap-3 font-mono text-[10px] font-bold uppercase tracking-wide text-[color:#F87171] print:text-[#991b1b]">
-                    <span>
-                      {i.type.replace(/_/g, " ")} · {i.severity}
-                    </span>
-                    <span>{fmtTime(i.occurred_at)}</span>
+                  ADMITTED
+                </div>
+                <div
+                  style={{
+                    fontFamily: rNumFont,
+                    fontSize: 38,
+                    fontWeight: rNumWeight,
+                    letterSpacing: rNumLs,
+                    color: "#1e8a4c",
+                    lineHeight: 1,
+                    marginTop: 4,
+                  }}
+                >
+                  {admittedCount}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  DENIED
+                </div>
+                <div
+                  style={{
+                    fontFamily: rNumFont,
+                    fontSize: 38,
+                    fontWeight: rNumWeight,
+                    letterSpacing: rNumLs,
+                    color: "#c0392b",
+                    lineHeight: 1,
+                    marginTop: 4,
+                  }}
+                >
+                  {deniedCount}
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.16em",
+                    color: paperSub,
+                  }}
+                >
+                  CREW HOURS
+                </div>
+                <div
+                  style={{
+                    fontFamily: rNumFont,
+                    fontSize: 38,
+                    fontWeight: rNumWeight,
+                    letterSpacing: rNumLs,
+                    color: paperInk,
+                    lineHeight: 1,
+                    marginTop: 4,
+                  }}
+                >
+                  {crewHours}
+                </div>
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  justifyContent: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 8.5,
+                      letterSpacing: "0.14em",
+                      color: paperSub,
+                      width: 70,
+                      flex: "none",
+                    }}
+                  >
+                    INCIDENTS
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: incidentColor,
+                    }}
+                  >
+                    {incidentText}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 8.5,
+                      letterSpacing: "0.14em",
+                      color: paperSub,
+                      width: 70,
+                      flex: "none",
+                    }}
+                  >
+                    MUSTER
+                  </span>
+                  <span
+                    style={{ fontSize: 13, fontWeight: 600, color: paperInk }}
+                  >
+                    {muster}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* signature */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                marginTop: 30,
+                borderTop: `1px solid ${paperLine}`,
+                paddingTop: 22,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-caveat), cursive",
+                    fontSize: 40,
+                    lineHeight: 0.7,
+                    color: paperInk,
+                    transform: "rotate(-2deg)",
+                  }}
+                >
+                  {sigName}
+                </div>
+                <div
+                  style={{
+                    borderTop: `1px solid ${paperInk}`,
+                    marginTop: 9,
+                    paddingTop: 6,
+                    fontFamily: mono,
+                    fontSize: 8.5,
+                    letterSpacing: "0.14em",
+                    color: paperSub,
+                  }}
+                >
+                  {medicLine}
+                  {medicFirm ? ` · ${medicFirm.toUpperCase()}` : ""}
+                </div>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 16 }}
+              >
+                <div
+                  style={{
+                    textAlign: "right",
+                    fontFamily: mono,
+                    fontSize: 8,
+                    letterSpacing: "0.1em",
+                    color: paperSub,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  VERIFIED · INTEGRITY SEALED
+                  <br />
+                  VOID IF ALTERED · {fmtTime(new Date().toISOString())} MST
+                </div>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    border: `1.5px solid ${paperRule}`,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: "rotate(-9deg)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 7,
+                      letterSpacing: "0.1em",
+                      color: "#f2581c",
+                      fontWeight: 700,
+                    }}
+                  >
+                    RIGWISE
                   </div>
-                  <p className="mt-1.5 text-[color:var(--text)] print:text-[#000]">
-                    {i.description}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
+                  <div
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 11,
+                      letterSpacing: "0.04em",
+                      color: paperInk,
+                      fontWeight: 700,
+                      marginTop: 1,
+                    }}
+                  >
+                    SEAL
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 6,
+                      letterSpacing: "0.08em",
+                      color: paperSub,
+                      marginTop: 1,
+                    }}
+                  >
+                    {fmtSealDate(day)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        {/* incidents detail — kept below the seal when present */}
+        {incidents.length > 0 && (
+          <article
+            style={{
+              maxWidth: 760,
+              margin: "16px auto 0",
+              borderRadius: 4,
+              overflow: "hidden",
+              background: paperBg,
+              boxShadow:
+                "0 30px 60px -20px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.08)",
+            }}
+          >
+            <div style={{ position: "relative", padding: "28px 50px 30px 54px" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 6,
+                  background: "#f2581c",
+                }}
+              />
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  letterSpacing: "-0.01em",
+                  color: paperInk,
+                  marginBottom: 12,
+                }}
+              >
+                Incident detail
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {incidents.map((i) => (
+                  <li
+                    key={i.id}
+                    style={{
+                      borderRadius: 3,
+                      border: "1px solid rgba(192,57,43,0.30)",
+                      background: "rgba(192,57,43,0.06)",
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        fontFamily: mono,
+                        fontSize: 9,
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        color: "#c0392b",
+                      }}
+                    >
+                      <span>
+                        {i.type.replace(/_/g, " ")} · {i.severity}
+                      </span>
+                      <span>{fmtTime(i.occurred_at)}</span>
+                    </div>
+                    <p
+                      style={{
+                        marginTop: 6,
+                        marginBottom: 0,
+                        fontSize: 13,
+                        color: paperInk,
+                      }}
+                    >
+                      {i.description}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
         )}
 
-        <section className="mt-8 border-t border-[color:var(--hair)] pt-5 print:border-[#ccc]">
-          <h3 className="text-[14px] font-bold">Signed by</h3>
-          <div className="mt-2 grid grid-cols-2 gap-x-6 font-mono text-[11px]">
-            <div>
-              <div className="text-[color:var(--text-faint)] print:text-[#666]">
-                Medic
-              </div>
-              <div className="mt-0.5 text-[13px] font-semibold">
-                {medic?.full_name ?? "(unsigned)"}
-              </div>
-            </div>
-            <div>
-              <div className="text-[color:var(--text-faint)] print:text-[#666]">
-                Firm
-              </div>
-              <div className="mt-0.5 text-[13px] font-semibold">
-                {medic?.medic_firm ?? "—"}
-              </div>
-            </div>
-            {medic?.medic_license_number && (
-              <div className="col-span-2 mt-2">
-                <div className="text-[color:var(--text-faint)] print:text-[#666]">
-                  License #
-                </div>
-                <div className="mt-0.5 text-[13px]">
-                  {medic.medic_license_number}
-                </div>
-              </div>
-            )}
-          </div>
-          <p className="mt-5 text-[10px] text-[color:var(--text-faint)] print:text-[#666]">
-            Generated {new Date().toLocaleString("en-CA")} by RigWise ·
-            rigwise.ca
-          </p>
-        </section>
-      </article>
+        <p
+          className="print:hidden"
+          style={{
+            maxWidth: 760,
+            margin: "12px auto 0",
+            fontFamily: mono,
+            fontSize: 10,
+            letterSpacing: "0.04em",
+            color: "var(--text-faint)",
+            textAlign: "center",
+          }}
+        >
+          {fmtDateLong(day)} · Generated {new Date().toLocaleString("en-CA")} by
+          RigWise · rigwise.ca
+        </p>
+      </div>
 
-      {/* Print stylesheet */}
+      {/* Print stylesheet + responsive collapse for narrow phones */}
       <style>{`
         @media print {
           body { background: white !important; }
           nav, footer, .print\\:hidden { display: none !important; }
           main { padding: 0 !important; max-width: 100% !important; }
+          #report { box-shadow: none !important; }
+        }
+        @media (max-width: 560px) {
+          .rw-report-body { padding: 28px 22px 26px 28px !important; }
+          .rw-report-meta { flex-wrap: wrap; gap: 16px 0 !important; }
+          .rw-report-meta > div { flex: 1 1 50% !important; }
+          .rw-report-summary { flex-wrap: wrap; gap: 18px 22px !important; }
+          .rw-report-summary > div:last-child { flex: 1 1 100% !important; }
         }
       `}</style>
     </main>
-  );
-}
-
-function ReportField({ label, value }: { label: string; value: string | null | undefined }) {
-  if (!value) return null;
-  return (
-    <div>
-      <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-faint)] print:text-[#666]">
-        {label}
-      </dt>
-      <dd className="mt-0.5 text-[color:var(--text-dim)] print:text-[#000]">{value}</dd>
-    </div>
   );
 }
