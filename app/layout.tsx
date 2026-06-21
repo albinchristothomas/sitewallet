@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, JetBrains_Mono, Caveat } from "next/font/google";
+import { Saira, JetBrains_Mono, Caveat } from "next/font/google";
 import { NavBar } from "@/lib/nav";
 import { BetaBanner as Footer } from "@/lib/beta-banner";
 import { ServiceWorkerRegister } from "@/lib/sw-register";
 import "./globals.css";
 
-// Display / UI face. Archivo is a sturdy industrial grotesk — the approved
-// design uses 800–900 for big confident headers.
-const archivo = Archivo({
+// Display / UI face. Saira — a technical, engineered grotesk that reads like
+// field equipment / spec-sheet labeling rather than a generic SaaS font.
+// Loaded into the --font-archivo variable so every screen inherits it.
+const archivo = Saira({
   variable: "--font-archivo",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],

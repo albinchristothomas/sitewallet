@@ -1,152 +1,66 @@
 <!--
-  RigWise — Magic-link sign-in email.
-
-  Paste the body of this file into Supabase Dashboard:
-    Authentication → Email Templates → Magic Link → HTML body
-
+  RigWise — magic-link sign-in email.
+  Paste this into Supabase → Authentication → Email Templates → Magic Link → (HTML body).
   Subject line: Sign in to RigWise
-
-  Notes:
-  - All styles inline (Gmail strips <style> blocks).
-  - Inline SVG logo renders in Apple Mail, Gmail web, and most modern clients.
-    Older Outlook strips it — alt text "RigWise" shows instead.
-  - Table-based layout for broad client compatibility.
-  - {{ .ConfirmationURL }} is the Supabase magic-link token; do not edit.
+  {{ .ConfirmationURL }} is the Supabase token — do not edit it.
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="x-apple-disable-message-reformatting">
 <title>Sign in to RigWise</title>
 </head>
-<body style="margin:0;padding:0;background:#F4F2EC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0E1116;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#0d0f12;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#eef1f3;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0d0f12;">Tap to sign in to RigWise. Link expires in 1 hour.</div>
 
-<!-- Preview text (hidden in body, shown in inbox preview) -->
-<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#F4F2EC;opacity:0;">
-  Tap to sign in to RigWise — your safety credential wallet. Link expires in 1 hour.
-</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0f12;padding:32px 16px;">
+  <tr><td align="center">
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F4F2EC;padding:32px 16px;">
-  <tr>
-    <td align="center">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:linear-gradient(152deg,#222831 0%,#191d23 52%,#14171c 100%);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
 
-      <!-- Card -->
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#FFFFFF;border-radius:14px;overflow:hidden;border:1px solid #E5E1D6;">
-
-        <!-- Black brand bar -->
-        <tr>
-          <td style="background:#0E1116;padding:22px 28px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td valign="middle" style="padding-right:12px;">
-                  <!-- Logomark: yellow chip with derrick -->
-                  <svg width="36" height="36" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="display:block;" aria-label="RigWise">
-                    <rect width="32" height="32" rx="6" fill="#FACC15"/>
-                    <rect x="13.6" y="3" width="4.8" height="2.2" fill="#0E1116"/>
-                    <path d="M10.5 26 L14.7 5.6 L17.3 5.6 L21.5 26" stroke="#0E1116" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" fill="none"/>
-                    <line x1="12.4" y1="22" x2="19.6" y2="22" stroke="#0E1116" stroke-width="1.6"/>
-                    <line x1="13.3" y1="17" x2="18.7" y2="17" stroke="#0E1116" stroke-width="1.6"/>
-                    <line x1="14.1" y1="12" x2="17.9" y2="12" stroke="#0E1116" stroke-width="1.6"/>
-                    <line x1="7.5" y1="27.2" x2="24.5" y2="27.2" stroke="#0E1116" stroke-width="1.8"/>
-                  </svg>
-                </td>
-                <td valign="middle">
-                  <div style="font-size:18px;font-weight:800;letter-spacing:-0.01em;color:#FFFFFF;line-height:1;">
-                    Rig<span style="color:#FACC15;">Wise</span>
-                  </div>
-                  <div style="margin-top:4px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#7A8290;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
-                    Safety credentials
-                  </div>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Hero / heading -->
-        <tr>
-          <td style="padding:40px 36px 8px;">
-            <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#FACC15;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
-              Sign-in link
+      <!-- brand bar -->
+      <tr><td style="padding:22px 28px;border-bottom:1px solid rgba(255,255,255,0.08);">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td valign="middle" style="padding-right:12px;">
+            <div style="width:30px;height:30px;background:#f2581c;border-radius:5px;text-align:center;line-height:30px;">
+              <span style="display:inline-block;width:11px;height:11px;background:#0d0f12;vertical-align:middle;"></span>
             </div>
-            <h1 style="margin:10px 0 0;font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-0.01em;color:#0E1116;">
-              Tap to sign in.
-            </h1>
-            <p style="margin:14px 0 0;font-size:15px;line-height:1.55;color:#3C414B;">
-              You requested a one-time sign-in link for your RigWise wallet.
-              This link is good for one use and expires in 60 minutes.
-            </p>
           </td>
-        </tr>
-
-        <!-- CTA button -->
-        <tr>
-          <td style="padding:28px 36px 8px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-              <tr>
-                <td>
-                  <a href="{{ .ConfirmationURL }}"
-                     style="display:block;background:#FACC15;color:#0E1116;text-decoration:none;font-size:16px;font-weight:700;letter-spacing:-0.005em;padding:16px 24px;border-radius:10px;text-align:center;border:1px solid #E5B411;">
-                    Sign in to RigWise &rarr;
-                  </a>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:14px 0 0;font-size:12px;line-height:1.55;color:#7A8290;">
-              Button not working? Copy and paste this URL into your browser:
-            </p>
-            <p style="margin:6px 0 0;font-size:12px;line-height:1.4;color:#3C414B;word-break:break-all;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
-              {{ .ConfirmationURL }}
-            </p>
+          <td valign="middle">
+            <div style="font-size:19px;font-weight:800;color:#eef1f3;letter-spacing:-0.01em;">RIG<span style="color:#8b949c;font-weight:600;">WISE</span></div>
+            <div style="margin-top:3px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#5d666f;">Gate station</div>
           </td>
-        </tr>
+        </tr></table>
+      </td></tr>
 
-        <!-- Why a magic link / reassurance -->
-        <tr>
-          <td style="padding:32px 36px 8px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E5E1D6;">
-              <tr>
-                <td style="padding-top:22px;">
-                  <div style="font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7A8290;font-family:'SFMono-Regular',Menlo,Monaco,Consolas,monospace;">
-                    Why am I getting this?
-                  </div>
-                  <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#3C414B;">
-                    Someone &mdash; hopefully you &mdash; entered this email address
-                    to sign in to RigWise at <a href="https://rigwise.ca" style="color:#0E1116;text-decoration:underline;">rigwise.ca</a>.
-                    We use one-time links instead of passwords. If this wasn't you,
-                    you can safely ignore this email and nothing will happen.
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+      <!-- body -->
+      <tr><td style="padding:38px 36px 8px;">
+        <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f2581c;">Sign-in link</div>
+        <h1 style="margin:10px 0 0;font-size:28px;line-height:1.15;font-weight:800;letter-spacing:-0.01em;color:#f4f6f7;">Tap to sign in.</h1>
+        <p style="margin:14px 0 0;font-size:15px;line-height:1.55;color:#9aa3ab;">You requested a one-time sign-in link for your RigWise account. It works once and expires in 60 minutes.</p>
+      </td></tr>
 
-        <!-- Footer -->
-        <tr>
-          <td style="padding:28px 36px 32px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid #E5E1D6;">
-              <tr>
-                <td style="padding-top:18px;font-size:11px;line-height:1.6;color:#9CA2AE;">
-                  RigWise &middot; Digital safety credentials for Canadian energy worksites<br>
-                  Questions? <a href="mailto:hello@rigwise.ca" style="color:#3C414B;text-decoration:underline;">hello@rigwise.ca</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
+      <!-- button -->
+      <tr><td style="padding:26px 36px 8px;">
+        <a href="{{ .ConfirmationURL }}" style="display:block;background:#f2581c;color:#0d0f12;text-decoration:none;font-size:16px;font-weight:800;padding:16px 24px;border-radius:9px;text-align:center;">Sign in to RigWise &rarr;</a>
+        <p style="margin:14px 0 0;font-size:12px;line-height:1.55;color:#5d666f;">Button not working? Paste this link into your browser:</p>
+        <p style="margin:6px 0 0;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:12px;line-height:1.4;color:#c4ccd2;word-break:break-all;">{{ .ConfirmationURL }}</p>
+      </td></tr>
 
-      <!-- Tiny footer outside the card -->
-      <div style="margin-top:14px;font-size:10px;color:#9CA2AE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;letter-spacing:0.04em;">
-        &copy; RigWise &middot; rigwise.ca
-      </div>
+      <!-- reassurance -->
+      <tr><td style="padding:30px 36px 30px;">
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;">
+          <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;">Why am I getting this?</div>
+          <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#9aa3ab;">Someone entered this email to sign in at <a href="https://rigwise.ca" style="color:#c4ccd2;">rigwise.ca</a>. We use one-time links instead of passwords. If this wasn't you, ignore this email — nothing happens.</p>
+        </div>
+      </td></tr>
 
-    </td>
-  </tr>
+    </table>
+
+    <div style="margin-top:14px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;">RigWise &middot; rigwise.ca &middot; void if shared</div>
+
+  </td></tr>
 </table>
-
 </body>
 </html>

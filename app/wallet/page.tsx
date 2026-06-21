@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel, getExpiryStatus } from "@/lib/credentials";
 
 function shortId(uuid: string): string {
-  return `SW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+  return `RW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
 }
 
 function firstName(name: string): string {
@@ -90,7 +90,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
   const fullName = worker?.full_name ?? user.email ?? "Worker";
 
   // Numeral display tokens from the approved design ("Display grotesk").
-  const numFont = "'Archivo',sans-serif";
+  const numFont = "var(--font-archivo),sans-serif";
   const numWeight = 800 as const;
   const numLs = "-0.03em";
 
@@ -459,6 +459,9 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
             const status = getExpiryStatus(c.expiry_date);
             const isExpired = status === "expired";
             const isExpiring = status === "expiring_soon";
+            const verified =
+              c.verification_status === "MANUALLY_VERIFIED" ||
+              c.verification_status === "VERIFIED_BY_ISSUER";
 
             const spine = isExpired
               ? "#5d666f"
@@ -571,6 +574,19 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                     >
                       {subText}
                     </div>
+                    {!verified && (
+                      <div
+                        className="mono"
+                        style={{
+                          marginTop: 5,
+                          fontSize: 8.5,
+                          letterSpacing: "0.1em",
+                          color: "#ffb27a",
+                        }}
+                      >
+                        ● SELF-ENTERED · UNVERIFIED
+                      </div>
+                    )}
                   </div>
                   <div
                     style={{

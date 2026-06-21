@@ -44,7 +44,7 @@ export default async function MedicSitePage(
   const activeList: ActiveRow[] = active ?? [];
 
   // ---- design tokens (from "Display grotesk" numerals default) ----
-  const numFont = "'Archivo', sans-serif";
+  const numFont = "var(--font-archivo), sans-serif";
   const numWeight = 800;
   const numLs = "-0.03em";
 

@@ -47,6 +47,23 @@ export default async function OnboardingPage() {
           medic_license_number: worker?.medic_license_number ?? "",
         }}
       />
+      <p
+        className="mono"
+        style={{
+          maxWidth: 420,
+          margin: "16px auto 0",
+          padding: "0 6px",
+          fontSize: 9.5,
+          lineHeight: 1.6,
+          letterSpacing: "0.04em",
+          color: "#5d666f",
+          textAlign: "center",
+          textTransform: "uppercase",
+        }}
+      >
+        Your information is used only for RigWise gate sign-ins. It is retained
+        for 2 years after your last site activity, then permanently deleted.
+      </p>
     </main>
   );
 }
