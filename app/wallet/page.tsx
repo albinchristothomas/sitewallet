@@ -515,9 +515,13 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                   };
 
             return (
-              <div
+              <Link
                 key={c.id}
+                href={`/wallet/credentials/${c.id}`}
                 style={{
+                  display: "block",
+                  textDecoration: "none",
+                  color: "inherit",
                   position: "relative",
                   borderRadius: 12,
                   overflow: "hidden",
@@ -622,7 +626,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                     </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })
         )}
