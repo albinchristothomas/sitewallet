@@ -679,8 +679,8 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
         </Link>
         <Link
           href="/wallet/credentials/new"
+          className="rw-pressable"
           style={{
-            width: 52,
             height: 52,
             borderRadius: 9,
             background: "#15191e",
@@ -688,6 +688,9 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: 8,
+            padding: "0 18px",
+            textDecoration: "none",
           }}
         >
           <svg
@@ -702,6 +705,9 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
           >
             <path d="M12 5v14M5 12h14" />
           </svg>
+          <span style={{ fontWeight: 800, fontSize: 14, color: "#eef1f3" }}>
+            Add ticket
+          </span>
         </Link>
       </div>
     </main>
