@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { addCredential } from "@/app/wallet/actions";
-import { CREDENTIAL_TYPES, isCompanyOrientation } from "@/lib/credentials";
+import { isCompanyOrientation, isOtherCredential } from "@/lib/credentials";
+import { CredentialPicker } from "@/lib/credential-picker";
 
 const initialState: { error?: string } = {};
 
@@ -33,7 +34,14 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
   const [state, action, pending] = useActionState(addCredential, initialState);
   const p = prefill ?? {};
   const [credType, setCredType] = useState<string>(p.type ?? "");
+  const [customName, setCustomName] = useState<string>("");
   const isOrientation = isCompanyOrientation(credType);
+  const isOther = isOtherCredential(credType);
+
+  // What actually gets submitted as the credential type. For "Other", the
+  // worker's typed name becomes the type (custom tickets are always
+  // medic-verified — they can't auto-pass a gate).
+  const submittedType = isOther ? customName.trim() || "OTHER" : credType;
 
   return (
     <form
@@ -42,7 +50,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
     >
       {/* the selectable list drives this hidden value used by the server action;
           empty selection is validated server-side in addCredential */}
-      <input type="hidden" name="credential_type" value={credType} />
+      <input type="hidden" name="credential_type" value={submittedType} />
       {p.verifyUrl && !isOrientation && (
         <input
           type="hidden"
@@ -62,67 +70,32 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       >
         {/* ── STEP 1 · CREDENTIAL TYPE ── */}
         <StepHeader n={1} active label="CREDENTIAL TYPE" />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            marginTop: 14,
-          }}
-        >
-          {CREDENTIAL_TYPES.map((c) => {
-            const selected = credType === c.value;
-            return (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setCredType(c.value)}
-                aria-pressed={selected}
-                style={{
-                  height: 46,
-                  borderRadius: 9,
-                  background: selected
-                    ? "rgba(242,88,28,0.1)"
-                    : "#15191e",
-                  border: selected
-                    ? "1px solid #f2581c"
-                    : "1px solid rgba(255,255,255,0.1)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0 15px",
-                  width: "100%",
-                  textAlign: "left",
-                  cursor: "pointer",
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: selected ? 700 : 600,
-                    fontSize: 15,
-                    color: selected ? "#f4f6f7" : "#9aa3ab",
-                  }}
-                >
-                  {c.label}
-                </span>
-                {selected && (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#f2581c"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
+        <div style={{ marginTop: 14 }}>
+          <CredentialPicker
+            value={credType}
+            onChange={(v) => setCredType(v)}
+            placeholder="Choose your ticket…"
+          />
         </div>
+
+        {/* Other → type the real ticket name */}
+        {isOther && (
+          <>
+            <DetailField
+              label="TICKET NAME"
+              required
+              hint="Type the exact name printed on the card. A medic will confirm it by eye at the gate — custom tickets are never auto-passed."
+            >
+              <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                type="text"
+                placeholder="e.g. Boom Truck Operator"
+                style={fieldBoxStyle}
+              />
+            </DetailField>
+          </>
+        )}
 
         {/* ── ISSUER / CARD DETAILS ── */}
         {isOrientation ? (

@@ -2,12 +2,17 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { CREDENTIAL_TYPES, getCredentialLabel } from "@/lib/credentials";
+import {
+  CREDENTIAL_TYPES,
+  getCredentialLabel,
+  isOtherCredential,
+} from "@/lib/credentials";
 import { createWalkIn, type WalkInTicket } from "./actions";
 
 type LocalTicket = {
   key: string;
   credential_type: string;
+  custom_name: string;
   expiry_date: string;
   photo_path: string | null;
   previewUrl: string | null;
@@ -89,6 +94,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
       {
         key: newKey(),
         credential_type: CREDENTIAL_TYPES[0].value,
+        custom_name: "",
         expiry_date: "",
         photo_path: null,
         previewUrl: null,
@@ -130,10 +136,14 @@ export function WalkInForm({ siteId }: { siteId: string }) {
     }
     setError(null);
     const payloadTickets: WalkInTicket[] = tickets.map((t) => {
+      const other = isOtherCredential(t.credential_type);
       const meta = CREDENTIAL_TYPES.find((c) => c.value === t.credential_type);
       return {
-        credential_type: t.credential_type,
-        issuer: meta?.issuer ?? null,
+        // For "Other", the medic's typed name becomes the type.
+        credential_type: other
+          ? t.custom_name.trim() || "OTHER"
+          : t.credential_type,
+        issuer: other ? null : (meta?.issuer ?? null),
         photo_path: t.photo_path,
         expiry_date: t.expiry_date || null,
       };
@@ -325,6 +335,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
                 key={t.key}
                 ticket={t}
                 onPickType={(v) => patchTicket(t.key, { credential_type: v })}
+                onCustomName={(v) => patchTicket(t.key, { custom_name: v })}
                 onPhoto={(f) => onTicketPhoto(t.key, f)}
                 onExpiry={(v) => patchTicket(t.key, { expiry_date: v })}
                 onRemove={() => removeTicket(t.key)}
@@ -435,19 +446,26 @@ export function WalkInForm({ siteId }: { siteId: string }) {
 function TicketTile({
   ticket,
   onPickType,
+  onCustomName,
   onPhoto,
   onExpiry,
   onRemove,
 }: {
   ticket: LocalTicket;
   onPickType: (v: string) => void;
+  onCustomName: (v: string) => void;
   onPhoto: (f: File) => void;
   onExpiry: (v: string) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const shortLabel = getCredentialLabel(ticket.credential_type)
+  const isOther = isOtherCredential(ticket.credential_type);
+  const shortLabel = (
+    isOther && ticket.custom_name.trim()
+      ? ticket.custom_name
+      : getCredentialLabel(ticket.credential_type)
+  )
     .replace(/\(.*\)/, "")
     .trim();
 
@@ -539,6 +557,26 @@ function TicketTile({
               </option>
             ))}
           </select>
+
+          {isOther && (
+            <input
+              value={ticket.custom_name}
+              onChange={(e) => onCustomName(e.target.value)}
+              placeholder="Type ticket name"
+              autoFocus
+              style={{
+                width: "100%",
+                height: "34px",
+                borderRadius: "7px",
+                background: "#0d0f12",
+                border: "1px solid rgba(255,178,122,0.45)",
+                color: "#ffd9bd",
+                fontSize: "11px",
+                padding: "0 8px",
+                outline: "none",
+              }}
+            />
+          )}
 
           <button
             type="button"

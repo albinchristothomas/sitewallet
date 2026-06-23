@@ -8,18 +8,38 @@
 // Orientation", "Arch Resources Day-1 Orientation"). These have no external
 // issuer to verify against — only a start date and an end date. The form
 // hides the issuer / cert / validation fields when this type is selected.
+//
+// OTHER is the escape hatch: a ticket that isn't in the list yet. The worker
+// (or medic) types the real ticket name. A custom ticket can never auto-pass a
+// gate — a medic always confirms it by eye. This keeps the list honest: we add
+// real tickets here over time instead of letting people invent fake ones.
 export const CREDENTIAL_TYPES = [
-  { value: "H2S_ALIVE", label: "H2S Alive", issuer: "Energy Safety Canada", isCompanyOrientation: false },
-  { value: "FIRST_AID", label: "Standard First Aid + CPR-C", issuer: "Canadian Red Cross / St. John Ambulance", isCompanyOrientation: false },
-  { value: "CSO", label: "Construction Safety Officer (CSO)", issuer: "Energy Safety Canada", isCompanyOrientation: false },
-  { value: "GROUND_DISTURBANCE_L2", label: "Ground Disturbance Level 2", issuer: "Energy Safety Canada", isCompanyOrientation: false },
-  { value: "WHMIS_2015", label: "WHMIS 2015 / GHS", issuer: "Various", isCompanyOrientation: false },
-  { value: "TDG", label: "Transportation of Dangerous Goods", issuer: "Transport Canada", isCompanyOrientation: false },
-  { value: "FALL_PROTECTION", label: "Fall Protection", issuer: "Various", isCompanyOrientation: false },
-  { value: "CONFINED_SPACE", label: "Confined Space Entry & Monitor", issuer: "Various", isCompanyOrientation: false },
-  { value: "OSSA_FIT", label: "OSSA Fit-to-Work / Common Safety Orientation", issuer: "Energy Safety Canada", isCompanyOrientation: false },
-  { value: "ELEVATED_WORK", label: "Elevated Work Platform / Aerial Lift", issuer: "Various", isCompanyOrientation: false },
-  { value: "COMPANY_ORIENTATION", label: "Company orientation", issuer: "(name of issuing company)", isCompanyOrientation: true },
+  // ── core gate tickets (almost every wellsite asks for these) ──
+  { value: "H2S_ALIVE", label: "H2S Alive", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+  { value: "FIRST_AID", label: "Standard First Aid + CPR-C", issuer: "Red Cross / St. John Ambulance", isCompanyOrientation: false, isOther: false },
+  { value: "EMERGENCY_FIRST_AID", label: "Emergency First Aid", issuer: "Red Cross / St. John Ambulance", isCompanyOrientation: false, isOther: false },
+  { value: "CSO", label: "Common Safety Orientation (CSO)", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+  { value: "PST", label: "Petroleum Safety Training (PST)", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+  { value: "CSTS", label: "CSTS · Construction Safety Training", issuer: "Energy Safety Canada / ACSA", isCompanyOrientation: false, isOther: false },
+  { value: "OSSA_FIT", label: "OSSA Basic / Fit-to-Work", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+
+  // ── task-specific tickets ──
+  { value: "GROUND_DISTURBANCE_L2", label: "Ground Disturbance Level 2", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+  { value: "CONFINED_SPACE", label: "Confined Space Entry & Monitor", issuer: "Various", isCompanyOrientation: false, isOther: false },
+  { value: "FALL_PROTECTION", label: "Fall Protection", issuer: "Various", isCompanyOrientation: false, isOther: false },
+  { value: "FLAMMABLE_SUBSTANCES", label: "Detection & Control of Flammable Substances", issuer: "Energy Safety Canada", isCompanyOrientation: false, isOther: false },
+  { value: "FIRE_WATCH", label: "Fire Watch / Extinguisher", issuer: "Various", isCompanyOrientation: false, isOther: false },
+  { value: "ELEVATED_WORK", label: "Aerial Work Platform / Elevated Work", issuer: "Various", isCompanyOrientation: false, isOther: false },
+  { value: "BOOM_TRUCK", label: "Boom Truck / Rigging", issuer: "Various", isCompanyOrientation: false, isOther: false },
+
+  // ── compliance / awareness ──
+  { value: "WHMIS_2015", label: "WHMIS 2015 / GHS", issuer: "Various", isCompanyOrientation: false, isOther: false },
+  { value: "TDG", label: "Transportation of Dangerous Goods", issuer: "Transport Canada", isCompanyOrientation: false, isOther: false },
+  { value: "WILDLIFE_AWARENESS", label: "Bear / Wildlife Awareness", issuer: "Various", isCompanyOrientation: false, isOther: false },
+
+  // ── special cases ──
+  { value: "COMPANY_ORIENTATION", label: "Company orientation", issuer: "(name of issuing company)", isCompanyOrientation: true, isOther: false },
+  { value: "OTHER", label: "Other — type the ticket name", issuer: "Medic-verified", isCompanyOrientation: false, isOther: true },
 ] as const;
 
 export type CredentialTypeValue = (typeof CREDENTIAL_TYPES)[number]["value"];
@@ -30,6 +50,11 @@ export function getCredentialLabel(value: string): string {
 
 export function isCompanyOrientation(value: string): boolean {
   return CREDENTIAL_TYPES.find((c) => c.value === value)?.isCompanyOrientation ?? false;
+}
+
+// True for the "Other" escape-hatch type (worker types a free-text name).
+export function isOtherCredential(value: string): boolean {
+  return CREDENTIAL_TYPES.find((c) => c.value === value)?.isOther ?? false;
 }
 
 export type ExpiryStatus = "expired" | "expiring_soon" | "valid" | "no_expiry";
