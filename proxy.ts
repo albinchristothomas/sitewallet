@@ -54,10 +54,9 @@ export async function proxy(request: NextRequest) {
       path.startsWith("/auth/") || path === "/sign-out";
 
     if (!isOnboardingRoute && !isAuthFlow && !isPublic) {
-      // Cheap single-column lookup; PK on workers.id.
       const { data: w } = await supabase
         .from("workers")
-        .select("profile_completed_at")
+        .select("profile_completed_at, account_type")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -66,6 +65,25 @@ export async function proxy(request: NextRequest) {
       if (!w || !w.profile_completed_at) {
         const url = request.nextUrl.clone();
         url.pathname = "/onboarding";
+        return NextResponse.redirect(url);
+      }
+
+      // Role guard — one email = one role, enforced. A MEDIC can never land in
+      // worker space and a WORKER can never land in medic/admin space, no
+      // matter how they got there (deep link, stray nav, typed URL). account_type
+      // is never changed; this only redirects.
+      const isWorkerSpace = path.startsWith("/wallet");
+      const isMedicSpace =
+        path.startsWith("/medic") || path.startsWith("/admin");
+
+      if (w.account_type === "MEDIC" && isWorkerSpace) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/medic";
+        return NextResponse.redirect(url);
+      }
+      if (w.account_type === "WORKER" && isMedicSpace) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/wallet";
         return NextResponse.redirect(url);
       }
     }
