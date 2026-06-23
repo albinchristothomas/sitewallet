@@ -90,6 +90,13 @@ export default async function VerifyWorkerPage(
 
   const payload = data as CompliancePayload;
   const allPass = payload.compliance.every((c) => c.status === "VALID");
+  const isVerifiedRow = (c: Compliance) =>
+    c.verification_status === "MANUALLY_VERIFIED" ||
+    c.verification_status === "VERIFIED_BY_ISSUER";
+  // Valid tickets the worker typed in but no medic/issuer has confirmed yet.
+  const unverifiedValid = payload.compliance.filter(
+    (c) => c.status === "VALID" && !isVerifiedRow(c),
+  ).length;
   const facePhoto = await faceUrl(payload.worker.photo_url);
   const hasPhoto = Boolean(facePhoto);
 
@@ -101,7 +108,11 @@ export default async function VerifyWorkerPage(
   const idLine = shortId(payload.worker.id);
 
   // ADMIT readout subline + DENY summary subline.
-  const admitSub = `ALL ${total} REQUIRED TICKET${total === 1 ? "" : "S"} VALID`;
+  const admitSub =
+    unverifiedValid > 0
+      ? `${unverifiedValid} SELF-ENTERED · VERIFY OR ADMIT ON SIGHT`
+      : `ALL ${total} REQUIRED TICKET${total === 1 ? "" : "S"} VERIFIED`;
+  const admitSubColor = unverifiedValid > 0 ? "#ffd27a" : "#7ff0a8";
   const denyParts: string[] = [];
   if (expiredCount > 0) denyParts.push(`${expiredCount} EXPIRED`);
   if (missingCount > 0) denyParts.push(`${missingCount} MISSING`);
@@ -321,7 +332,7 @@ export default async function VerifyWorkerPage(
                   style={{
                     fontSize: 10,
                     letterSpacing: "0.1em",
-                    color: "#7ff0a8",
+                    color: admitSubColor,
                     marginTop: 5,
                   }}
                 >
@@ -425,11 +436,11 @@ export default async function VerifyWorkerPage(
               const isVerified =
                 c.verification_status === "MANUALLY_VERIFIED" ||
                 c.verification_status === "VERIFIED_BY_ISSUER";
-              const canVerify =
-                isValid &&
-                !isVerified &&
-                c.credential_id &&
-                c.external_verification_url;
+              const selfEntered = isValid && !isVerified;
+              // Medic can mark ANY valid ticket verified after reviewing the
+              // card/photo — not only ones carrying an issuer QR.
+              const canVerify = isValid && !isVerified && Boolean(c.credential_id);
+              const hasIssuerUrl = Boolean(c.external_verification_url);
 
               // Row colour treatment.
               const rowBg = isValid
@@ -495,6 +506,25 @@ export default async function VerifyWorkerPage(
                             <ShieldCheck size={9} strokeWidth={2.4} /> VERIFIED
                           </span>
                         )}
+                        {selfEntered && (
+                          <span
+                            className="mono"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 3,
+                              fontSize: 8,
+                              fontWeight: 700,
+                              letterSpacing: "0.1em",
+                              color: "#ffd27a",
+                              background: "rgba(242,164,12,0.16)",
+                              borderRadius: 999,
+                              padding: "2px 6px",
+                            }}
+                          >
+                            ● SELF-ENTERED
+                          </span>
+                        )}
                       </div>
                       <div
                         className="mono"
@@ -521,33 +551,35 @@ export default async function VerifyWorkerPage(
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns: hasIssuerUrl ? "1fr 1fr" : "1fr",
                         gap: 8,
                         marginTop: 7,
                       }}
                     >
-                      <a
-                        href={c.external_verification_url ?? "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mono"
-                        style={{
-                          height: 38,
-                          borderRadius: 9,
-                          background: "#15191e",
-                          border: "1px solid rgba(255,255,255,0.12)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 6,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: "0.06em",
-                          color: "#c4ccd2",
-                        }}
-                      >
-                        <ExternalLink size={12} strokeWidth={1.9} /> ISSUER
-                      </a>
+                      {hasIssuerUrl && (
+                        <a
+                          href={c.external_verification_url ?? "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mono"
+                          style={{
+                            height: 38,
+                            borderRadius: 9,
+                            background: "#15191e",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            color: "#c4ccd2",
+                          }}
+                        >
+                          <ExternalLink size={12} strokeWidth={1.9} /> ISSUER
+                        </a>
+                      )}
                       <form
                         action={markVerified.bind(
                           null,

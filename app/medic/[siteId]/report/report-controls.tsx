@@ -1,37 +1,27 @@
 "use client";
 
 import { Printer } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 
+// The report is always today's live record — no manual date change (prevents
+// confusion + tampering). The medic just views today and downloads/sends it.
 export function ReportControls({ day }: { day: string }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  function onDateChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("day", e.target.value);
-    router.push(`?${newParams.toString()}`);
-  }
-
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex items-end gap-3">
       <div>
-        <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-faint)]">
-          Date
-        </label>
-        <input
-          type="date"
-          defaultValue={day}
-          onChange={onDateChange}
-          className="mt-1 rounded-lg border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3 py-2 text-sm focus:border-[color:var(--hi-yellow)] focus:outline-none"
-        />
+        <div className="mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--text-faint)]">
+          Today · live
+        </div>
+        <div className="mono text-[13px]" style={{ color: "#c4ccd2" }}>
+          {day}
+        </div>
       </div>
       <button
         onClick={() => window.print()}
         type="button"
-        className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[color:var(--hi-yellow)] px-4 text-sm font-bold text-[color:var(--ink-1)]"
+        className="rw-pressable inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-bold"
+        style={{ background: "#f2581c", color: "#0d0f12" }}
       >
-        <Printer size={16} strokeWidth={1.75} /> Print / save as PDF
+        <Printer size={16} strokeWidth={1.75} /> Download PDF
       </button>
     </div>
   );

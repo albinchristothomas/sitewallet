@@ -72,8 +72,8 @@ export default async function EndOfDayReportPage(
   props: PageProps<"/medic/[siteId]/report">,
 ) {
   const { siteId } = await props.params;
-  const sp = await props.searchParams;
-  const day = typeof sp.day === "string" ? sp.day : isoToday();
+  // Always today's live record — no manual date override.
+  const day = isoToday();
 
   const supabase = await createClient();
   const {
