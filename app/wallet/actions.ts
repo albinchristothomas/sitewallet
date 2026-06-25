@@ -41,6 +41,10 @@ export async function addCredential(
   const holderName = String(formData.get("holder_name") ?? "").trim() || null;
   const issueDate = String(formData.get("issue_date") ?? "") || null;
   const expiryDate = String(formData.get("expiry_date") ?? "") || null;
+  // Path into the private "ticket-photos" bucket (uploaded client-side before
+  // submit). Lets the medic see the actual card at the gate.
+  const cardPhotoPath =
+    String(formData.get("card_photo_path") ?? "").trim() || null;
 
   if (!credentialType) {
     return { error: "Select a credential type." };
@@ -56,6 +60,7 @@ export async function addCredential(
     holder_name: holderName,
     issue_date: issueDate,
     expiry_date: expiryDate,
+    photo_url: cardPhotoPath,
     verification_status: "UNVERIFIED",
   });
 

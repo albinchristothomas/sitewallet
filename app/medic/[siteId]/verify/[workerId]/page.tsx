@@ -4,7 +4,8 @@ import { ExternalLink, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { getInitials } from "@/lib/atoms";
-import { faceUrl } from "@/lib/photos";
+import { faceUrl, ticketPhotoUrl } from "@/lib/photos";
+import { CardPhotoViewer } from "@/lib/card-photo-viewer";
 import { admitWorker, markVerified } from "./actions";
 
 type Compliance = {
@@ -14,6 +15,7 @@ type Compliance = {
   credential_id: string | null;
   verification_status: "UNVERIFIED" | "MANUALLY_VERIFIED" | "VERIFIED_BY_ISSUER" | "REJECTED" | null;
   external_verification_url: string | null;
+  photo_url: string | null;
 };
 
 type CompliancePayload = {
@@ -99,6 +101,18 @@ export default async function VerifyWorkerPage(
   ).length;
   const facePhoto = await faceUrl(payload.worker.photo_url);
   const hasPhoto = Boolean(facePhoto);
+
+  // Sign each ticket's card photo (private "ticket-photos" bucket) so the medic
+  // can open the real card at the gate, not just trust a "VALID" badge.
+  const cardPhotos = new Map<string, string>();
+  await Promise.all(
+    payload.compliance.map(async (c) => {
+      if (c.credential_id && c.photo_url) {
+        const url = await ticketPhotoUrl(c.photo_url);
+        if (url) cardPhotos.set(c.credential_id, url);
+      }
+    }),
+  );
 
   const total = payload.compliance.length;
   const expiredCount = payload.compliance.filter((c) => c.status === "EXPIRED").length;
@@ -441,6 +455,9 @@ export default async function VerifyWorkerPage(
               // card/photo — not only ones carrying an issuer QR.
               const canVerify = isValid && !isVerified && Boolean(c.credential_id);
               const hasIssuerUrl = Boolean(c.external_verification_url);
+              const cardUrl = c.credential_id
+                ? cardPhotos.get(c.credential_id)
+                : undefined;
 
               // Row colour treatment.
               const rowBg = isValid
@@ -533,18 +550,32 @@ export default async function VerifyWorkerPage(
                         {meta}
                       </div>
                     </div>
-                    <span
-                      className="mono"
+                    <div
                       style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        letterSpacing: "0.1em",
-                        color: pillColor,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
                         flex: "none",
                       }}
                     >
-                      ● {pillLabel}
-                    </span>
+                      {cardUrl && (
+                        <CardPhotoViewer
+                          src={cardUrl}
+                          label={getCredentialLabel(c.credential_type)}
+                        />
+                      )}
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          letterSpacing: "0.1em",
+                          color: pillColor,
+                        }}
+                      >
+                        ● {pillLabel}
+                      </span>
+                    </div>
                   </div>
 
                   {canVerify && (

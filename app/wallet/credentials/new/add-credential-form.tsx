@@ -1,9 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { addCredential } from "@/app/wallet/actions";
+import { createClient } from "@/lib/supabase/client";
 import { isCompanyOrientation, isOtherCredential } from "@/lib/credentials";
 import { CredentialPicker } from "@/lib/credential-picker";
+
+function randomKey() {
+  return Math.random().toString(36).slice(2);
+}
 
 const initialState: { error?: string } = {};
 
@@ -43,6 +48,36 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
   // medic-verified — they can't auto-pass a gate).
   const submittedType = isOther ? customName.trim() || "OTHER" : credType;
 
+  // Card photo capture — uploaded to the private "ticket-photos" bucket so the
+  // medic can SEE the actual card at the gate (not just a "VALID" badge).
+  const [cardPath, setCardPath] = useState<string | null>(null);
+  const [cardPreview, setCardPreview] = useState<string | null>(null);
+  const [cardUploading, setCardUploading] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
+  const cardInputRef = useRef<HTMLInputElement>(null);
+
+  async function onCardFile(file: File) {
+    setCardError(null);
+    setCardPreview(URL.createObjectURL(file));
+    setCardUploading(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `self/${randomKey()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("ticket-photos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw new Error(upErr.message);
+      setCardPath(path);
+    } catch (e) {
+      setCardError(`Couldn't upload the photo: ${(e as Error).message}`);
+      setCardPreview(null);
+      setCardPath(null);
+    } finally {
+      setCardUploading(false);
+    }
+  }
+
   return (
     <form
       action={action}
@@ -51,6 +86,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       {/* the selectable list drives this hidden value used by the server action;
           empty selection is validated server-side in addCredential */}
       <input type="hidden" name="credential_type" value={submittedType} />
+      <input type="hidden" name="card_photo_path" value={cardPath ?? ""} />
       {p.verifyUrl && !isOrientation && (
         <input
           type="hidden"
@@ -189,45 +225,122 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
 
         {/* ── STEP 2 · PHOTOGRAPH CARD ── */}
         <StepHeader n={2} label="PHOTOGRAPH CARD" optional />
-        <div
+        <button
+          type="button"
+          onClick={() => cardInputRef.current?.click()}
+          className="rw-pressable"
           style={{
             height: 120,
+            width: "100%",
             borderRadius: 11,
             marginTop: 14,
-            border: "1.5px dashed rgba(255,255,255,0.16)",
-            background:
-              "repeating-linear-gradient(135deg,rgba(255,255,255,0.015) 0 8px,transparent 8px 16px)",
+            position: "relative",
+            overflow: "hidden",
+            border: cardPath
+              ? "1.5px solid rgba(47,200,106,0.5)"
+              : "1.5px dashed rgba(255,255,255,0.16)",
+            background: cardPreview
+              ? "#15191e"
+              : "repeating-linear-gradient(135deg,rgba(255,255,255,0.015) 0 8px,transparent 8px 16px)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             gap: 9,
+            cursor: "pointer",
+            padding: 0,
           }}
         >
-          <svg
-            width="26"
-            height="26"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#6b747c"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
-          <span
-            className="mono"
+          {cardPreview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cardPreview}
+              alt="card"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          )}
+          <div
             style={{
-              fontSize: 10,
-              letterSpacing: "0.1em",
-              color: "#6b747c",
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 9,
+              background: cardPreview ? "rgba(13,15,18,0.5)" : "transparent",
             }}
           >
-            TAP TO CAPTURE THE PHYSICAL CARD
-          </span>
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={cardPath ? "#7ff0a8" : "#6b747c"}
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.1em",
+                color: cardPath ? "#7ff0a8" : "#6b747c",
+              }}
+            >
+              {cardUploading
+                ? "UPLOADING…"
+                : cardPath
+                  ? "CARD PHOTO ADDED ✓ · TAP TO RETAKE"
+                  : "TAP TO CAPTURE THE PHYSICAL CARD"}
+            </span>
+          </div>
+        </button>
+        <input
+          ref={cardInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onCardFile(f);
+          }}
+        />
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            lineHeight: 1.5,
+            color: "#6b747c",
+          }}
+        >
+          The medic at the gate can ask to see this. Adding a clear photo of the
+          card gets you waved through faster.
         </div>
+        {cardError && (
+          <p
+            className="mono"
+            style={{
+              marginTop: 8,
+              fontSize: 11,
+              letterSpacing: "0.04em",
+              color: "#ff9a8f",
+            }}
+          >
+            {cardError}
+          </p>
+        )}
 
         {/* ── STEP 3 · CONFIRM DATES ── */}
         <StepHeader n={3} label="CONFIRM DATES" />
@@ -307,7 +420,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       >
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || cardUploading}
           style={{
             height: 54,
             width: "100%",
@@ -319,12 +432,16 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
             gap: 9,
             boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
             border: "none",
-            cursor: pending ? "default" : "pointer",
-            opacity: pending ? 0.6 : 1,
+            cursor: pending || cardUploading ? "default" : "pointer",
+            opacity: pending || cardUploading ? 0.6 : 1,
           }}
         >
           <span style={{ fontWeight: 800, fontSize: 15, color: "#0d0f12" }}>
-            {pending ? "Adding…" : "Add to wallet"}
+            {cardUploading
+              ? "Photo uploading…"
+              : pending
+                ? "Adding…"
+                : "Add to wallet"}
           </span>
         </button>
         <div
