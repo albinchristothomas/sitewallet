@@ -27,6 +27,8 @@ type CompliancePayload = {
     issuer: string | null;
     certificate_number: string | null;
     expiry_date: string | null;
+    verification_status: Compliance["verification_status"];
+    photo_url: string | null;
   }>;
   compliance: Compliance[];
   evaluated_at: string;
@@ -102,16 +104,24 @@ export default async function VerifyWorkerPage(
   const facePhoto = await faceUrl(payload.worker.photo_url);
   const hasPhoto = Boolean(facePhoto);
 
-  // Sign each ticket's card photo (private "ticket-photos" bucket) so the medic
-  // can open the real card at the gate, not just trust a "VALID" badge.
+  // Sign every ticket's card photo (private "ticket-photos" bucket) so the medic
+  // can open the real card at the gate, not just trust a "VALID" badge. Keyed by
+  // credential id — covers both the required rows and the "also on file" list.
   const cardPhotos = new Map<string, string>();
   await Promise.all(
-    payload.compliance.map(async (c) => {
-      if (c.credential_id && c.photo_url) {
-        const url = await ticketPhotoUrl(c.photo_url);
-        if (url) cardPhotos.set(c.credential_id, url);
+    (payload.credentials ?? []).map(async (cr) => {
+      if (cr.id && cr.photo_url) {
+        const url = await ticketPhotoUrl(cr.photo_url);
+        if (url) cardPhotos.set(cr.id, url);
       }
     }),
+  );
+
+  // Tickets the worker carries that this site doesn't require — shown as a
+  // secondary "also on file" list so the medic sees everything available.
+  const requiredSet = new Set(payload.required);
+  const extraCredentials = (payload.credentials ?? []).filter(
+    (cr) => !requiredSet.has(cr.credential_type),
   );
 
   const total = payload.compliance.length;
@@ -663,6 +673,119 @@ export default async function VerifyWorkerPage(
               </div>
             )}
           </div>
+
+          {/* also on file — the worker's other tickets, each tap-to-view */}
+          {extraCredentials.length > 0 && (
+            <div
+              style={{
+                padding: "18px 20px 0",
+                display: "flex",
+                flexDirection: "column",
+                gap: 7,
+              }}
+            >
+              <div
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.16em",
+                  color: "#5d666f",
+                  marginBottom: 2,
+                }}
+              >
+                ALSO ON FILE · NOT REQUIRED HERE
+              </div>
+
+              {extraCredentials.map((cr) => {
+                const verified =
+                  cr.verification_status === "MANUALLY_VERIFIED" ||
+                  cr.verification_status === "VERIFIED_BY_ISSUER";
+                const cardUrl = cardPhotos.get(cr.id);
+                const expired = cr.expiry_date
+                  ? new Date(cr.expiry_date) < new Date()
+                  : false;
+                const metaTxt = expired
+                  ? `EXPIRED ${formatDate(cr.expiry_date!)}`
+                  : cr.expiry_date
+                    ? `VALID TO ${formatDate(cr.expiry_date)}`
+                    : "NO EXPIRY";
+                return (
+                  <div
+                    key={cr.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 13px",
+                      borderRadius: 9,
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 13,
+                          color: "#cdd3d8",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 7,
+                        }}
+                      >
+                        {getCredentialLabel(cr.credential_type)}
+                        <span
+                          className="mono"
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 700,
+                            letterSpacing: "0.1em",
+                            color: verified ? "#7ff0a8" : "#ffd27a",
+                            background: verified
+                              ? "rgba(47,200,106,0.16)"
+                              : "rgba(242,164,12,0.14)",
+                            borderRadius: 999,
+                            padding: "2px 6px",
+                          }}
+                        >
+                          {verified ? "VERIFIED" : "SELF-ENTERED"}
+                        </span>
+                      </div>
+                      <div
+                        className="mono"
+                        style={{
+                          fontSize: 9,
+                          color: expired ? "#ff9a8f" : "#7a838b",
+                          marginTop: 2,
+                        }}
+                      >
+                        {metaTxt}
+                      </div>
+                    </div>
+                    {cardUrl ? (
+                      <CardPhotoViewer
+                        src={cardUrl}
+                        label={getCredentialLabel(cr.credential_type)}
+                      />
+                    ) : (
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: 8,
+                          letterSpacing: "0.1em",
+                          color: "#5d666f",
+                          flex: "none",
+                        }}
+                      >
+                        NO PHOTO
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* action footer */}
           {allPass ? (

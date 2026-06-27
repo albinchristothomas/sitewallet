@@ -50,6 +50,10 @@ export async function addCredential(
     return { error: "Select a credential type." };
   }
 
+  if (!cardPhotoPath) {
+    return { error: "Add a photo of the card before saving." };
+  }
+
   const { error } = await supabase.from("credentials").insert({
     worker_id: user.id,
     credential_type: credentialType,

@@ -55,7 +55,7 @@ begin
       c.validation_code, c.external_verification_url,
       c.holder_name, c.issue_date, c.expiry_date,
       c.verification_status, c.verification_method,
-      c.verified_at, c.verified_by
+      c.verified_at, c.verified_by, c.photo_url   -- NEW: card photo on each ticket
     from credentials c
     where c.worker_id = p_worker_id
     order by c.credential_type, c.issue_date desc nulls last

@@ -9,9 +9,12 @@ import { useEffect, useState } from "react";
 export function CardPhotoViewer({
   src,
   label,
+  variant = "thumb",
 }: {
   src: string;
   label: string;
+  /** "thumb" = small inline chip (gate rows); "panel" = full-width image */
+  variant?: "thumb" | "panel";
 }) {
   const [open, setOpen] = useState(false);
 
@@ -30,68 +33,127 @@ export function CardPhotoViewer({
     };
   }, [open]);
 
+  const magnifier = (size: number) => (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#f2581c"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+    </svg>
+  );
+
   return (
     <>
-      {/* thumbnail */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={`View ${label} card photo`}
-        className="rw-pressable"
-        style={{
-          position: "relative",
-          width: 46,
-          height: 32,
-          borderRadius: 6,
-          overflow: "hidden",
-          flex: "none",
-          border: "1px solid rgba(255,255,255,0.18)",
-          background: "#15191e",
-          padding: 0,
-          cursor: "pointer",
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={`${label} card`}
+      {variant === "panel" ? (
+        /* full-width card image (worker's credential detail) */
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={`View ${label} card photo`}
+          className="rw-pressable"
           style={{
-            position: "absolute",
-            inset: 0,
+            position: "relative",
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
-        {/* magnifier hint */}
-        <span
-          style={{
-            position: "absolute",
-            right: 2,
-            bottom: 2,
-            width: 13,
-            height: 13,
-            borderRadius: 4,
-            background: "rgba(13,15,18,0.78)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            aspectRatio: "1.6",
+            borderRadius: 12,
+            overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.14)",
+            background: "#15191e",
+            padding: 0,
+            cursor: "pointer",
+            display: "block",
           }}
         >
-          <svg
-            width="9"
-            height="9"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#f2581c"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={`${label} card`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          <span
+            className="mono"
+            style={{
+              position: "absolute",
+              right: 9,
+              bottom: 9,
+              height: 26,
+              padding: "0 10px",
+              borderRadius: 7,
+              background: "rgba(13,15,18,0.82)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              color: "#eef1f3",
+            }}
           >
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-          </svg>
-        </span>
-      </button>
+            {magnifier(11)} TAP TO ZOOM
+          </span>
+        </button>
+      ) : (
+        /* small inline chip (gate rows) */
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={`View ${label} card photo`}
+          className="rw-pressable"
+          style={{
+            position: "relative",
+            width: 46,
+            height: 32,
+            borderRadius: 6,
+            overflow: "hidden",
+            flex: "none",
+            border: "1px solid rgba(255,255,255,0.18)",
+            background: "#15191e",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={`${label} card`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          {/* magnifier hint */}
+          <span
+            style={{
+              position: "absolute",
+              right: 2,
+              bottom: 2,
+              width: 13,
+              height: 13,
+              borderRadius: 4,
+              background: "rgba(13,15,18,0.78)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {magnifier(9)}
+          </span>
+        </button>
+      )}
 
       {/* lightbox */}
       {open && (

@@ -104,8 +104,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
           flexDirection: "column",
         }}
       >
-        {/* ── STEP 1 · CREDENTIAL TYPE ── */}
-        <StepHeader n={1} active label="CREDENTIAL TYPE" />
+        {/* ── STEP 2 · CREDENTIAL TYPE ── */}
+        <StepHeader n={2} label="CREDENTIAL TYPE" />
         <div style={{ marginTop: 14 }}>
           <CredentialPicker
             value={credType}
@@ -223,8 +223,10 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
           </>
         )}
 
-        {/* ── STEP 2 · PHOTOGRAPH CARD ── */}
-        <StepHeader n={2} label="PHOTOGRAPH CARD" optional />
+        {/* ── STEP 1 · PHOTOGRAPH CARD (first + required; order:-1 floats it
+            to the top of the flex column without reordering the DOM) ── */}
+        <div style={{ order: -1 }}>
+        <StepHeader n={1} active label="PHOTOGRAPH CARD" />
         <button
           type="button"
           onClick={() => cardInputRef.current?.click()}
@@ -325,8 +327,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
             color: "#6b747c",
           }}
         >
-          The medic at the gate can ask to see this. Adding a clear photo of the
-          card gets you waved through faster.
+          Required. The medic has to see the actual card at the gate — snap a
+          clear photo of the front before you fill in the rest.
         </div>
         {cardError && (
           <p
@@ -341,6 +343,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
             {cardError}
           </p>
         )}
+        </div>
 
         {/* ── STEP 3 · CONFIRM DATES ── */}
         <StepHeader n={3} label="CONFIRM DATES" />
@@ -420,7 +423,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       >
         <button
           type="submit"
-          disabled={pending || cardUploading}
+          disabled={pending || cardUploading || !cardPath}
           style={{
             height: 54,
             width: "100%",
@@ -432,16 +435,19 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
             gap: 9,
             boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
             border: "none",
-            cursor: pending || cardUploading ? "default" : "pointer",
-            opacity: pending || cardUploading ? 0.6 : 1,
+            cursor:
+              pending || cardUploading || !cardPath ? "default" : "pointer",
+            opacity: pending || cardUploading || !cardPath ? 0.6 : 1,
           }}
         >
           <span style={{ fontWeight: 800, fontSize: 15, color: "#0d0f12" }}>
             {cardUploading
               ? "Photo uploading…"
-              : pending
-                ? "Adding…"
-                : "Add to wallet"}
+              : !cardPath
+                ? "Photograph the card first"
+                : pending
+                  ? "Adding…"
+                  : "Add to wallet"}
           </span>
         </button>
         <div

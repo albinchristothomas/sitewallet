@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { faceUrl } from "@/lib/photos";
+import { faceUrl, ticketPhotoUrl } from "@/lib/photos";
+import { CardPhotoViewer } from "@/lib/card-photo-viewer";
 import { getCredentialLabel, getExpiryStatus } from "@/lib/credentials";
 import {
   CredentialCard,
@@ -77,6 +78,7 @@ export default async function CredentialDetailPage(
 
   const label = getCredentialLabel(c.credential_type);
   const photoUrl = await faceUrl(worker?.photo_url);
+  const cardPhoto = await ticketPhotoUrl(c.photo_url);
   const idUp = id.replace(/-/g, "").toUpperCase();
 
   const data: CredentialCardData = {
@@ -129,6 +131,26 @@ export default async function CredentialDetailPage(
       >
         Tap card to flip · move to tilt
       </div>
+
+      {/* the actual photo of the physical card the worker took */}
+      {cardPhoto && (
+        <div style={{ marginTop: 22 }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "#5d666f",
+              marginBottom: 9,
+            }}
+          >
+            Photo of your card
+          </div>
+          <CardPhotoViewer src={cardPhoto} label={label} variant="panel" />
+        </div>
+      )}
 
       {/* verification reality */}
       <div
