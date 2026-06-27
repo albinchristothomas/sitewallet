@@ -172,8 +172,10 @@ site creation + worker invite.
    medic can be assigned to a site; add a medic-invite path.
 
 **Post-pilot / hardening:**
-7. Branded magic-link email via Resend (template already at
-   `supabase/templates/magic-link.html`) — needs Albin's Resend + Cloudflare DNS.
+7. ~~Branded magic-link email via Resend~~ **DONE (2026-06-23).** rigwise.ca
+   verified in Resend (DNS on Cloudflare), Supabase Custom SMTP wired, branded
+   template live on Magic Link + Confirm signup. Auth emails now send from
+   `RigWise <noreply@rigwise.ca>`.
 8. Rotating signed 30s QR instead of the static worker UUID.
 9. Retention job to actually purge after 2 years (cron / DB policy).
 10. Tighten RLS (Phase-1 policies let any authenticated user create
