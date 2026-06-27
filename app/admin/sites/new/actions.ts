@@ -29,7 +29,15 @@ export async function createSite(
   const lngStr = String(formData.get("lng") ?? "").trim();
   const lat = latStr ? Number(latStr) : null;
   const lng = lngStr ? Number(lngStr) : null;
+  const musterPoint = String(formData.get("muster_point") ?? "").trim() || null;
+  const eodRecipientEmail =
+    String(formData.get("eod_recipient_email") ?? "").trim() || null;
   const required = formData.getAll("required").map(String);
+  // A ticket can be in at most one tier; required wins if somehow both.
+  const optional = formData
+    .getAll("optional")
+    .map(String)
+    .filter((t) => !required.includes(t));
 
   if (!operatorName || !projectName || !siteName) {
     return { error: "Operator, project, and site name are required." };
@@ -46,7 +54,11 @@ export async function createSite(
   // 2. Requirements profile
   const { data: profile, error: profileErr } = await supabase
     .from("requirements_profiles")
-    .insert({ name: `${projectName} — requirements`, required_credential_types: required })
+    .insert({
+      name: `${projectName} — requirements`,
+      required_credential_types: required,
+      optional_credential_types: optional,
+    })
     .select("id")
     .single();
   if (profileErr) return { error: `Profile: ${profileErr.message}` };
@@ -77,6 +89,8 @@ export async function createSite(
       lsd_location: lsdLocation,
       lat,
       lng,
+      muster_point: musterPoint,
+      eod_recipient_email: eodRecipientEmail,
     })
     .select("id")
     .single();

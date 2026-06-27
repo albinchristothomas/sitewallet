@@ -131,6 +131,33 @@ export function SiteForm() {
         </div>
       </Section>
 
+      <Section title="Gate & reporting">
+        <Field label="Muster point" htmlFor="muster_point">
+          <input
+            id="muster_point"
+            name="muster_point"
+            type="text"
+            placeholder="NE gate / lease entrance"
+            className={inputCls}
+          />
+        </Field>
+        <Field
+          label="End-of-day report recipient"
+          htmlFor="eod_recipient_email"
+        >
+          <input
+            id="eod_recipient_email"
+            name="eod_recipient_email"
+            type="email"
+            placeholder="safety@operator.ca"
+            className={inputCls}
+          />
+          <p className="mt-1.5 text-[12px] text-[color:var(--text-faint)]">
+            The daily report auto-sends here at end of day. Leave blank to skip.
+          </p>
+        </Field>
+      </Section>
+
       <Section title="Required credentials">
         <p className="mb-2 text-[12px] text-[color:var(--text-dim)]">
           Workers must hold all checked credentials to be admitted at the gate.
@@ -151,6 +178,36 @@ export function SiteForm() {
                   c.value === "FIRST_AID" ||
                   c.value === "OSSA_FIT"
                 }
+              />
+              <span>
+                <span className="block text-[14px] font-semibold">
+                  {c.label}
+                </span>
+                <span className="block text-[12px] text-[color:var(--text-faint)]">
+                  {c.issuer}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Optional credentials">
+        <p className="mb-2 text-[12px] text-[color:var(--text-dim)]">
+          Nice-to-have tickets — shown to the medic at the gate but not required
+          for entry.
+        </p>
+        <div className="space-y-1 rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-2">
+          {CREDENTIAL_TYPES.filter((c) => c.value !== "OTHER").map((c) => (
+            <label
+              key={c.value}
+              className="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-[color:var(--ink-3)]"
+            >
+              <input
+                type="checkbox"
+                name="optional"
+                value={c.value}
+                className="mt-1 h-4 w-4 accent-[color:var(--hi-yellow)]"
               />
               <span>
                 <span className="block text-[14px] font-semibold">

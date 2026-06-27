@@ -28,6 +28,33 @@ export async function admitWorker(
   redirect(`/medic/${siteId}`);
 }
 
+// Called when the medic taps "Deny entry". Records a WORKER_DENIED event in the
+// audit_log (via the deny_worker RPC) so the dashboard + EOD report can count
+// denials — a deny deliberately does NOT create a session row.
+export async function denyWorker(
+  siteId: string,
+  workerId: string,
+  reason: string | null,
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase.rpc("deny_worker", {
+    p_worker_id: workerId,
+    p_site_id: siteId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  redirect(`/medic/${siteId}/scan`);
+}
+
 // Called when the medic taps "Mark verified" after checking the issuer's
 // validation page in a new tab. The RPC checks the caller is a MEDIC and
 // stamps the credential as MANUALLY_VERIFIED with our medic ID.

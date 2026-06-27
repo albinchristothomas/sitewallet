@@ -3,28 +3,59 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-// Assign a medic to a site by email. The medic must have already signed up
-// with account_type = 'MEDIC'. We look them up via auth.users; since the
-// anon client can't query auth.users directly, we rely on the medic having
-// a workers row mirrored from their auth account (created on first sign-in).
-//
-// Phase 1 simplification: pasting an email here only works if that medic has
-// already signed in once. Phase 2 will add a proper invite-by-email flow
-// that creates a pending invitation and sends them a magic link.
-export async function assignMedicByEmail(siteId: string, formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  if (!email) return { error: "Enter an email." };
+export type AssignState = { error?: string; ok?: boolean };
+
+// Assign a medic to a site by email. The medic must already have a RigWise
+// account (account_type = 'MEDIC') — i.e. they've signed in at least once.
+// Email lives on auth.users, so we resolve it through the SECURITY DEFINER
+// resolve_medic_id_by_email RPC, then insert the assignment (idempotent via the
+// unique(medic_id, site_id) constraint).
+export async function assignMedicByEmail(
+  siteId: string,
+  _prev: AssignState,
+  formData: FormData,
+): Promise<AssignState> {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  if (!email || !email.includes("@")) {
+    return { error: "Enter a valid email." };
+  }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
 
-  // Look up a worker row with this email + account_type = MEDIC.
-  // We don't have email directly on workers; we'd need an RPC with
-  // SECURITY DEFINER to join against auth.users. For now we accept the
-  // limitation: an operator can only assign medics who've already signed
-  // up as medics and whose name they know.
-  //
-  // Stub — actual implementation pending the lookup RPC. Keeping the
-  // function exported so the form still posts without breaking.
+  // Only a medic already assigned to this site can add another medic.
+  const { data: isMedic } = await supabase.rpc("is_medic_for_site", {
+    target_site_id: siteId,
+  });
+  if (!isMedic) {
+    return { error: "Only a medic already on this site can add others." };
+  }
+
+  const { data: medicId, error: lookupErr } = await supabase.rpc(
+    "resolve_medic_id_by_email",
+    { p_email: email },
+  );
+  if (lookupErr) return { error: lookupErr.message };
+  if (!medicId) {
+    return {
+      error:
+        "No medic account found for that email. Ask them to sign in to RigWise once first, then try again.",
+    };
+  }
+
+  const { error: insErr } = await supabase
+    .from("medic_assignments")
+    .upsert(
+      { medic_id: medicId, site_id: siteId },
+      { onConflict: "medic_id,site_id", ignoreDuplicates: true },
+    );
+  if (insErr) return { error: insErr.message };
+
   revalidatePath(`/admin/sites/${siteId}`);
   return { ok: true };
 }

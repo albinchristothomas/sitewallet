@@ -6,7 +6,7 @@ import { getCredentialLabel } from "@/lib/credentials";
 import { getInitials } from "@/lib/atoms";
 import { faceUrl, ticketPhotoUrl } from "@/lib/photos";
 import { CardPhotoViewer } from "@/lib/card-photo-viewer";
-import { admitWorker, markVerified } from "./actions";
+import { admitWorker, denyWorker, markVerified } from "./actions";
 
 type Compliance = {
   credential_type: string;
@@ -796,31 +796,41 @@ export default async function VerifyWorkerPage(
                 gap: 10,
               }}
             >
-              <Link
-                href={`/medic/${siteId}/scan`}
-                style={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: 9,
-                  background: "#15191e",
-                  border: "1px solid rgba(239,65,53,0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flex: "none",
-                }}
+              <form
+                action={denyWorker.bind(
+                  null,
+                  siteId,
+                  workerId,
+                  "ID or face mismatch — medic discretion",
+                )}
+                style={{ flex: "none" }}
               >
-                <span
-                  className="mono"
+                <button
+                  type="submit"
                   style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#ff9a8f",
+                    width: 54,
+                    height: 54,
+                    borderRadius: 9,
+                    background: "#15191e",
+                    border: "1px solid rgba(239,65,53,0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
                   }}
                 >
-                  DENY
-                </span>
-              </Link>
+                  <span
+                    className="mono"
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#ff9a8f",
+                    }}
+                  >
+                    DENY
+                  </span>
+                </button>
+              </form>
               <form
                 action={admitWorker.bind(null, siteId, workerId, payload)}
                 style={{ flex: 1 }}
@@ -888,39 +898,46 @@ export default async function VerifyWorkerPage(
                 />
               </div>
               <div style={{ display: "flex", gap: 10 }}>
-                {/* "Deny entry" = leave without admitting; back to scan. */}
-                <Link
-                  href={`/medic/${siteId}/scan`}
-                  style={{
-                    flex: 1,
-                    height: 54,
-                    borderRadius: 9,
-                    background: "#ef4135",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    boxShadow: "0 8px 20px -8px rgba(239,65,53,0.6)",
-                  }}
+                {/* "Deny entry" records a WORKER_DENIED event, then back to scan. */}
+                <form
+                  action={denyWorker.bind(null, siteId, workerId, reasonText)}
+                  style={{ flex: 1 }}
                 >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#0d0f12"
-                    strokeWidth="2.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                  <button
+                    type="submit"
+                    style={{
+                      width: "100%",
+                      height: 54,
+                      borderRadius: 9,
+                      background: "#ef4135",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      boxShadow: "0 8px 20px -8px rgba(239,65,53,0.6)",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
                   >
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                  <span
-                    style={{ fontWeight: 800, fontSize: 16, color: "#2a0d0a" }}
-                  >
-                    Deny entry
-                  </span>
-                </Link>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0d0f12"
+                      strokeWidth="2.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                    <span
+                      style={{ fontWeight: 800, fontSize: 16, color: "#2a0d0a" }}
+                    >
+                      Deny entry
+                    </span>
+                  </button>
+                </form>
                 {/* Override = admit anyway, recorded in the audit log. */}
                 <form
                   action={admitWorker.bind(null, siteId, workerId, payload)}

@@ -85,7 +85,7 @@ export default async function EndOfDayReportPage(
   const { data: site } = await supabase
     .from("sites")
     .select(
-      "id, name, rig_name, rig_number, well_number, lsd_location, project:projects(name, contract_name, contractor_company_name, operator:companies(name))",
+      "id, name, rig_name, rig_number, well_number, lsd_location, muster_point, project:projects(name, contract_name, contractor_company_name, operator:companies(name))",
     )
     .eq("id", siteId)
     .single();
@@ -155,11 +155,24 @@ export default async function EndOfDayReportPage(
     .eq("id", user.id)
     .single();
 
+  // Gate denials for the day — recorded in audit_log via deny_worker, read back
+  // through the daily_denials RPC (denials never create a session row).
+  const { data: denialsRaw } = await supabase.rpc("daily_denials", {
+    p_site_id: siteId,
+    p_day: day,
+  });
+  type DenialRow = {
+    worker_id: string;
+    worker_name: string | null;
+    reason: string | null;
+    denied_at: string;
+  };
+  const denials: DenialRow[] = denialsRaw ?? [];
+
   // ── derived report figures ───────────────────────────────────────────
-  // A worker is "admitted" if they have a check-in; DENIED rows have no time.
   const isAdmitted = (r: RosterRow) => Boolean(r.check_in_at);
   const admittedCount = roster.filter(isAdmitted).length;
-  const deniedCount = roster.length - admittedCount;
+  const deniedCount = denials.length;
   const totalMinutes = roster.reduce(
     (sum, r) => sum + (r.duration_minutes ?? 0),
     0,
@@ -171,7 +184,9 @@ export default async function EndOfDayReportPage(
   const totalCount = roster.length;
 
   const wellLsd = site?.lsd_location || site?.well_number || "—";
-  const muster = site?.rig_name ? `${site.rig_name} muster point` : "Per site plan";
+  const muster =
+    site?.muster_point?.trim() ||
+    (site?.rig_name ? `${site.rig_name} muster point` : "Per site plan");
 
   const medicName = medic?.full_name ?? "(unsigned)";
   const medicFirm = medic?.medic_firm ?? "";
@@ -190,10 +205,15 @@ export default async function EndOfDayReportPage(
     .filter(Boolean)
     .join(" · ");
 
+  // "Recordable" proxy = HIGH or CRITICAL severity (the incident_severity enum
+  // is LOW/MEDIUM/HIGH/CRITICAL — there is no literal "recordable" value).
+  const recordableCount = incidents.filter(
+    (i) => i.severity === "HIGH" || i.severity === "CRITICAL",
+  ).length;
   const incidentText =
     incidents.length === 0
       ? "None reported — 0 recordable"
-      : `${incidents.length} reported — ${incidents.filter((i) => i.severity === "recordable" || i.severity === "RECORDABLE").length} recordable`;
+      : `${incidents.length} reported — ${recordableCount} recordable`;
   const incidentColor = incidents.length === 0 ? "#1e8a4c" : "#c0392b";
 
   const mono = "var(--font-jetbrains-mono), ui-monospace, monospace";

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
+import { AssignMedicForm } from "./assign-medic-form";
 
 export default async function SiteDetailPage(
   props: PageProps<"/admin/sites/[siteId]">,
@@ -170,11 +171,7 @@ export default async function SiteDetailPage(
             No medics assigned yet.
           </p>
         )}
-        <p className="mt-2 text-[12px] text-[color:var(--text-faint)]">
-          To add another medic for now: ask them to sign in first, then come
-          back here and tell us — we&apos;ll wire up email invites for medics
-          next.
-        </p>
+        <AssignMedicForm siteId={siteId} />
       </section>
 
       <section className="mt-8 flex flex-wrap gap-3">

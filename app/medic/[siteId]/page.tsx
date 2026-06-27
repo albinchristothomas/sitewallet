@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCredentialLabel } from "@/lib/credentials";
 
 export default async function MedicSitePage(
   props: PageProps<"/medic/[siteId]">,
@@ -15,14 +16,17 @@ export default async function MedicSitePage(
   const { data: site } = await supabase
     .from("sites")
     .select(
-      "id, name, rig_name, rig_number, lsd_location, project:projects(name, operator:companies(name))",
+      "id, name, rig_name, rig_number, lsd_location, muster_point, project:projects(name, requirements_profile:requirements_profiles(required_credential_types), operator:companies(name))",
     )
     .eq("id", siteId)
     .single();
 
-  const { data: active } = await supabase.rpc("active_sessions_for_site", {
-    p_site_id: siteId,
-  });
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local
+
+  const [{ data: active }, { data: denials }] = await Promise.all([
+    supabase.rpc("active_sessions_for_site", { p_site_id: siteId }),
+    supabase.rpc("daily_denials", { p_site_id: siteId, p_day: today }),
+  ]);
 
   const project = site?.project
     ? Array.isArray(site.project)
@@ -34,6 +38,12 @@ export default async function MedicSitePage(
       ? project.operator[0]
       : project.operator
     : null;
+  const reqProfile = project
+    ? Array.isArray(project.requirements_profile)
+      ? project.requirements_profile[0]
+      : project.requirements_profile
+    : null;
+  const required: string[] = reqProfile?.required_credential_types ?? [];
 
   type ActiveRow = {
     session_id: string;
@@ -61,9 +71,9 @@ export default async function MedicSitePage(
     ? `${operator.name.toUpperCase()} · OPERATOR`
     : "OPERATOR";
 
-  const muster = "NE GATE";
+  const muster = (site?.muster_point?.trim() || "PER SITE PLAN").toUpperCase();
   const onSiteCount = activeList.length;
-  const deniedCount = 0;
+  const deniedCount = (denials ?? []).length;
 
   const initialsOf = (name: string | null | undefined) => {
     if (!name) return "—";
@@ -195,23 +205,40 @@ export default async function MedicSitePage(
             flexWrap: "wrap",
           }}
         >
-          {["H2S ALIVE", "FIRST AID", "CSO", "TDG"].map((chip) => (
+          {required.length === 0 ? (
             <span
-              key={chip}
               style={{
                 fontFamily: monoFont,
                 fontSize: 8,
                 letterSpacing: "0.08em",
-                color: "#c4ccd2",
+                color: "#5d666f",
                 padding: "4px 8px",
                 borderRadius: 4,
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              {chip}
+              NO TICKETS REQUIRED
             </span>
-          ))}
+          ) : (
+            required.map((chip) => (
+              <span
+                key={chip}
+                style={{
+                  fontFamily: monoFont,
+                  fontSize: 8,
+                  letterSpacing: "0.08em",
+                  color: "#c4ccd2",
+                  padding: "4px 8px",
+                  borderRadius: 4,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                {getCredentialLabel(chip).toUpperCase()}
+              </span>
+            ))
+          )}
         </div>
       </div>
 
