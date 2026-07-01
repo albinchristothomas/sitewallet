@@ -61,10 +61,15 @@ export type ExpiryStatus = "expired" | "expiring_soon" | "valid" | "no_expiry";
 
 export function getExpiryStatus(expiryDate: string | null): ExpiryStatus {
   if (!expiryDate) return "no_expiry";
+  // Date-only comparison, aligned with the gate RPC: a card is VALID through
+  // its printed expiry day and EXPIRED the day after. (Naive new Date() on a
+  // YYYY-MM-DD string parses UTC midnight and flipped cards to EXPIRED up to
+  // ~30 hours early — the wallet said DEAD while the gate said VALID.)
   const now = new Date();
-  const expiry = new Date(expiryDate);
-  const daysUntilExpiry = Math.floor(
-    (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiry = new Date(expiryDate + "T00:00:00");
+  const daysUntilExpiry = Math.round(
+    (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
   if (daysUntilExpiry < 0) return "expired";
   if (daysUntilExpiry < 30) return "expiring_soon";

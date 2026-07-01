@@ -41,6 +41,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/_next") ||
     path.startsWith("/api/cron/") ||
     path === "/offline" ||
+    path === "/help" ||
     path === "/card-demo";
 
   // Anonymous user hitting a private route → /login.
@@ -96,5 +97,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.svg$).*)"],
+  // PWA assets (manifest, service worker, icons) are fetched WITHOUT cookies
+  // by the browser — gating them behind auth breaks "Add to Home Screen" and
+  // offline mode. Keep them out of the proxy entirely.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|favicon\\.png|manifest\\.webmanifest|sw\\.js|icons/|.*\\.svg$).*)",
+  ],
 };

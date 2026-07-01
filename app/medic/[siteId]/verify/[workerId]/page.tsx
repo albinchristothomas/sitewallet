@@ -4,6 +4,7 @@ import { ExternalLink, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
 import { getInitials } from "@/lib/atoms";
+import { siteToday } from "@/lib/dates";
 import { faceUrl, ticketPhotoUrl } from "@/lib/photos";
 import { CardPhotoViewer } from "@/lib/card-photo-viewer";
 import { admitWorker, denyWorker, markVerified } from "./actions";
@@ -701,8 +702,10 @@ export default async function VerifyWorkerPage(
                   cr.verification_status === "MANUALLY_VERIFIED" ||
                   cr.verification_status === "VERIFIED_BY_ISSUER";
                 const cardUrl = cardPhotos.get(cr.id);
+                // Date-string compare (YYYY-MM-DD sorts lexicographically) —
+                // valid through the printed expiry day, matching the gate RPC.
                 const expired = cr.expiry_date
-                  ? new Date(cr.expiry_date) < new Date()
+                  ? cr.expiry_date < siteToday()
                   : false;
                 const metaTxt = expired
                   ? `EXPIRED ${formatDate(cr.expiry_date!)}`

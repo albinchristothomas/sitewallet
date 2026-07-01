@@ -17,6 +17,22 @@ export async function inviteWorker(
   }
 
   const supabase = await createClient();
+
+  // Server actions bypass the path-based proxy guard — check auth here.
+  // Only signed-in MEDIC accounts may send invites.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+  const { data: me } = await supabase
+    .from("workers")
+    .select("account_type")
+    .eq("id", user.id)
+    .single();
+  if (me?.account_type !== "MEDIC") {
+    return { error: "Only medics can send invites." };
+  }
+
   const headerList = await headers();
   const origin =
     headerList.get("origin") ??

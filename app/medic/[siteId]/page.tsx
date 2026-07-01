@@ -17,7 +17,7 @@ export default async function MedicSitePage(
   const { data: site } = await supabase
     .from("sites")
     .select(
-      "id, name, rig_name, rig_number, lsd_location, muster_point, project:projects(name, requirements_profile:requirements_profiles(required_credential_types), operator:companies(name))",
+      "id, name, rig_name, rig_number, lsd_location, muster_point, ended_at, project:projects(name, requirements_profile:requirements_profiles(required_credential_types), operator:companies(name))",
     )
     .eq("id", siteId)
     .single();
@@ -145,7 +145,7 @@ export default async function MedicSitePage(
                 color: "#5d666f",
               }}
             >
-              ACTIVE SITE
+              {site?.ended_at ? "SITE ENDED" : "ACTIVE SITE"}
             </div>
             <div
               style={{

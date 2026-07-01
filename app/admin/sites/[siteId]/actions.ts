@@ -28,14 +28,6 @@ export async function assignMedicByEmail(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
 
-  // Only a medic already assigned to this site can add another medic.
-  const { data: isMedic } = await supabase.rpc("is_medic_for_site", {
-    target_site_id: siteId,
-  });
-  if (!isMedic) {
-    return { error: "Only a medic already on this site can add others." };
-  }
-
   const { data: medicId, error: lookupErr } = await supabase.rpc(
     "resolve_medic_id_by_email",
     { p_email: email },
@@ -48,12 +40,12 @@ export async function assignMedicByEmail(
     };
   }
 
-  const { error: insErr } = await supabase
-    .from("medic_assignments")
-    .upsert(
-      { medic_id: medicId, site_id: siteId },
-      { onConflict: "medic_id,site_id", ignoreDuplicates: true },
-    );
+  // Guarded SECURITY DEFINER RPC: caller must be a medic already on this site
+  // (or the site must have no medics yet). Idempotent on re-assign.
+  const { error: insErr } = await supabase.rpc("assign_medic_to_site", {
+    p_medic_id: medicId,
+    p_site_id: siteId,
+  });
   if (insErr) return { error: insErr.message };
 
   revalidatePath(`/admin/sites/${siteId}`);

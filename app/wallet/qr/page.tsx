@@ -48,10 +48,13 @@ export default async function WalletQrPage() {
     (c) => getExpiryStatus(c.expiry_date) !== "expired",
   ).length;
   const totalCount = creds.length;
+  // Honest copy: these are the worker's own tickets — which ones a site
+  // REQUIRES is decided at the gate by the medic's compliance check.
   const ticketsLine =
     totalCount > 0
-      ? `HOLD UP TO THE GATE SCANNER · ${validCount} OF ${totalCount} REQUIRED TICKETS VALID`
+      ? `HOLD UP TO THE GATE SCANNER · ${validCount} OF ${totalCount} TICKETS VALID`
       : "HOLD UP TO THE GATE SCANNER";
+  const allValid = totalCount > 0 && validCount === totalCount;
 
   // Subtitle under the worker name — mono, uppercase. Company when present.
   const subtitle = company ? company.toUpperCase() : rwId;
@@ -309,8 +312,12 @@ export default async function WalletQrPage() {
               gap: 10,
               height: 58,
               borderRadius: 11,
-              background: "rgba(47,200,106,0.12)",
-              border: "1px solid rgba(47,200,106,0.5)",
+              background: allValid
+                ? "rgba(47,200,106,0.12)"
+                : "rgba(242,164,12,0.12)",
+              border: allValid
+                ? "1px solid rgba(47,200,106,0.5)"
+                : "1px solid rgba(242,164,12,0.5)",
             }}
           >
             <svg
@@ -318,12 +325,16 @@ export default async function WalletQrPage() {
               height="22"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#2fd072"
+              stroke={allValid ? "#2fd072" : "#f2a40c"}
               strokeWidth={2.4}
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M20 6L9 17l-5-5" />
+              {allValid ? (
+                <path d="M20 6L9 17l-5-5" />
+              ) : (
+                <path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+              )}
             </svg>
             <span
               className="mono"
@@ -331,10 +342,10 @@ export default async function WalletQrPage() {
                 fontSize: 16,
                 fontWeight: 700,
                 letterSpacing: "0.14em",
-                color: "#7ff0a8",
+                color: allValid ? "#7ff0a8" : "#ffd27a",
               }}
             >
-              VALID FOR ENTRY
+              {allValid ? "TICKETS VALID" : "CHECK YOUR TICKETS"}
             </span>
           </div>
           <div

@@ -80,8 +80,8 @@ export default function HelpPage() {
           </li>
           <li>
             <strong>If the app fails or goes offline.</strong> Fall back to
-            paper sign-in. We'll backfill the data within 24 hours of
-            connectivity returning.
+            paper sign-in, then enter the workers as walk-ins when you&apos;re
+            back online so the day&apos;s roster and report stay complete.
           </li>
         </ol>
       </section>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
+import { SITE_TZ, siteTime } from "@/lib/dates";
 import { checkOut } from "./actions";
 import { CheckoutButton } from "./checkout-button";
 
@@ -61,15 +62,13 @@ export default async function ActiveSessionPage() {
       : project.operator
     : null;
 
-  const checkInTime = new Date(session.check_in_at).toLocaleTimeString(
-    "en-CA",
-    { hour: "2-digit", minute: "2-digit", hour12: false },
-  );
+  const checkInTime = siteTime(session.check_in_at);
   const checkInDate = new Date(session.check_in_at)
     .toLocaleDateString("en-CA", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      timeZone: SITE_TZ,
     })
     .toUpperCase();
 

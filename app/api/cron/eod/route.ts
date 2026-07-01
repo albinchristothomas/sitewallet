@@ -73,14 +73,15 @@ export async function GET(request: NextRequest) {
     const recipient = site.eod_recipient_email?.trim();
     if (!recipient) continue;
 
-    // Exactly-once: skip if already sent for this site + day.
-    const { data: already } = await admin
+    // Exactly-once: RESERVE the (site, day) slot before sending. The unique
+    // constraint makes a concurrent/second run fail the insert and skip —
+    // no check-then-send race, no double email.
+    const { data: reserved, error: reserveErr } = await admin
       .from("eod_sent_log")
+      .insert({ site_id: site.id, report_day: day, recipient })
       .select("id")
-      .eq("site_id", site.id)
-      .eq("report_day", day)
       .maybeSingle();
-    if (already) {
+    if (reserveErr || !reserved) {
       results.push({ site: site.name, status: "already sent" });
       continue;
     }
@@ -116,6 +117,7 @@ export async function GET(request: NextRequest) {
     const incs = incidents ?? [];
 
     // Quiet day at a site → nothing to report, don't spam the operator.
+    // (The reservation stays — the day is handled.)
     if (sess.length === 0 && dens.length === 0 && incs.length === 0) {
       results.push({ site: site.name, status: "no activity — skipped" });
       continue;
@@ -224,6 +226,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!send.ok) {
+      // Release the reservation so the next run (or a manual re-hit) retries.
+      await admin.from("eod_sent_log").delete().eq("id", reserved.id);
       const detail = await send.text().catch(() => "");
       results.push({
         site: site.name,
@@ -232,9 +236,6 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    await admin
-      .from("eod_sent_log")
-      .insert({ site_id: site.id, report_day: day, recipient });
     results.push({ site: site.name, status: `sent → ${recipient}` });
   }
 

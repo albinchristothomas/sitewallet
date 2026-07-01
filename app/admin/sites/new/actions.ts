@@ -105,9 +105,12 @@ export async function createSite(
     .eq("id", user.id)
     .single();
   if (creator?.account_type === "MEDIC") {
-    await supabase
-      .from("medic_assignments")
-      .insert({ medic_id: user.id, site_id: site.id });
+    // Guarded RPC (direct inserts are RLS-blocked): allows the bootstrap
+    // assignment on a brand-new site with no medics yet.
+    await supabase.rpc("assign_medic_to_site", {
+      p_medic_id: user.id,
+      p_site_id: site.id,
+    });
   }
 
   redirect(`/admin/sites/${site.id}?created=1`);

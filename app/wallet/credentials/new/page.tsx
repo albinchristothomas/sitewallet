@@ -71,7 +71,8 @@ export default async function NewCredentialPage(
             color: "#7ff0a8",
           }}
         >
-          ✓ AUTO-FILLED FROM YOUR PHOTO · REVIEW AND SAVE
+          ✓ DETAILS AUTO-FILLED FROM YOUR PHOTO · NOW PHOTOGRAPH THE CARD
+          &amp; SAVE
         </div>
       )}
 

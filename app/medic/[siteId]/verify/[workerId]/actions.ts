@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function admitWorker(
   siteId: string,
   workerId: string,
-  snapshot: unknown,
+  _snapshot: unknown,
 ) {
   const supabase = await createClient();
   const {
@@ -15,10 +15,21 @@ export async function admitWorker(
   } = await supabase.auth.getUser();
   if (!user) return;
 
+  // Recompute the compliance snapshot server-side at admit time. The bound
+  // form value round-trips through the client, so it could be tampered with —
+  // the stored legal record must come straight from the database.
+  const { data: fresh, error: complianceErr } = await supabase.rpc(
+    "worker_compliance_for_site",
+    { p_worker_id: workerId, p_site_id: siteId },
+  );
+  if (complianceErr) {
+    throw new Error(complianceErr.message);
+  }
+
   const { error } = await supabase.rpc("admit_worker", {
     p_worker_id: workerId,
     p_site_id: siteId,
-    p_snapshot: snapshot ?? {},
+    p_snapshot: fresh ?? {},
   });
 
   if (error) {

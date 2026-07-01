@@ -112,8 +112,8 @@ export function CardPhotoViewer({
           className="rw-pressable"
           style={{
             position: "relative",
-            width: 46,
-            height: 32,
+            width: 58,
+            height: 40,
             borderRadius: 6,
             overflow: "hidden",
             flex: "none",

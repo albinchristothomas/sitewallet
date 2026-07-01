@@ -46,8 +46,8 @@ export async function addCredential(
   const cardPhotoPath =
     String(formData.get("card_photo_path") ?? "").trim() || null;
 
-  if (!credentialType) {
-    return { error: "Select a credential type." };
+  if (!credentialType || credentialType === "OTHER") {
+    return { error: "Select a credential type (or type the ticket's name)." };
   }
 
   if (!cardPhotoPath) {

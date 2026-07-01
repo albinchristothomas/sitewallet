@@ -697,7 +697,7 @@ function YouStep({
           onChange={update("phone")}
           placeholder="403-555-0123"
           type="tel"
-          hint="Used for gate check-in confirmation and emergency contact."
+          hint="Optional — so the medic can reach you if something comes up on site."
         />
       </div>
     </>

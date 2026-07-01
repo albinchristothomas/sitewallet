@@ -1,9 +1,13 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState } from "react";
 import { addCredential } from "@/app/wallet/actions";
 import { createClient } from "@/lib/supabase/client";
-import { isCompanyOrientation, isOtherCredential } from "@/lib/credentials";
+import {
+  CREDENTIAL_TYPES,
+  isCompanyOrientation,
+  isOtherCredential,
+} from "@/lib/credentials";
 import { CredentialPicker } from "@/lib/credential-picker";
 
 function randomKey() {
@@ -45,8 +49,19 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
 
   // What actually gets submitted as the credential type. For "Other", the
   // worker's typed name becomes the type (custom tickets are always
-  // medic-verified — they can't auto-pass a gate).
-  const submittedType = isOther ? customName.trim() || "OTHER" : credType;
+  // medic-verified — they can't auto-pass a gate). If the typed name matches a
+  // catalog ticket, use the catalog value instead — typing "H2S Alive" should
+  // be the same ticket as picking it, not a lookalike custom entry.
+  const typedName = customName.trim();
+  const catalogMatch = CREDENTIAL_TYPES.find(
+    (c) =>
+      !c.isOther &&
+      (c.label.toLowerCase() === typedName.toLowerCase() ||
+        c.value.toLowerCase() === typedName.toLowerCase()),
+  );
+  const submittedType = isOther
+    ? catalogMatch?.value ?? typedName
+    : credType;
 
   // Card photo capture — uploaded to the private "ticket-photos" bucket so the
   // medic can SEE the actual card at the gate (not just a "VALID" badge).
@@ -80,7 +95,14 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
 
   return (
     <form
-      action={action}
+      // Dispatch the action manually: React 19 auto-resets a <form action>
+      // after the action returns — a server-side validation error would wipe
+      // everything the worker just typed. This keeps their input intact.
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        startTransition(() => action(fd));
+      }}
       style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}
     >
       {/* the selectable list drives this hidden value used by the server action;
@@ -126,6 +148,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 type="text"
+                required
                 placeholder="e.g. Boom Truck Operator"
                 style={fieldBoxStyle}
               />
@@ -423,7 +446,7 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       >
         <button
           type="submit"
-          disabled={pending || cardUploading || !cardPath}
+          disabled={pending || cardUploading || !cardPath || !submittedType}
           style={{
             height: 54,
             width: "100%",
@@ -436,8 +459,11 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
             boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
             border: "none",
             cursor:
-              pending || cardUploading || !cardPath ? "default" : "pointer",
-            opacity: pending || cardUploading || !cardPath ? 0.6 : 1,
+              pending || cardUploading || !cardPath || !submittedType
+                ? "default"
+                : "pointer",
+            opacity:
+              pending || cardUploading || !cardPath || !submittedType ? 0.6 : 1,
           }}
         >
           <span style={{ fontWeight: 800, fontSize: 15, color: "#0d0f12" }}>
@@ -445,9 +471,13 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
               ? "Photo uploading…"
               : !cardPath
                 ? "Photograph the card first"
-                : pending
-                  ? "Adding…"
-                  : "Add to wallet"}
+                : !submittedType
+                  ? isOther
+                    ? "Type the ticket name"
+                    : "Choose your ticket"
+                  : pending
+                    ? "Adding…"
+                    : "Add to wallet"}
           </span>
         </button>
         <div

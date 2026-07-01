@@ -16,7 +16,8 @@ export default function OfflinePage() {
         </p>
         <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
           If you're at a gate and the network is down, use the paper backup
-          form and we'll sync the data when you're back online.
+          form — then enter the workers as walk-ins once you're back online so
+          the day's record stays complete.
         </p>
       </div>
       <a

@@ -33,8 +33,11 @@ function fmtDate(value: string): string {
 }
 
 function daysUntil(value: string): number {
-  const ms = new Date(value).getTime() - new Date().getTime();
-  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+  // Date-only math (a naive UTC parse made cards read one day shorter).
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const ms = new Date(value + "T00:00:00").getTime() - today.getTime();
+  return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
 export default async function WalletPage(props: PageProps<"/wallet">) {
@@ -62,9 +65,11 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
 
   const credentialsList = credentials ?? [];
 
-  const validCount = credentialsList.filter(
-    (c) => getExpiryStatus(c.expiry_date) === "valid",
-  ).length;
+  // No-expiry tickets count as VALID so the stat tiles add up to TOTAL.
+  const validCount = credentialsList.filter((c) => {
+    const s = getExpiryStatus(c.expiry_date);
+    return s === "valid" || s === "no_expiry";
+  }).length;
   const expiringCount = credentialsList.filter(
     (c) => getExpiryStatus(c.expiry_date) === "expiring_soon",
   ).length;
