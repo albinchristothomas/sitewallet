@@ -131,45 +131,48 @@ has to press himself.
 
 **Done & working:** landing/role-select, magic-link login + auth callback,
 onboarding (worker + medic), worker wallet + stats + gate QR pass, credential
-detail flip-card, searchable credential picker + expanded Canadian O&G catalog +
-"Other" escape hatch, **worker card-photo capture**, medic site list + dashboard
-(live on-site count), QR scanner, **gate verify decision** (ADMIT/DENY +
-required-ticket compliance + SELF-ENTERED/VERIFIED badges + MARK VERIFIED +
-**card-photo thumbnail/lightbox**), roster, EOD report (print/PDF, locked to
-today), incidents, walk-in minting (service-role shadow users), profiles, admin
-site creation + worker invite.
+detail flip-card (+ real card photo panel), searchable credential picker +
+expanded Canadian O&G catalog + "Other" escape hatch, **worker card-photo
+capture (mandatory, step 1)**, medic site list + dashboard (**real** muster /
+required chips / denied-today / live on-site count), QR scanner, **gate verify
+decision** (ADMIT/DENY + required-ticket compliance + SELF-ENTERED/VERIFIED
+badges + MARK VERIFIED + card-photo thumbnails + "also on file" list), **deny
+events persisted** (deny_worker → audit_log WORKER_DENIED; daily_denials reads
+back), roster, EOD report (print/PDF, locked to today, real denied count, real
+recordable count), **EOD auto-send** (Vercel Cron 02:00 UTC → /api/cron/eod →
+Resend, exactly-once via eod_sent_log), incidents, walk-in minting, profiles,
+admin site creation (muster point, EOD recipient, required + optional tiers) +
+**assign medic by email** (resolve_medic_id_by_email RPC) + worker invite.
+Sales artifacts: `SELLABLE.md` (GTM pathway), `sales/PILOT_AGREEMENT.md`,
+`sales/PRIVACY_ONEPAGER.md`. Branded auth email live via Resend.
 
-**Shipped-but-needs-your-dashboard-step:**
-- Migration `20260623000000_compliance_card_photo.sql` must be run in the live
-  Supabase SQL editor (project `jxgkcvqesnbhjsmnblbq`) or the medic won't see
-  card photos. See §8.
+**Shipped-but-needs-Albin's-dashboard-step:**
+- Migrations `20260623…` + `20260627…` must be run in the live Supabase SQL
+  editor (paste the consolidated block from chat — Albin can't open files).
+- Vercel env vars `RESEND_API_KEY` + `CRON_SECRET` must be added for EOD
+  auto-send to fire.
 
 ---
 
 ## 7. Backlog (prioritized)
 
-**Pilot tier (do these to make a real medic's shift honest & automatic):**
-1. **Medic dashboard shows fake data.** `app/medic/[siteId]/page.tsx` hardcodes
-   muster `"NE GATE"`, `deniedCount = 0`, and a static required-ticket chip array.
-   Wire to the real `sites.muster_point` and the site's `requirements_profile`.
-2. **Denials are never persisted** → dashboard "denied" and EOD "denied" are
-   structurally always 0. Record a deny event (new table or `audit_log`) when a
-   medic denies/leaves the verify screen, and surface it in EOD + dashboard. Also
-   fix EOD's recordable-incident count (it compares severity to strings not in
-   the LOW/MEDIUM/HIGH/CRITICAL enum).
-3. **EOD auto-send.** Albin explicitly wants the end-of-day report to send
-   automatically even if the medic forgets, to a site recipient set at site
-   setup. Needs: a recipient field on site setup + Resend SMTP + a scheduled
-   function (Supabase cron / Vercel cron). Depends on Resend setup (§8).
+**Pilot tier:**
+1. ~~Medic dashboard fake data~~ **DONE (2026-06-23)** — real muster_point,
+   real required-ticket chips from the requirements profile, real denied count.
+2. ~~Denials never persisted~~ **DONE (2026-06-23)** — deny_worker RPC →
+   audit_log WORKER_DENIED; both Deny buttons wired; daily_denials feeds
+   dashboard + EOD; recordable-incident count fixed to HIGH/CRITICAL.
+3. ~~EOD auto-send~~ **DONE (2026-06-23)** — /api/cron/eod + Vercel Cron +
+   Resend + eod_sent_log; site setup collects the recipient. Needs env vars (§8).
 4. **Worksite "still here?" daily confirm.** Once per day on first open (and on
    gate-pass open), ask the worker to confirm they're still on their worksite;
    update `current_worksite` / activity.
-5. **Required vs Optional credentials at site setup.** Site form has
-   `required_credential_types[]`; add an Optional tier + custom (medic-verified,
-   never auto-pass) entries, and reflect both on the verify screen.
-6. **`assignMedicByEmail` is a stub** (`app/admin/sites/[siteId]/actions.ts`) —
-   implement a SECURITY DEFINER RPC that resolves an email → workers row so >1
-   medic can be assigned to a site; add a medic-invite path.
+5. ~~Required vs Optional at site setup~~ **DONE (2026-06-23)** — optional tier
+   collected + stored (optional_credential_types). Follow-on: surface the
+   optional tier explicitly on the verify screen (today extra tickets show in
+   "also on file").
+6. ~~assignMedicByEmail stub~~ **DONE (2026-06-23)** — resolve_medic_id_by_email
+   RPC + idempotent assignment + working form on the site page.
 
 **Post-pilot / hardening:**
 7. ~~Branded magic-link email via Resend~~ **DONE (2026-06-23).** rigwise.ca
@@ -196,7 +199,9 @@ site creation + worker invite.
   SQL editor: `https://supabase.com/dashboard/project/jxgkcvqesnbhjsmnblbq/sql/new`
 - **Env vars** (Vercel): `NEXT_PUBLIC_SUPABASE_URL`,
   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (client-safe), `SUPABASE_SERVICE_ROLE_KEY`
-  (server-only secret — only `lib/supabase/admin.ts`).
+  (server-only secret — only `lib/supabase/admin.ts`), `RESEND_API_KEY` (EOD
+  auto-send), `CRON_SECRET` (Vercel Cron auth for /api/cron/eod — Vercel sends
+  it automatically as a Bearer token when the env var is set).
 - **Storage:** private buckets `faces` + `ticket-photos`; images served via
   1-hour signed URLs from `lib/photos.ts`. RLS is intentionally loose for the
   pilot (any authenticated user can read/insert) — tighten later.
