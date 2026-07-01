@@ -662,6 +662,74 @@ export default async function EndOfDayReportPage(
               </div>
             </div>
 
+            {/* entry denials — every gate refusal, with reason + time */}
+            {denials.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div
+                  style={{
+                    fontFamily: mono,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.16em",
+                    color: "#b03225",
+                  }}
+                >
+                  ENTRY DENIALS · {denials.length}
+                </div>
+                <div
+                  style={{
+                    marginTop: 8,
+                    border: `1px solid ${paperLine}`,
+                  }}
+                >
+                  {denials.map((d, i) => (
+                    <div
+                      key={`${d.worker_id}-${d.denied_at}`}
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: 12,
+                        padding: "9px 12px",
+                        borderLeft: "3px solid #b03225",
+                        background: i % 2 ? paperRowAlt : "transparent",
+                        borderTop: i > 0 ? `1px solid ${paperLine}` : "none",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 13,
+                          color: paperInk,
+                          flex: "none",
+                        }}
+                      >
+                        {d.worker_name ?? "Unknown"}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: mono,
+                          fontSize: 10,
+                          color: paperSub,
+                          flex: "none",
+                        }}
+                      >
+                        {fmtTime(d.denied_at)}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: paperSub,
+                          minWidth: 0,
+                        }}
+                      >
+                        {d.reason ?? "Not compliant"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* summary band — big figures */}
             <div
               style={{
