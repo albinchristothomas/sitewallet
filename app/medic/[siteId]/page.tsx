@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
+import { siteTime, siteToday } from "@/lib/dates";
 
 export default async function MedicSitePage(
   props: PageProps<"/medic/[siteId]">,
@@ -21,7 +22,7 @@ export default async function MedicSitePage(
     .eq("id", siteId)
     .single();
 
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local
+  const today = siteToday(); // YYYY-MM-DD at the wellsite (America/Edmonton)
 
   const [{ data: active }, { data: denials }] = await Promise.all([
     supabase.rpc("active_sessions_for_site", { p_site_id: siteId }),
@@ -81,12 +82,7 @@ export default async function MedicSitePage(
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
-  const timeOf = (iso: string) =>
-    new Date(iso).toLocaleTimeString("en-CA", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+  const timeOf = siteTime;
 
   const monoFont = "'JetBrains Mono', monospace";
   const surfaceGradient =

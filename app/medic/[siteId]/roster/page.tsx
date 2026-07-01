@@ -2,17 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow, StatusPill } from "@/lib/atoms";
-
-function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+import { siteTime, siteToday } from "@/lib/dates";
 
 export default async function RosterPage(
   props: PageProps<"/medic/[siteId]/roster">,
 ) {
   const { siteId } = await props.params;
   const sp = await props.searchParams;
-  const day = typeof sp.day === "string" ? sp.day : isoToday();
+  const day = typeof sp.day === "string" ? sp.day : siteToday();
 
   const supabase = await createClient();
   const {
@@ -112,20 +109,10 @@ export default async function RosterPage(
                       {r.worker_name ?? r.worker_id.slice(0, 8)}
                     </td>
                     <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
-                      {new Date(r.check_in_at).toLocaleTimeString("en-CA", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })}
+                      {siteTime(r.check_in_at)}
                     </td>
                     <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
-                      {r.check_out_at
-                        ? new Date(r.check_out_at).toLocaleTimeString("en-CA", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })
-                        : "—"}
+                      {r.check_out_at ? siteTime(r.check_out_at) : "—"}
                     </td>
                     <td className="px-4 py-3 font-mono text-[12px] text-[color:var(--text-dim)]">
                       {r.duration_minutes

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
+import { SITE_TZ, siteDayBounds, siteToday } from "@/lib/dates";
 import { ReportControls } from "./report-controls";
 
 // Approved "Warm cream" paper palette (design block 10 · END-OF-DAY REPORT)
@@ -18,13 +19,10 @@ const rNumFont = "var(--font-archivo), sans-serif";
 const rNumWeight = 800;
 const rNumLs = "-0.02em";
 
-function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("en-CA", {
+    timeZone: SITE_TZ,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -73,7 +71,7 @@ export default async function EndOfDayReportPage(
 ) {
   const { siteId } = await props.params;
   // Always today's live record — no manual date override.
-  const day = isoToday();
+  const day = siteToday();
 
   const supabase = await createClient();
   const {
@@ -140,8 +138,8 @@ export default async function EndOfDayReportPage(
       .from("incidents")
       .select("id, type, severity, description, occurred_at, worker_id")
       .eq("site_id", siteId)
-      .gte("occurred_at", `${day}T00:00:00`)
-      .lt("occurred_at", `${day}T23:59:59`)
+      .gte("occurred_at", siteDayBounds(day).start)
+      .lt("occurred_at", siteDayBounds(day).end)
       .order("occurred_at", { ascending: true });
     incidents = i ?? [];
   } catch {

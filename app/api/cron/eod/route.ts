@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { SITE_TZ, siteDayBounds, siteTime, siteToday } from "@/lib/dates";
 import {
   buildEodEmailHtml,
   type EodCrewRow,
@@ -16,45 +17,7 @@ import {
 // the service-role client. The daily_roster / daily_denials RPCs are gated on
 // auth.uid() (is_medic_for_site) and return ZERO rows for a cron with no user.
 
-const TZ = "America/Edmonton";
-
-// "YYYY-MM-DD" for the current moment in Edmonton (site-local day).
-function edmontonToday(): string {
-  return new Date().toLocaleDateString("en-CA", { timeZone: TZ });
-}
-
-// UTC ISO bounds [start, end) of an Edmonton-local calendar day, DST-correct.
-function edmontonDayBounds(day: string): { start: string; end: string } {
-  const offsetAt = (isoLocalMidnight: string): string => {
-    // Probe the UTC instant that corresponds *roughly* to that local midnight,
-    // then read the zone's longOffset (e.g. "GMT-06:00") for it.
-    const probe = new Date(`${isoLocalMidnight}T12:00:00Z`);
-    const part = new Intl.DateTimeFormat("en-US", {
-      timeZone: TZ,
-      timeZoneName: "longOffset",
-    })
-      .formatToParts(probe)
-      .find((p) => p.type === "timeZoneName")?.value; // "GMT-06:00"
-    const m = part?.match(/GMT([+-]\d{2}:\d{2})/);
-    return m ? m[1] : "-07:00"; // MST fallback
-  };
-  const next = new Date(`${day}T12:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  const nextDay = next.toISOString().slice(0, 10);
-  return {
-    start: new Date(`${day}T00:00:00${offsetAt(day)}`).toISOString(),
-    end: new Date(`${nextDay}T00:00:00${offsetAt(nextDay)}`).toISOString(),
-  };
-}
-
-function hhmm(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-CA", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: TZ,
-  });
-}
+const hhmm = siteTime;
 
 function dayLabel(day: string): string {
   return new Date(`${day}T12:00:00Z`)
@@ -90,8 +53,8 @@ export async function GET(request: NextRequest) {
   const day =
     dayParam && /^\d{4}-\d{2}-\d{2}$/.test(dayParam)
       ? dayParam
-      : edmontonToday();
-  const { start, end } = edmontonDayBounds(day);
+      : siteToday();
+  const { start, end } = siteDayBounds(day);
 
   const { data: sites, error: sitesErr } = await admin
     .from("sites")

@@ -62,11 +62,51 @@ as $$
   left join workers w on w.id = a.entity_id
   where a.event_type = 'WORKER_DENIED'
     and (a.payload->>'site_id')::uuid = p_site_id
-    and a.created_at::date = p_day
+    -- Site-local day: the DB runs UTC, sites run America/Edmonton. A plain
+    -- ::date would put an evening denial on tomorrow's report.
+    and (a.created_at at time zone 'America/Edmonton')::date = p_day
     and is_medic_for_site(p_site_id)
   order by a.created_at desc;
 $$;
 grant execute on function daily_denials(uuid, date) to authenticated;
+
+-- 2b. Same timezone fix for the daily roster (originally compared
+--     check_in_at::date in UTC — an evening check-in fell on the next day's
+--     roster/report). Full redefinition; body otherwise identical to init.
+create or replace function daily_roster(p_site_id uuid, p_day date)
+returns table (
+  session_id uuid,
+  worker_id uuid,
+  worker_name text,
+  check_in_at timestamptz,
+  check_out_at timestamptz,
+  duration_minutes int,
+  status session_status
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    s.id,
+    s.worker_id,
+    w.full_name,
+    s.check_in_at,
+    s.check_out_at,
+    case
+      when s.check_out_at is not null
+      then extract(epoch from (s.check_out_at - s.check_in_at))::int / 60
+      else null
+    end as duration_minutes,
+    s.status
+  from sessions s
+  join workers w on w.id = s.worker_id
+  where s.site_id = p_site_id
+    and (s.check_in_at at time zone 'America/Edmonton')::date = p_day
+    and is_medic_for_site(p_site_id)
+  order by s.check_in_at desc;
+$$;
 
 -- 3. Resolve a MEDIC account by email. Email lives on auth.users (workers has
 --    no email column), so this SECURITY DEFINER fn joins auth.users without
