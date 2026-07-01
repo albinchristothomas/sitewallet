@@ -32,11 +32,14 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Public routes — never require auth.
+  // /api/cron/* authenticates with a CRON_SECRET header (Vercel Cron), not a
+  // session — the route itself rejects anything without the secret.
   const isPublic =
     path === "/" ||
     path.startsWith("/login") ||
     path.startsWith("/auth/") ||
     path.startsWith("/_next") ||
+    path.startsWith("/api/cron/") ||
     path === "/offline" ||
     path === "/card-demo";
 
