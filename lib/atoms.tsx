@@ -165,7 +165,7 @@ export function getInitials(name: string | null | undefined): string {
 export function BrandMark({ size = 28 }: { size?: number; variant?: "chip" | "ghost" }) {
   return (
     <div
-      aria-label="RigWise"
+      aria-label="RigVise"
       role="img"
       style={{
         width: size,
@@ -190,7 +190,7 @@ export function BrandMark({ size = 28 }: { size?: number; variant?: "chip" | "gh
   );
 }
 
-/** Wordmark: "RIG" in text color + "WISE" muted, matching the design system. */
+/** Wordmark: "RIG" in text color + "VISE" muted, matching the design system. */
 export function BrandWordmark({
   className,
   highlightClassName = "text-[color:var(--wordmark-muted)] font-semibold",
@@ -200,7 +200,7 @@ export function BrandWordmark({
 }) {
   return (
     <span className={className} style={{ fontWeight: 800, letterSpacing: "-0.01em" }}>
-      RIG<span className={highlightClassName}>WISE</span>
+      RIG<span className={highlightClassName}>VISE</span>
     </span>
   );
 }

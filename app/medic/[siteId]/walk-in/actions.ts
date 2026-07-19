@@ -23,7 +23,7 @@ export type WalkInResult = { ok: false; error: string };
 
 /**
  * A medic creates a "walk-in" worker — someone standing at the gate who does
- * not have the RigWise app. We mint a shadow auth user (no login) so the
+ * not have the RigVise app. We mint a shadow auth user (no login) so the
  * existing worker-centric schema (workers.id -> auth.users.id, RLS on
  * auth.uid()) keeps working unchanged, then attach any photographed tickets,
  * then hand the medic to the verify/admit screen.

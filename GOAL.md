@@ -1,4 +1,4 @@
-# RigWise — Autonomous Operator Brief (`/goal`)
+# RigVise — Autonomous Operator Brief (`/goal`)
 
 > **Paste-to-run prompt** (give me this line and I take it from here):
 >
@@ -8,7 +8,7 @@
 > tier is empty or you hit a decision that's genuinely mine. Don't ask me to
 > confirm obvious defaults — decide, note it, and keep moving."**
 
-This file is the single source of truth for what RigWise is, the rules I must
+This file is the single source of truth for what RigVise is, the rules I must
 never break, the current state, and what to build next. Keep it updated as work
 lands.
 
@@ -16,7 +16,7 @@ lands.
 
 ## 1. Mission
 
-RigWise is a **digital safety-credential wallet + gate-verification system for
+RigVise is a **digital safety-credential wallet + gate-verification system for
 Canadian oil & gas wellsites.** Workers carry safety tickets (H2S Alive, First
 Aid, CSO, etc.) on their phone as a QR pass. A **medic** at the wellsite gate
 scans the worker's QR, sees their tickets checked against *this site's*
@@ -178,7 +178,7 @@ Sales artifacts: `SELLABLE.md` (GTM pathway), `sales/PILOT_AGREEMENT.md`,
 7. ~~Branded magic-link email via Resend~~ **DONE (2026-06-23).** rigwise.ca
    verified in Resend (DNS on Cloudflare), Supabase Custom SMTP wired, branded
    template live on Magic Link + Confirm signup. Auth emails now send from
-   `RigWise <noreply@rigwise.ca>`.
+   `RigVise <noreply@rigwise.ca>`.
 8. Rotating signed 30s QR instead of the static worker UUID.
 9. Retention job to actually purge after 2 years (cron / DB policy).
 10. Tighten RLS (Phase-1 policies let any authenticated user create

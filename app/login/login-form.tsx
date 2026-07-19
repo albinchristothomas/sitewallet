@@ -1,10 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
-import { sendMagicLink } from "./actions";
+import { sendMagicLink, verifyCode } from "./actions";
 import type { SignupIntent } from "@/lib/roles";
 
-type State = { error?: string; sent?: boolean; email?: string };
+type State = {
+  error?: string;
+  sent?: boolean;
+  email?: string;
+  signupAs?: SignupIntent | null;
+};
 
 const initialState: State = {};
 
@@ -16,84 +21,10 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
     initialState,
   );
 
-  // Success state — magic link sent
-  if (state.sent) {
+  // Step 2 — email sent: type the 6-digit code (works on any device/browser).
+  if (state.sent && state.email) {
     return (
-      <div
-        className="rw-enter"
-        style={{
-          borderRadius: 8,
-          background: "rgba(47,200,106,0.07)",
-          border: "1px solid rgba(47,200,106,0.25)",
-          padding: "18px 16px",
-          textAlign: "center",
-        }}
-      >
-        <div
-          style={{
-            margin: "0 auto 12px",
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            background: "rgba(47,200,106,0.12)",
-            border: "1px solid rgba(47,200,106,0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#2fd072"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.16em",
-            color: "#7ff0a8",
-            textTransform: "uppercase",
-          }}
-        >
-          Check your email
-        </div>
-        <p style={{ marginTop: 10, fontSize: 14, color: "#d6dce0" }}>
-          We sent a sign-in link to
-        </p>
-        <p
-          style={{
-            fontFamily: MONO,
-            marginTop: 4,
-            fontSize: 13,
-            fontWeight: 500,
-            color: "#f4f6f7",
-            wordBreak: "break-all",
-          }}
-        >
-          {state.email}
-        </p>
-        <p
-          style={{
-            marginTop: 12,
-            fontSize: 12,
-            lineHeight: 1.6,
-            color: "#9aa3ab",
-          }}
-        >
-          Tap the link on this device. Link expires in 1 hour. If you don&apos;t
-          see it, check spam.
-        </p>
-      </div>
+      <CodeEntry email={state.email} signupAs={signupAs} onBack={() => location.reload()} />
     );
   }
 
@@ -205,7 +136,7 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
             letterSpacing: "0.01em",
           }}
         >
-          {pending ? "Sending link…" : "Send magic link"}
+          {pending ? "Sending code…" : "Email me a sign-in code"}
         </span>
         {!pending && (
           <svg
@@ -223,5 +154,135 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
         )}
       </button>
     </form>
+  );
+}
+
+// ── Step 2: 6-digit code entry ──────────────────────────────────────────────
+function CodeEntry({
+  email,
+  signupAs,
+  onBack,
+}: {
+  email: string;
+  signupAs: SignupIntent | null;
+  onBack: () => void;
+}) {
+  const [state, action, pending] = useActionState<State, FormData>(
+    verifyCode,
+    { sent: true, email },
+  );
+
+  return (
+    <div className="rw-enter">
+      <div
+        style={{
+          fontFamily: MONO,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: "0.16em",
+          color: "#7ff0a8",
+          textTransform: "uppercase",
+        }}
+      >
+        Enter your code
+      </div>
+      <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.5, color: "#d6dce0" }}>
+        We emailed a 6-digit code to{" "}
+        <span style={{ fontFamily: MONO, color: "#f4f6f7", wordBreak: "break-all" }}>
+          {email}
+        </span>
+        . Type it below, or just tap the button in the email.
+      </p>
+
+      <form action={action} style={{ marginTop: 16 }}>
+        <input type="hidden" name="email" value={email} />
+        {signupAs && <input type="hidden" name="signup_as" value={signupAs} />}
+        <input
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]*"
+          maxLength={6}
+          required
+          autoFocus
+          placeholder="000000"
+          className="rw-login-input"
+          style={{
+            height: 60,
+            width: "100%",
+            borderRadius: 8,
+            background: "#15191e",
+            border: "1px solid rgba(255,255,255,0.1)",
+            padding: "0 16px",
+            fontFamily: MONO,
+            fontSize: 30,
+            fontWeight: 700,
+            letterSpacing: "0.3em",
+            textAlign: "center",
+            color: "#f4f6f7",
+            outline: "none",
+          }}
+        />
+        <style>{`
+          .rw-login-input::placeholder { color: #3a3f45; }
+          .rw-login-input:focus { border-color: #f2581c; }
+        `}</style>
+
+        {state.error && (
+          <div
+            className="rw-enter"
+            style={{
+              marginTop: 12,
+              borderRadius: 8,
+              background: "rgba(239,65,53,0.14)",
+              border: "1px solid rgba(239,65,53,0.55)",
+              padding: "10px 12px",
+            }}
+          >
+            <p style={{ fontSize: 13, color: "#ff9a8f" }}>{state.error}</p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="rw-pressable"
+          style={{
+            height: 54,
+            width: "100%",
+            borderRadius: 8,
+            background: "#f2581c",
+            border: "none",
+            marginTop: 16,
+            boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+            cursor: pending ? "not-allowed" : "pointer",
+            opacity: pending ? 0.7 : 1,
+            fontWeight: 800,
+            fontSize: 15,
+            color: "#0d0f12",
+          }}
+        >
+          {pending ? "Checking…" : "Sign in"}
+        </button>
+      </form>
+
+      <button
+        type="button"
+        onClick={onBack}
+        style={{
+          marginTop: 14,
+          width: "100%",
+          background: "none",
+          border: "none",
+          fontFamily: MONO,
+          fontSize: 11,
+          letterSpacing: "0.06em",
+          color: "#9aa3ab",
+          cursor: "pointer",
+        }}
+      >
+        ← Use a different email / resend
+      </button>
+    </div>
   );
 }

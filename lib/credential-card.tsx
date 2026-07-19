@@ -449,13 +449,13 @@ export function CredentialCard({
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.2em", color: "#9aa3ab", fontWeight: 600 }}>VERIFICATION</div>
                 <div style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.01em", color: "#eef1f3" }}>
-                  RIG<span style={{ color: "#8b949c", fontWeight: 600 }}>WISE</span>
+                  RIG<span style={{ color: "#8b949c", fontWeight: 600 }}>VISE</span>
                 </div>
               </div>
 
               <div style={{ marginTop: 14, height: 11, overflow: "hidden", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center" }}>
                 <div style={{ fontFamily: MONO, fontSize: 5.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
-                  RIGWISE·VERIFIED·{data.issuerLine1} {data.issuerLine2 ?? ""}·RIGWISE·VERIFIED·{data.issuerLine1} {data.issuerLine2 ?? ""}·RIGWISE·VERIFIED·
+                  RIGVISE·VERIFIED·{data.issuerLine1} {data.issuerLine2 ?? ""}·RIGVISE·VERIFIED·{data.issuerLine1} {data.issuerLine2 ?? ""}·RIGVISE·VERIFIED·
                 </div>
               </div>
 

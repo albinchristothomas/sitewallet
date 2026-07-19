@@ -123,7 +123,7 @@ export function buildEodEmailHtml(d: EodData): string {
   <tr><td style="padding:22px 28px;border-bottom:2px solid ${INK};">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td style="font-family:${sans};font-size:20px;font-weight:800;color:${INK};letter-spacing:-0.01em;">
-        RIG<span style="color:${INK_DIM};font-weight:600;">WISE</span>
+        RIG<span style="color:${INK_DIM};font-weight:600;">VISE</span>
         <span style="font-family:${mono};font-size:10px;letter-spacing:0.16em;color:${INK_DIM};text-transform:uppercase;">&nbsp;· Daily safety report</span>
       </td>
       <td align="right" style="font-family:${mono};font-size:11px;color:${INK};">${esc(d.dayLabel)}</td>
@@ -168,7 +168,7 @@ export function buildEodEmailHtml(d: EodData): string {
 
   <tr><td style="padding:24px 28px 26px;">
     <div style="border-top:1px solid ${LINE};padding-top:14px;font-family:${mono};font-size:9px;letter-spacing:0.12em;color:${INK_DIM};text-transform:uppercase;line-height:1.8;">
-      Generated automatically by RigWise at end of day · rigwise.ca<br>
+      Generated automatically by RigVise at end of day · rigwise.ca<br>
       Times shown in America/Edmonton. This report reflects gate records as captured on site.
     </div>
   </td></tr>

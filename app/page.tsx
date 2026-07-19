@@ -140,7 +140,7 @@ export default async function Home() {
                 }}
               >
                 RIG
-                <span style={{ color: "#8b949c", fontWeight: 600 }}>WISE</span>
+                <span style={{ color: "#8b949c", fontWeight: 600 }}>VISE</span>
               </div>
               <div
                 className="mono"

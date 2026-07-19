@@ -1,4 +1,4 @@
-// Site-local time helpers. Every RigWise pilot site is in the Alberta/BC oil
+// Site-local time helpers. Every RigVise pilot site is in the Alberta/BC oil
 // patch, and the server (Vercel) runs in UTC — so any "today" or clock time
 // computed naively is wrong for the gate (an evening check-in would land on
 // tomorrow's report and print as a UTC time). All day-strings and displayed
@@ -8,6 +8,18 @@ export const SITE_TZ = "America/Edmonton";
 /** YYYY-MM-DD for "today" at the wellsite (America/Edmonton). */
 export function siteToday(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: SITE_TZ });
+}
+
+/**
+ * The report day for the EOD cron. Vercel Hobby cron can fire up to an hour
+ * late; if it slips past local midnight, "today" would flip and that day's
+ * report would be lost. Subtracting 3h means an evening run (>= ~03:00 local)
+ * still reports the day that just ended, even after a late fire.
+ */
+export function siteReportDay(): string {
+  return new Date(Date.now() - 3 * 3600 * 1000).toLocaleDateString("en-CA", {
+    timeZone: SITE_TZ,
+  });
 }
 
 /** HH:MM (24h) at the wellsite for a timestamp. */

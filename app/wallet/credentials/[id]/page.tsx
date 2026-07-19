@@ -82,7 +82,7 @@ export default async function CredentialDetailPage(
   const idUp = id.replace(/-/g, "").toUpperCase();
 
   const data: CredentialCardData = {
-    issuerLine1: (c.issuer ?? "RIGWISE").toUpperCase(),
+    issuerLine1: (c.issuer ?? "RIGVISE").toUpperCase(),
     issuerSub: "ISSUING BODY · CAN",
     category: verified ? "VERIFIED · SAFETY TICKET" : "SELF-ENTERED · SAFETY TICKET",
     title: label.toUpperCase(),

@@ -171,7 +171,7 @@ export function OnboardingWizard({
 
   return (
     <div className="w-full max-w-[420px]">
-      {/* Dark steel panel — RigWise system surface on the dark bg */}
+      {/* Dark steel panel — RigVise system surface on the dark bg */}
       <div
         style={{
           position: "relative",
@@ -397,7 +397,7 @@ export function OnboardingWizard({
             textAlign: "center",
           }}
         >
-          RigWise ·{" "}
+          RigVise ·{" "}
           {accountType === "WORKER"
             ? "Worker enrollment"
             : "Medic enrollment"}{" "}

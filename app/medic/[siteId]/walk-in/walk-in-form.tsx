@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image";
 import {
   CREDENTIAL_TYPES,
   getCredentialLabel,
@@ -63,12 +64,16 @@ export function WalkInForm({ siteId }: { siteId: string }) {
 
   const faceInputRef = useRef<HTMLInputElement>(null);
 
-  async function uploadTo(bucket: string, file: File): Promise<string> {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${siteId}/${newKey()}.${ext}`;
+  async function uploadTo(
+    bucket: string,
+    file: File,
+    maxDim: number,
+  ): Promise<string> {
+    const blob = await compressImage(file, maxDim);
+    const path = `${siteId}/${newKey()}.jpg`;
     const { error: upErr } = await supabase.storage
       .from(bucket)
-      .upload(path, file, { upsert: false, contentType: file.type });
+      .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
     if (upErr) throw new Error(upErr.message);
     return path;
   }
@@ -78,7 +83,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
     setFacePreview(URL.createObjectURL(file));
     setFaceUploading(true);
     try {
-      const path = await uploadTo("faces", file);
+      const path = await uploadTo("faces", file, 1024);
       setFacePath(path);
     } catch (e) {
       setError(`Face photo upload failed: ${(e as Error).message}`);
@@ -115,7 +120,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
     setError(null);
     patchTicket(key, { previewUrl: URL.createObjectURL(file), uploading: true });
     try {
-      const path = await uploadTo("ticket-photos", file);
+      const path = await uploadTo("ticket-photos", file, 1600);
       patchTicket(key, { photo_path: path, uploading: false });
     } catch (e) {
       setError(`Ticket photo upload failed: ${(e as Error).message}`);
@@ -135,7 +140,16 @@ export function WalkInForm({ siteId }: { siteId: string }) {
       return;
     }
     setError(null);
-    const payloadTickets: WalkInTicket[] = tickets.map((t) => {
+    // Drop tiles the medic added but never filled in — otherwise an untouched
+    // tile would fabricate a phantom "VALID" ticket and could flip the gate to
+    // ADMIT. A real tile has a photo, an expiry, or (for Other) a typed name.
+    const realTickets = tickets.filter(
+      (t) =>
+        t.photo_path ||
+        t.expiry_date ||
+        (isOtherCredential(t.credential_type) && t.custom_name.trim()),
+    );
+    const payloadTickets: WalkInTicket[] = realTickets.map((t) => {
       const other = isOtherCredential(t.credential_type);
       const meta = CREDENTIAL_TYPES.find((c) => c.value === t.credential_type);
       return {

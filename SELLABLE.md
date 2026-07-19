@@ -1,4 +1,4 @@
-# RigWise — From Built to Sold
+# RigVise — From Built to Sold
 
 How a working app becomes a business. This is the pathway: who pays, why, how
 much, and the exact sequence from today (zero revenue) to a paying customer.
@@ -18,7 +18,7 @@ the medic/operator is the wallet.
 
 Three buyers, three different value props:
 
-| Buyer | Their pain today | What RigWise sells them |
+| Buyer | Their pain today | What RigVise sells them |
 |---|---|---|
 | **Medic / safety firm** (the wedge) | Clipboard sign-in, hand-typed end-of-day reports, "did I check that ticket?" liability | Scan-to-admit in 3 seconds, automatic EOD report, every decision logged with their name |
 | **Operator / contractor** (the buyer with budget) | No real-time view of who's on their lease, audit scrambles, expired-ticket exposure | Live roster per well, instant audit export, "no expired ticket got on site" proof |
@@ -37,7 +37,7 @@ one medic firm covers many operators' sites.
 ┌───────────┐          ┌───────────┐          ┌───────────┐          ┌───────────┐
 │ 1 medic,  │  →       │ 1 full     │  →       │ that medic │  →      │ medic firm │
 │ 1 gate,   │          │ shift run  │          │ firm's     │         │ or operator│
-│ free pilot│          │ on RigWise │          │ other gates│         │ pays/site  │
+│ free pilot│          │ on RigVise │          │ other gates│         │ pays/site  │
 └───────────┘          └───────────┘          └───────────┘          └───────────┘
 ```
 
@@ -137,7 +137,7 @@ Notes:
 - **Incumbents.** ISN/Avetta/Cognibox/ComplyWorks gate contractor compliance;
   MyPass owns the worker-wallet story globally. You win on the *gate moment* and
   *medic workflow*, not on being a compliance database. Integrate, don't compete.
-- **Trust/liability.** If RigWise admits someone it shouldn't, who's liable? The
+- **Trust/liability.** If RigVise admits someone it shouldn't, who's liable? The
   medic always makes the final call (override is logged) — keep it that way and
   say so in the agreement. You're a tool, not the decision-maker.
 - **Data residency.** Canadian energy + worker PII = PIPEDA. Get to ca-central-1

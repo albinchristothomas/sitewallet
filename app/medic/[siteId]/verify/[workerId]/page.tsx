@@ -569,12 +569,26 @@ export default async function VerifyWorkerPage(
                         flex: "none",
                       }}
                     >
-                      {cardUrl && (
+                      {cardUrl ? (
                         <CardPhotoViewer
                           src={cardUrl}
                           label={getCredentialLabel(c.credential_type)}
                         />
-                      )}
+                      ) : !isMissing ? (
+                        // Photo expected but absent — tell the medic which case
+                        // it is instead of silently showing nothing.
+                        <span
+                          className="mono"
+                          style={{
+                            fontSize: 8,
+                            letterSpacing: "0.1em",
+                            color: c.photo_url ? "#ff9a8f" : "#5d666f",
+                            flex: "none",
+                          }}
+                        >
+                          {c.photo_url ? "PHOTO FAILED" : "NO PHOTO"}
+                        </span>
+                      ) : null}
                       <span
                         className="mono"
                         style={{

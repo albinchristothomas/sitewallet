@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AssignState = { error?: string; ok?: boolean };
 
-// Assign a medic to a site by email. The medic must already have a RigWise
+// Assign a medic to a site by email. The medic must already have a RigVise
 // account (account_type = 'MEDIC') — i.e. they've signed in at least once.
 // Email lives on auth.users, so we resolve it through the SECURITY DEFINER
 // resolve_medic_id_by_email RPC, then insert the assignment (idempotent via the
@@ -36,7 +36,7 @@ export async function assignMedicByEmail(
   if (!medicId) {
     return {
       error:
-        "No medic account found for that email. Ask them to sign in to RigWise once first, then try again.",
+        "No medic account found for that email. Ask them to sign in to RigVise once first, then try again.",
     };
   }
 

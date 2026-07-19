@@ -54,6 +54,19 @@ export async function addCredential(
     return { error: "Add a photo of the card before saving." };
   }
 
+  // Reject anything but a real object path (no external URLs sneaking into
+  // photo_url) and confirm the uploaded card actually exists in storage —
+  // the whole point of the mandatory photo is that the medic can see it.
+  if (/^https?:\/\//i.test(cardPhotoPath)) {
+    return { error: "Add a photo of the card before saving." };
+  }
+  const { data: signed } = await supabase.storage
+    .from("ticket-photos")
+    .createSignedUrl(cardPhotoPath, 60);
+  if (!signed) {
+    return { error: "That photo didn't upload. Please retake the card photo." };
+  }
+
   const { error } = await supabase.from("credentials").insert({
     worker_id: user.id,
     credential_type: credentialType,

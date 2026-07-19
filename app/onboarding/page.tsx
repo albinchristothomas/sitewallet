@@ -61,7 +61,7 @@ export default async function OnboardingPage() {
           textTransform: "uppercase",
         }}
       >
-        Your information is used only for RigWise gate sign-ins. It is retained
+        Your information is used only for RigVise gate sign-ins. It is retained
         for 2 years after your last site activity, then permanently deleted.
       </p>
     </main>

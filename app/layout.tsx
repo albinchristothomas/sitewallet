@@ -31,12 +31,12 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "RigWise",
-    template: "%s · RigWise",
+    default: "RigVise",
+    template: "%s · RigVise",
   },
   description:
     "Digital safety credentials wallet for Canadian energy workers. Verified at the gate.",
-  applicationName: "RigWise",
+  applicationName: "RigVise",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "RigWise",
+    title: "RigVise",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {

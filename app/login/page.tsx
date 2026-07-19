@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } from "@/lib/roles";
 import { LoginForm } from "./login-form";
+import { DevLogin } from "./dev-login";
 
 function isIntent(s: string | string[] | undefined): s is SignupIntent {
   return s === "worker" || s === "medic";
@@ -88,7 +89,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
               }}
             >
               RIG
-              <span style={{ color: "#8b949c", fontWeight: 600 }}>WISE</span>
+              <span style={{ color: "#8b949c", fontWeight: 600 }}>VISE</span>
             </div>
           </div>
 
@@ -115,7 +116,8 @@ export default async function LoginPage(props: PageProps<"/login">) {
                 letterSpacing: "0.03em",
               }}
             >
-              No passwords. We send a one-time link to your work email.
+              No passwords. We email you a 6-digit code — type it in, or tap
+              the button in the email.
             </div>
 
             {as && (
@@ -175,6 +177,9 @@ export default async function LoginPage(props: PageProps<"/login">) {
             <LoginForm signupAs={as} />
           </div>
 
+          {/* Local-testing shortcut — dev builds only, never in production. */}
+          {process.env.NODE_ENV === "development" && <DevLogin />}
+
           {/* Footer */}
           <div
             style={{
@@ -189,13 +194,13 @@ export default async function LoginPage(props: PageProps<"/login">) {
           >
             PROTECTED WORKSITE SYSTEM · VOID IF SHARED
             <br />
-            RIGWISE.CA ·{" "}
+            RIGVISE.CA ·{" "}
             <Link
               href="/help"
               style={{ color: "#5d666f", textDecorationLine: "none" }}
               className="transition-colors hover:text-[#9aa3ab]"
             >
-              SUPPORT 1-800-RIG-WISE
+              SUPPORT 1-800-RIG-VISE
             </Link>
           </div>
         </div>

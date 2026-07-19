@@ -9,16 +9,30 @@ function isIntent(s: unknown): s is SignupIntent {
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // After magic-link sign-in, send everyone to /onboarding. The proxy will
-  // bounce them onward to /wallet or /medic if their profile is already done.
+  const tokenHash = searchParams.get("token_hash");
+  const type = searchParams.get("type");
+  // After sign-in, send everyone to /onboarding. The proxy will bounce them
+  // onward to /wallet or /medic if their profile is already done.
   const next = searchParams.get("next") ?? "/onboarding";
 
-  if (!code) {
+  const supabase = await createClient();
+
+  // Two link formats. token_hash (verifyOtp) is browser-independent — it works
+  // when the email opens in a different browser than the one that requested it
+  // (Gmail in-app view, work phones, desktop). `code` (PKCE) is kept for
+  // backward compatibility but only works in the requesting browser.
+  let error;
+  if (tokenHash) {
+    ({ error } = await supabase.auth.verifyOtp({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: (type ?? "email") as any,
+      token_hash: tokenHash,
+    }));
+  } else if (code) {
+    ({ error } = await supabase.auth.exchangeCodeForSession(code));
+  } else {
     return NextResponse.redirect(`${origin}/login?error=missing_code`);
   }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(

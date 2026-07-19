@@ -1,4 +1,4 @@
-# RigWise — Privacy & Data, in one page
+# RigVise — Privacy & Data, in one page
 
 For safety managers and operators who (rightly) ask "where does our people's
 data go?" before they let an app onto the lease. Plain answers.

@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useRef, useState } from "react";
 import { addCredential } from "@/app/wallet/actions";
 import { createClient } from "@/lib/supabase/client";
+import { compressImage } from "@/lib/image";
 import {
   CREDENTIAL_TYPES,
   isCompanyOrientation,
@@ -77,11 +78,11 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
     setCardUploading(true);
     try {
       const supabase = createClient();
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `self/${randomKey()}.${ext}`;
+      const blob = await compressImage(file, 1600); // ~200-400KB JPEG
+      const path = `self/${randomKey()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("ticket-photos")
-        .upload(path, file, { upsert: false, contentType: file.type });
+        .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
       if (upErr) throw new Error(upErr.message);
       setCardPath(path);
     } catch (e) {
@@ -409,7 +410,9 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
               id="expiry_date"
               name="expiry_date"
               type="date"
-              required={isOrientation}
+              // Catalog safety tickets always carry an expiry; only "Other"
+              // custom entries may legitimately have none.
+              required={!isOther}
               defaultValue={p.expiry ?? ""}
               className="mono"
               style={{

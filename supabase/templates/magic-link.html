@@ -1,18 +1,22 @@
 <!--
-  RigWise — magic-link sign-in email.
-  Paste this into Supabase → Authentication → Email Templates → Magic Link → (HTML body).
-  Subject line: Sign in to RigWise
-  {{ .ConfirmationURL }} is the Supabase token — do not edit it.
+  RigVise — sign-in email (6-digit code + browser-independent tap link).
+  Paste into Supabase → Authentication → Email Templates. Use the SAME subject
+  + body for BOTH "Magic Link" AND "Confirm signup".
+  Subject line:  Your RigVise sign-in code: {{ .Token }}
+
+  {{ .Token }}      = the 6-digit code the worker types on the sign-in screen.
+  {{ .TokenHash }}  = powers the tap link; works on ANY device/browser.
+  Do not edit those tags.
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sign in to RigWise</title>
+<title>Your RigVise sign-in code</title>
 </head>
 <body style="margin:0;padding:0;background:#0d0f12;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#eef1f3;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0d0f12;">Tap to sign in to RigWise. Link expires in 1 hour.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#0d0f12;">Your RigVise sign-in code is {{ .Token }}. It expires in 1 hour.</div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0f12;padding:32px 16px;">
   <tr><td align="center">
@@ -28,37 +32,43 @@
             </div>
           </td>
           <td valign="middle">
-            <div style="font-size:19px;font-weight:800;color:#eef1f3;letter-spacing:-0.01em;">RIG<span style="color:#8b949c;font-weight:600;">WISE</span></div>
+            <div style="font-size:19px;font-weight:800;color:#eef1f3;letter-spacing:-0.01em;">RIG<span style="color:#8b949c;font-weight:600;">VISE</span></div>
             <div style="margin-top:3px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#5d666f;">Gate station</div>
           </td>
         </tr></table>
       </td></tr>
 
       <!-- body -->
-      <tr><td style="padding:38px 36px 8px;">
-        <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f2581c;">Sign-in link</div>
-        <h1 style="margin:10px 0 0;font-size:28px;line-height:1.15;font-weight:800;letter-spacing:-0.01em;color:#f4f6f7;">Tap to sign in.</h1>
-        <p style="margin:14px 0 0;font-size:15px;line-height:1.55;color:#9aa3ab;">You requested a one-time sign-in link for your RigWise account. It works once and expires in 60 minutes.</p>
+      <tr><td style="padding:36px 36px 8px;">
+        <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#f2581c;">Your sign-in code</div>
+        <h1 style="margin:10px 0 0;font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-0.01em;color:#f4f6f7;">Enter this code to sign in</h1>
       </td></tr>
 
-      <!-- button -->
-      <tr><td style="padding:26px 36px 8px;">
-        <a href="{{ .ConfirmationURL }}" style="display:block;background:#f2581c;color:#0d0f12;text-decoration:none;font-size:16px;font-weight:800;padding:16px 24px;border-radius:9px;text-align:center;">Sign in to RigWise &rarr;</a>
-        <p style="margin:14px 0 0;font-size:12px;line-height:1.55;color:#5d666f;">Button not working? Paste this link into your browser:</p>
-        <p style="margin:6px 0 0;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:12px;line-height:1.4;color:#c4ccd2;word-break:break-all;">{{ .ConfirmationURL }}</p>
+      <!-- the 6-digit code (hero) -->
+      <tr><td style="padding:22px 36px 4px;">
+        <div style="background:#0d0f12;border:1px solid rgba(255,255,255,0.12);border-radius:11px;padding:20px 12px;text-align:center;">
+          <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:40px;font-weight:800;letter-spacing:0.28em;color:#f4f6f7;">{{ .Token }}</div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.55;color:#9aa3ab;text-align:center;">Type this on the RigVise sign-in screen. It expires in 60 minutes.</p>
+      </td></tr>
+
+      <!-- tap-link alternative (browser-independent token_hash) -->
+      <tr><td style="padding:22px 36px 8px;">
+        <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;text-align:center;margin-bottom:12px;">&mdash; or tap to sign in &mdash;</div>
+        <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email" style="display:block;background:#f2581c;color:#0d0f12;text-decoration:none;font-size:16px;font-weight:800;padding:15px 24px;border-radius:9px;text-align:center;">Sign in to RigVise &rarr;</a>
       </td></tr>
 
       <!-- reassurance -->
-      <tr><td style="padding:30px 36px 30px;">
-        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;">
+      <tr><td style="padding:26px 36px 30px;">
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:18px;">
           <div style="font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;">Why am I getting this?</div>
-          <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#9aa3ab;">Someone entered this email to sign in at <a href="https://rigwise.ca" style="color:#c4ccd2;">rigwise.ca</a>. We use one-time links instead of passwords. If this wasn't you, ignore this email — nothing happens.</p>
+          <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:#9aa3ab;">Someone entered this email to sign in at <a href="https://rigwise.ca" style="color:#c4ccd2;">rigwise.ca</a> (RigVise gate credentials). We use one-time codes instead of passwords. If this wasn't you, ignore this email &mdash; nothing happens.</p>
         </div>
       </td></tr>
 
     </table>
 
-    <div style="margin-top:14px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;">RigWise &middot; rigwise.ca &middot; void if shared</div>
+    <div style="margin-top:14px;font-family:'JetBrains Mono',Menlo,Consolas,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#5d666f;">RigVise &middot; rigwise.ca &middot; void if shared</div>
 
   </td></tr>
 </table>

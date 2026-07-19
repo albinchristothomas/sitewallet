@@ -14,7 +14,7 @@ export default function HelpPage() {
           <li>
             <strong>Add the app to your home screen.</strong> Open this site in
             Safari (iPhone) or Chrome (Android). Tap the share icon and choose
-            "Add to Home Screen". After that, RigWise opens like a normal
+            "Add to Home Screen". After that, RigVise opens like a normal
             app.
           </li>
           <li>

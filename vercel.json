@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/eod",
-      "schedule": "30 5 * * *"
+      "schedule": "30 4 * * *"
     }
   ],
   "headers": [

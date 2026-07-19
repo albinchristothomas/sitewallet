@@ -6,7 +6,7 @@ import { faceUrl } from "@/lib/photos";
 import { getExpiryStatus } from "@/lib/credentials";
 import { QrActions } from "./qr-actions";
 
-// RigWise gate id, derived from the worker's uuid. Mono, uppercase, stable.
+// RigVise gate id, derived from the worker's uuid. Mono, uppercase, stable.
 function rigWiseId(uuid: string): string {
   const hex = uuid.replace(/[^0-9a-f]/gi, "").toUpperCase();
   return `RW-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
@@ -93,7 +93,7 @@ export default async function WalletQrPage() {
           marginRight: "auto",
         }}
       >
-        {/* header — back + RIGWISE wordmark */}
+        {/* header — back + RIGVISE wordmark */}
         <div
           style={{
             padding: "16px 28px 0",
@@ -137,7 +137,7 @@ export default async function WalletQrPage() {
             </span>
           </Link>
           <div style={{ fontWeight: 800, fontSize: 15, color: "#eef1f3" }}>
-            RIG<span style={{ color: "#8b949c", fontWeight: 600 }}>WISE</span>
+            RIG<span style={{ color: "#8b949c", fontWeight: 600 }}>VISE</span>
           </div>
         </div>
 

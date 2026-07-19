@@ -82,6 +82,7 @@ export async function markVerified(
 
   const { error } = await supabase.rpc("mark_credential_verified", {
     p_credential_id: credentialId,
+    p_site_id: siteId,
     p_method: "MEDIC_REVIEW",
   });
 

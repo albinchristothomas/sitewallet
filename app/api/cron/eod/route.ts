@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SITE_TZ, siteDayBounds, siteTime, siteToday } from "@/lib/dates";
+import { siteDayBounds, siteReportDay, siteTime } from "@/lib/dates";
 import {
   buildEodEmailHtml,
   type EodCrewRow,
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   const day =
     dayParam && /^\d{4}-\d{2}-\d{2}$/.test(dayParam)
       ? dayParam
-      : siteToday();
+      : siteReportDay();
   const { start, end } = siteDayBounds(day);
 
   const { data: sites, error: sitesErr } = await admin
@@ -218,7 +218,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "RigWise <noreply@rigwise.ca>",
+        from: "RigVise <noreply@rigwise.ca>",
         to: [recipient],
         subject: `Daily Safety Report · ${site.name} · ${dayLabel(day)}`,
         html,

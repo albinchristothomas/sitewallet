@@ -46,7 +46,7 @@ export function AssignMedicForm({ siteId }: { siteId: string }) {
         </p>
       )}
       <p className="mt-2 text-[12px] text-[color:var(--text-faint)]">
-        They must have signed in to RigWise as a medic at least once.
+        They must have signed in to RigVise as a medic at least once.
       </p>
     </form>
   );

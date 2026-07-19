@@ -1,6 +1,6 @@
-# Deploying Rigwise
+# Deploying Rigvise
 
-This walks through getting Rigwise from your laptop to a public HTTPS URL
+This walks through getting Rigvise from your laptop to a public HTTPS URL
 that a medic on a real worksite can use.
 
 ## Prerequisites
@@ -20,7 +20,7 @@ If you haven't done those, do them first.
 Vercel deploys from GitHub. Create a private repo, push this code.
 
 ```sh
-# Inside D:\Projects\rigwise
+# Inside D:\Projects\rigvise
 git status                                 # confirm there are commits
 git remote add origin git@github.com:YOUR_USER/rigwise.git
 git branch -M main
@@ -29,12 +29,12 @@ git push -u origin main
 
 If you've never used GitHub from this machine: install [GitHub
 CLI](https://cli.github.com/) and run `gh auth login`, then
-`gh repo create rigwise --private --source=. --remote=origin --push`.
+`gh repo create rigvise --private --source=. --remote=origin --push`.
 
 ## 2. Create a Vercel project
 
 1. Go to <https://vercel.com> and sign in with the same GitHub account.
-2. **Add New → Project** → pick the `rigwise` repo.
+2. **Add New → Project** → pick the `rigvise` repo.
 3. Framework preset: **Next.js** (auto-detected).
 4. Build command, output directory, install command: **leave default**.
 5. Before clicking Deploy, expand **Environment Variables** and add:
@@ -89,7 +89,7 @@ Open the production URL on your phone. Run through:
 - [ ] Show `/wallet/qr` — QR renders
 - [ ] Add the app to your home screen (iOS Safari: Share → Add to Home Screen;
       Android Chrome: tap "Install app" prompt or use ⋮ menu)
-- [ ] Open from home screen — launches full-screen with the Rigwise icon
+- [ ] Open from home screen — launches full-screen with the Rigvise icon
 - [ ] Create a site at `/admin/sites/new`
 - [ ] Assign yourself as medic
 - [ ] Open `/medic/<siteId>/scan` — camera permission prompt appears
