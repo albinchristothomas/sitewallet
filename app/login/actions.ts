@@ -105,6 +105,8 @@ export async function sendMagicLink(
 
 // STEP 2 — verify the typed 6-digit code. Works on any device/browser (no PKCE
 // cookie needed), so it's the reliable path for non-tech workers.
+// NOTE: Supabase must be set to send 6-digit codes — Dashboard →
+// Authentication → Providers → Email → "Email OTP Length" = 6.
 export async function verifyCode(
   _prev: State,
   formData: FormData,
