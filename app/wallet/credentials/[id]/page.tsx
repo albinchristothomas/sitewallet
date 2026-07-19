@@ -129,7 +129,7 @@ export default async function CredentialDetailPage(
           textTransform: "uppercase",
         }}
       >
-        Tap card to flip · move to tilt
+        Tap card to flip
       </div>
 
       {/* the actual photo of the physical card the worker took */}

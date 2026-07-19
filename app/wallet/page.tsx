@@ -73,9 +73,6 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
   const expiringCount = credentialsList.filter(
     (c) => getExpiryStatus(c.expiry_date) === "expiring_soon",
   ).length;
-  const expiredCount = credentialsList.filter(
-    (c) => getExpiryStatus(c.expiry_date) === "expired",
-  ).length;
 
   const { data: activeSession } = await supabase
     .from("sessions")
@@ -331,34 +328,6 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
               }}
             >
               {expiringCount}
-            </div>
-          </div>
-          <div
-            style={{
-              flex: 1,
-              borderRadius: 9,
-              background: "rgba(239,65,53,0.07)",
-              border: "1px solid rgba(239,65,53,0.25)",
-              padding: "11px 12px",
-            }}
-          >
-            <div
-              className="mono"
-              style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
-            >
-              DEAD
-            </div>
-            <div
-              style={{
-                fontFamily: numFont,
-                fontSize: 26,
-                fontWeight: numWeight,
-                letterSpacing: numLs,
-                color: "#ff9a8f",
-                marginTop: 1,
-              }}
-            >
-              {expiredCount}
             </div>
           </div>
         </div>

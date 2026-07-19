@@ -173,47 +173,20 @@ export function CredentialCard({
     return () => ro.disconnect();
   }, []);
 
-  // Tilt + foil + sheen (desktop pointer). Mirrors the design's _apply().
+  // Static presentation — the tilt-on-move effect was removed by request.
+  // We still set the neutral sheen once so the card keeps its foil finish.
   useEffect(() => {
     if (!interactive) return;
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    let raf = 0;
-    const applyTilt = (tiltX: number, tiltY: number, px: number, py: number) => {
-      const el = card3dRef.current;
-      if (el) {
-        const ry = (flippedRef.current ? 180 : 0) + tiltY;
-        el.style.transform = `rotateX(${tiltX}deg) rotateY(${ry}deg)`;
-      }
-      const sh = sheenRef.current;
-      if (sh) {
-        const x = (px + 0.5) * 100;
-        const y = (py + 0.5) * 100;
-        sh.style.background = `radial-gradient(120% 120% at ${x}% ${y}%, rgba(255,255,255,0.20), rgba(255,255,255,0.05) 28%, transparent 58%)`;
-        sh.style.opacity = Math.abs(px) + Math.abs(py) > 0.02 ? "1" : "0.45";
-      }
-      const fo = foilRef.current;
-      if (fo) {
-        fo.style.transform = `rotate(${px * 50}deg)`;
-        fo.style.filter = `hue-rotate(${px * 140}deg) saturate(1.4)`;
-      }
-    };
-    const onMove = (e: MouseEvent) => {
-      const r = wrap.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => applyTilt(-py * 9, px * 13, px, py));
-    };
-    const onLeave = () => applyTilt(0, 0, 0, 0);
-    wrap.addEventListener("mousemove", onMove);
-    wrap.addEventListener("mouseleave", onLeave);
-    applyTilt(0, 0, 0, 0);
-    return () => {
-      wrap.removeEventListener("mousemove", onMove);
-      wrap.removeEventListener("mouseleave", onLeave);
-      if (raf) cancelAnimationFrame(raf);
-    };
+    const el = card3dRef.current;
+    if (el) {
+      el.style.transform = `rotateX(0deg) rotateY(${flippedRef.current ? 180 : 0}deg)`;
+    }
+    const sh = sheenRef.current;
+    if (sh) {
+      sh.style.background =
+        "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.20), rgba(255,255,255,0.05) 28%, transparent 58%)";
+      sh.style.opacity = "0.45";
+    }
   }, [interactive]);
 
   const flip = () => {
