@@ -1,11 +1,16 @@
 "use client";
 
 import { startTransition, useActionState, useRef, useState } from "react";
-import { addCredential } from "@/app/wallet/actions";
+import {
+  addCredential,
+  addCredentialsBatch,
+  type BatchTicket,
+} from "@/app/wallet/actions";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import {
   CREDENTIAL_TYPES,
+  getCredentialLabel,
   isCompanyOrientation,
   isOtherCredential,
 } from "@/lib/credentials";
@@ -27,6 +32,18 @@ type Prefill = {
   verifyUrl?: string;
 };
 
+// What the AI scan returns per detected card.
+type ScannedTicket = {
+  catalog_value: string | null;
+  custom_name: string | null;
+  holder_name: string | null;
+  issuer: string | null;
+  certificate_number: string | null;
+  issue_date: string | null;
+  expiry_date: string | null;
+  confidence: "high" | "medium" | "low";
+};
+
 // Shared field styling matching the design's dark input boxes.
 const fieldBoxStyle: React.CSSProperties = {
   height: 48,
@@ -40,19 +57,31 @@ const fieldBoxStyle: React.CSSProperties = {
   outline: "none",
 };
 
-export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
+export function AddCredentialForm({
+  prefill,
+  existingTypes = [],
+}: {
+  prefill?: Prefill;
+  existingTypes?: string[];
+}) {
   const [state, action, pending] = useActionState(addCredential, initialState);
   const p = prefill ?? {};
   const [credType, setCredType] = useState<string>(p.type ?? "");
   const [customName, setCustomName] = useState<string>("");
+
+  // Detail fields are controlled so the AI scan can fill them in.
+  const [issuer, setIssuer] = useState<string>(p.issuer ?? "");
+  const [certNumber, setCertNumber] = useState<string>(p.cert ?? "");
+  const [holderName, setHolderName] = useState<string>(p.holder ?? "");
+  const [issueDate, setIssueDate] = useState<string>(p.issue ?? "");
+  const [expiryDate, setExpiryDate] = useState<string>(p.expiry ?? "");
+
   const isOrientation = isCompanyOrientation(credType);
   const isOther = isOtherCredential(credType);
 
-  // What actually gets submitted as the credential type. For "Other", the
-  // worker's typed name becomes the type (custom tickets are always
-  // medic-verified — they can't auto-pass a gate). If the typed name matches a
-  // catalog ticket, use the catalog value instead — typing "H2S Alive" should
-  // be the same ticket as picking it, not a lookalike custom entry.
+  // For "Other", the worker's typed name becomes the type (custom tickets are
+  // always medic-verified — they can't auto-pass a gate). If the typed name
+  // matches a catalog ticket, use the catalog value instead.
   const typedName = customName.trim();
   const catalogMatch = CREDENTIAL_TYPES.find(
     (c) =>
@@ -60,26 +89,60 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       (c.label.toLowerCase() === typedName.toLowerCase() ||
         c.value.toLowerCase() === typedName.toLowerCase()),
   );
-  const submittedType = isOther
-    ? catalogMatch?.value ?? typedName
-    : credType;
+  const submittedType = isOther ? catalogMatch?.value ?? typedName : credType;
 
   // Card photo capture — uploaded to the private "ticket-photos" bucket so the
-  // medic can SEE the actual card at the gate (not just a "VALID" badge).
+  // medic can SEE the actual card at the gate.
   const [cardPath, setCardPath] = useState<string | null>(null);
   const [cardPreview, setCardPreview] = useState<string | null>(null);
   const [cardUploading, setCardUploading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
   const cardInputRef = useRef<HTMLInputElement>(null);
 
+  // AI scan state: after upload, Claude reads the photo and extracts every
+  // ticket it can see. One card → autofill the form. Several cards (a wallet
+  // page) → a pick-list, added in one tap via the batch action.
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState<ScannedTicket[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [scanNote, setScanNote] = useState<string | null>(null);
+  const [batchPending, setBatchPending] = useState(false);
+  const [batchError, setBatchError] = useState<string | null>(null);
+
+  const inWallet = (t: ScannedTicket): boolean => {
+    if (t.catalog_value) return existingTypes.includes(t.catalog_value);
+    const name = (t.custom_name ?? "").trim().toLowerCase();
+    return name.length > 0 &&
+      existingTypes.some((e) => e.trim().toLowerCase() === name);
+  };
+
+  const ticketLabel = (t: ScannedTicket): string =>
+    t.catalog_value
+      ? getCredentialLabel(t.catalog_value)
+      : (t.custom_name ?? "Unknown ticket");
+
+  // Push one scanned ticket into the form fields for review.
+  function applyToForm(t: ScannedTicket) {
+    setCredType(t.catalog_value ?? "OTHER");
+    setCustomName(t.catalog_value ? "" : (t.custom_name ?? ""));
+    if (t.issuer) setIssuer(t.issuer);
+    if (t.certificate_number) setCertNumber(t.certificate_number);
+    if (t.holder_name) setHolderName(t.holder_name);
+    if (t.issue_date) setIssueDate(t.issue_date);
+    if (t.expiry_date) setExpiryDate(t.expiry_date);
+  }
+
   async function onCardFile(file: File) {
     setCardError(null);
+    setScanned([]);
+    setScanNote(null);
     setCardPreview(URL.createObjectURL(file));
     setCardUploading(true);
+    let path: string | null = null;
     try {
       const supabase = createClient();
       const blob = await compressImage(file, 1600); // ~200-400KB JPEG
-      const path = `self/${randomKey()}.jpg`;
+      path = `self/${randomKey()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("ticket-photos")
         .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
@@ -89,9 +152,66 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       setCardError(`Couldn't upload the photo: ${(e as Error).message}`);
       setCardPreview(null);
       setCardPath(null);
-    } finally {
       setCardUploading(false);
+      return;
     }
+    setCardUploading(false);
+
+    // Read the card(s) with AI. Any failure quietly falls back to manual entry.
+    setScanning(true);
+    try {
+      const res = await fetch("/api/extract-ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      const data = res.ok ? await res.json() : { tickets: [] };
+      const tickets: ScannedTicket[] = data.tickets ?? [];
+      if (tickets.length === 1) {
+        applyToForm(tickets[0]);
+        setScanNote(
+          inWallet(tickets[0])
+            ? "Heads up — this ticket looks like it's already in your wallet."
+            : "Details read from your photo — check them and save.",
+        );
+      } else if (tickets.length > 1) {
+        setScanned(tickets);
+        setSelected(
+          new Set(tickets.map((t, i) => (inWallet(t) ? -1 : i)).filter((i) => i >= 0)),
+        );
+      } else {
+        setScanNote("Couldn't read the card — fill in the details below.");
+      }
+    } catch {
+      setScanNote("Couldn't read the card — fill in the details below.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  function submitBatch() {
+    if (!cardPath || selected.size === 0) return;
+    setBatchError(null);
+    setBatchPending(true);
+    const tickets: BatchTicket[] = [...selected]
+      .map((i) => scanned[i])
+      .filter(Boolean)
+      .map((t) => ({
+        credential_type: t.catalog_value ?? (t.custom_name ?? "").trim(),
+        issuer: t.issuer,
+        certificate_number: t.certificate_number,
+        holder_name: t.holder_name,
+        issue_date: t.issue_date,
+        expiry_date: t.expiry_date,
+      }));
+    startTransition(async () => {
+      const res = await addCredentialsBatch(tickets, cardPath);
+      if (res?.error) {
+        setBatchError(res.error);
+        setBatchPending(false);
+      }
+      // On success the action redirects to /wallet.
+    });
   }
 
   return (
@@ -106,8 +226,6 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
       }}
       style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}
     >
-      {/* the selectable list drives this hidden value used by the server action;
-          empty selection is validated server-side in addCredential */}
       <input type="hidden" name="credential_type" value={submittedType} />
       <input type="hidden" name="card_photo_path" value={cardPath ?? ""} />
       {p.verifyUrl && !isOrientation && (
@@ -127,6 +245,309 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
           flexDirection: "column",
         }}
       >
+        {/* ── STEP 1 · PHOTOGRAPH CARD (first + required) ── */}
+        <div style={{ order: -1 }}>
+          <StepHeader n={1} active label="PHOTOGRAPH CARD" />
+          <button
+            type="button"
+            onClick={() => cardInputRef.current?.click()}
+            className="rw-pressable"
+            style={{
+              height: 120,
+              width: "100%",
+              borderRadius: 11,
+              marginTop: 14,
+              position: "relative",
+              overflow: "hidden",
+              border: cardPath
+                ? "1.5px solid rgba(47,200,106,0.5)"
+                : "1.5px dashed rgba(255,255,255,0.16)",
+              background: cardPreview
+                ? "#15191e"
+                : "repeating-linear-gradient(135deg,rgba(255,255,255,0.015) 0 8px,transparent 8px 16px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 9,
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            {cardPreview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cardPreview}
+                alt="card"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            )}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 9,
+                background: cardPreview ? "rgba(13,15,18,0.5)" : "transparent",
+              }}
+            >
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={cardPath ? "#7ff0a8" : "#6b747c"}
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.1em",
+                  color: cardPath ? "#7ff0a8" : "#6b747c",
+                }}
+              >
+                {cardUploading
+                  ? "UPLOADING…"
+                  : scanning
+                    ? "READING YOUR CARD…"
+                    : cardPath
+                      ? "CARD PHOTO ADDED ✓ · TAP TO RETAKE"
+                      : "TAP TO CAPTURE THE PHYSICAL CARD"}
+              </span>
+            </div>
+          </button>
+          <input
+            ref={cardInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onCardFile(f);
+            }}
+          />
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 12,
+              lineHeight: 1.5,
+              color: "#6b747c",
+            }}
+          >
+            Required. Snap the card — the details below fill in automatically.
+            Several cards in one photo works too.
+          </div>
+          {cardError && (
+            <p
+              className="mono"
+              style={{
+                marginTop: 8,
+                fontSize: 11,
+                letterSpacing: "0.04em",
+                color: "#ff9a8f",
+              }}
+            >
+              {cardError}
+            </p>
+          )}
+          {scanNote && (
+            <div
+              className="mono"
+              style={{
+                marginTop: 10,
+                borderRadius: 9,
+                border: "1px solid rgba(47,200,106,0.4)",
+                background: "rgba(47,200,106,0.08)",
+                padding: "9px 12px",
+                fontSize: 10,
+                letterSpacing: "0.06em",
+                lineHeight: 1.6,
+                color: "#7ff0a8",
+              }}
+            >
+              {scanNote.toUpperCase()}
+            </div>
+          )}
+
+          {/* Several tickets detected in one photo → pick and add in one tap */}
+          {scanned.length > 1 && (
+            <div
+              style={{
+                marginTop: 12,
+                borderRadius: 11,
+                border: "1px solid rgba(242,88,28,0.4)",
+                background: "rgba(242,88,28,0.06)",
+                padding: "12px 13px",
+              }}
+            >
+              <div
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  color: "#f2581c",
+                  marginBottom: 10,
+                }}
+              >
+                FOUND {scanned.length} TICKETS IN THIS PHOTO
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {scanned.map((t, i) => {
+                  const already = inWallet(t);
+                  const checked = selected.has(i);
+                  return (
+                    <label
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        borderRadius: 9,
+                        background: "#15191e",
+                        border: checked
+                          ? "1px solid rgba(242,88,28,0.6)"
+                          : "1px solid rgba(255,255,255,0.1)",
+                        padding: "9px 12px",
+                        cursor: "pointer",
+                        opacity: already && !checked ? 0.6 : 1,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          setSelected((s) => {
+                            const n = new Set(s);
+                            if (n.has(i)) n.delete(i);
+                            else n.add(i);
+                            return n;
+                          })
+                        }
+                        style={{
+                          width: 17,
+                          height: 17,
+                          accentColor: "#f2581c",
+                          flex: "none",
+                        }}
+                      />
+                      <span style={{ minWidth: 0, flex: 1 }}>
+                        <span
+                          style={{
+                            display: "block",
+                            fontWeight: 700,
+                            fontSize: 13,
+                            color: "#eef1f3",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {ticketLabel(t)}
+                        </span>
+                        <span
+                          className="mono"
+                          style={{
+                            display: "block",
+                            fontSize: 9,
+                            letterSpacing: "0.06em",
+                            color: "#7a838b",
+                            marginTop: 2,
+                          }}
+                        >
+                          {t.expiry_date
+                            ? `EXPIRES ${t.expiry_date}`
+                            : "NO EXPIRY READ"}
+                        </span>
+                      </span>
+                      {already && (
+                        <span
+                          className="mono"
+                          style={{
+                            flex: "none",
+                            fontSize: 8,
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            color: "#ffd27a",
+                            background: "rgba(242,164,12,0.14)",
+                            borderRadius: 999,
+                            padding: "2px 7px",
+                          }}
+                        >
+                          IN WALLET
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                disabled={batchPending || selected.size === 0 || !cardPath}
+                onClick={submitBatch}
+                className="rw-pressable"
+                style={{
+                  marginTop: 11,
+                  height: 46,
+                  width: "100%",
+                  borderRadius: 9,
+                  background: "#f2581c",
+                  border: "none",
+                  fontWeight: 800,
+                  fontSize: 14,
+                  color: "#0d0f12",
+                  cursor:
+                    batchPending || selected.size === 0 ? "default" : "pointer",
+                  opacity: batchPending || selected.size === 0 ? 0.6 : 1,
+                }}
+              >
+                {batchPending
+                  ? "Adding…"
+                  : `Add ${selected.size} ticket${selected.size === 1 ? "" : "s"} to wallet`}
+              </button>
+              {batchError && (
+                <p
+                  className="mono"
+                  style={{
+                    marginTop: 8,
+                    fontSize: 10,
+                    color: "#ff9a8f",
+                  }}
+                >
+                  {batchError}
+                </p>
+              )}
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  lineHeight: 1.5,
+                  color: "#6b747c",
+                }}
+              >
+                Or untick everything and fill the form below to add one at a
+                time.
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* ── STEP 2 · CREDENTIAL TYPE ── */}
         <StepHeader n={2} label="CREDENTIAL TYPE" />
         <div style={{ marginTop: 14 }}>
@@ -139,22 +560,20 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
 
         {/* Other → type the real ticket name */}
         {isOther && (
-          <>
-            <DetailField
-              label="TICKET NAME"
+          <DetailField
+            label="TICKET NAME"
+            required
+            hint="Type the exact name printed on the card. A medic will confirm it by eye at the gate — custom tickets are never auto-passed."
+          >
+            <input
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              type="text"
               required
-              hint="Type the exact name printed on the card. A medic will confirm it by eye at the gate — custom tickets are never auto-passed."
-            >
-              <input
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                type="text"
-                required
-                placeholder="e.g. Boom Truck Operator"
-                style={fieldBoxStyle}
-              />
-            </DetailField>
-          </>
+              placeholder="e.g. Boom Truck Operator"
+              style={fieldBoxStyle}
+            />
+          </DetailField>
         )}
 
         {/* ── ISSUER / CARD DETAILS ── */}
@@ -185,7 +604,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
                 name="issuer"
                 type="text"
                 required
-                defaultValue={p.issuer ?? ""}
+                value={issuer}
+                onChange={(e) => setIssuer(e.target.value)}
                 placeholder="e.g. Tourmaline Oil Corp"
                 style={fieldBoxStyle}
               />
@@ -198,7 +618,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
                 id="issuer"
                 name="issuer"
                 type="text"
-                defaultValue={p.issuer ?? ""}
+                value={issuer}
+                onChange={(e) => setIssuer(e.target.value)}
                 placeholder="e.g. Energy Safety Canada"
                 style={fieldBoxStyle}
               />
@@ -209,7 +630,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
                 id="certificate_number"
                 name="certificate_number"
                 type="text"
-                defaultValue={p.cert ?? ""}
+                value={certNumber}
+                onChange={(e) => setCertNumber(e.target.value)}
                 placeholder="ESC-2024-118-44210"
                 className="mono"
                 style={{ ...fieldBoxStyle, fontSize: 14 }}
@@ -239,135 +661,14 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
                 id="holder_name"
                 name="holder_name"
                 type="text"
-                defaultValue={p.holder ?? ""}
+                value={holderName}
+                onChange={(e) => setHolderName(e.target.value)}
                 placeholder="Full name on the ticket"
                 style={fieldBoxStyle}
               />
             </DetailField>
           </>
         )}
-
-        {/* ── STEP 1 · PHOTOGRAPH CARD (first + required; order:-1 floats it
-            to the top of the flex column without reordering the DOM) ── */}
-        <div style={{ order: -1 }}>
-        <StepHeader n={1} active label="PHOTOGRAPH CARD" />
-        <button
-          type="button"
-          onClick={() => cardInputRef.current?.click()}
-          className="rw-pressable"
-          style={{
-            height: 120,
-            width: "100%",
-            borderRadius: 11,
-            marginTop: 14,
-            position: "relative",
-            overflow: "hidden",
-            border: cardPath
-              ? "1.5px solid rgba(47,200,106,0.5)"
-              : "1.5px dashed rgba(255,255,255,0.16)",
-            background: cardPreview
-              ? "#15191e"
-              : "repeating-linear-gradient(135deg,rgba(255,255,255,0.015) 0 8px,transparent 8px 16px)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 9,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          {cardPreview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cardPreview}
-              alt="card"
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          )}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 9,
-              background: cardPreview ? "rgba(13,15,18,0.5)" : "transparent",
-            }}
-          >
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke={cardPath ? "#7ff0a8" : "#6b747c"}
-              strokeWidth="1.7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
-              <circle cx="12" cy="13" r="3.5" />
-            </svg>
-            <span
-              className="mono"
-              style={{
-                fontSize: 10,
-                letterSpacing: "0.1em",
-                color: cardPath ? "#7ff0a8" : "#6b747c",
-              }}
-            >
-              {cardUploading
-                ? "UPLOADING…"
-                : cardPath
-                  ? "CARD PHOTO ADDED ✓ · TAP TO RETAKE"
-                  : "TAP TO CAPTURE THE PHYSICAL CARD"}
-            </span>
-          </div>
-        </button>
-        <input
-          ref={cardInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) onCardFile(f);
-          }}
-        />
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: 12,
-            lineHeight: 1.5,
-            color: "#6b747c",
-          }}
-        >
-          Required. The medic has to see the actual card at the gate — snap a
-          clear photo of the front before you fill in the rest.
-        </div>
-        {cardError && (
-          <p
-            className="mono"
-            style={{
-              marginTop: 8,
-              fontSize: 11,
-              letterSpacing: "0.04em",
-              color: "#ff9a8f",
-            }}
-          >
-            {cardError}
-          </p>
-        )}
-        </div>
 
         {/* ── STEP 3 · CONFIRM DATES ── */}
         <StepHeader n={3} label="CONFIRM DATES" />
@@ -389,7 +690,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
               name="issue_date"
               type="date"
               required={isOrientation}
-              defaultValue={p.issue ?? ""}
+              value={issueDate}
+              onChange={(e) => setIssueDate(e.target.value)}
               className="mono"
               style={{ ...fieldBoxStyle, fontSize: 14, colorScheme: "dark" }}
             />
@@ -413,7 +715,8 @@ export function AddCredentialForm({ prefill }: { prefill?: Prefill }) {
               // Catalog safety tickets always carry an expiry; only "Other"
               // custom entries may legitimately have none.
               required={!isOther}
-              defaultValue={p.expiry ?? ""}
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
               className="mono"
               style={{
                 ...fieldBoxStyle,

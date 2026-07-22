@@ -88,3 +88,60 @@ export async function addCredential(
   revalidatePath("/wallet");
   redirect(`/wallet?saved=${encodeURIComponent(credentialType)}`);
 }
+
+export type BatchTicket = {
+  credential_type: string;
+  issuer: string | null;
+  certificate_number: string | null;
+  holder_name: string | null;
+  issue_date: string | null;
+  expiry_date: string | null;
+};
+
+// Save several tickets detected in ONE card photo (a wallet-page shot can show
+// 2-3 cards). All rows share the same photo and are UNVERIFIED — the medic
+// still confirms each one at the gate.
+export async function addCredentialsBatch(
+  tickets: BatchTicket[],
+  cardPhotoPath: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const photo = cardPhotoPath.trim();
+  if (!photo || /^https?:\/\//i.test(photo) || photo.includes("..")) {
+    return { error: "Add a photo of the cards before saving." };
+  }
+
+  const isoRe = /^\d{4}-\d{2}-\d{2}$/;
+  const rows = tickets
+    .map((t) => ({
+      worker_id: user.id,
+      credential_type: String(t.credential_type ?? "").trim(),
+      issuer: t.issuer?.trim() || null,
+      certificate_number: t.certificate_number?.trim() || null,
+      holder_name: t.holder_name?.trim() || null,
+      issue_date: t.issue_date && isoRe.test(t.issue_date) ? t.issue_date : null,
+      expiry_date:
+        t.expiry_date && isoRe.test(t.expiry_date) ? t.expiry_date : null,
+      photo_url: photo,
+      verification_status: "UNVERIFIED" as const,
+    }))
+    .filter((r) => r.credential_type && r.credential_type !== "OTHER");
+
+  if (rows.length === 0) {
+    return { error: "Nothing selected to add." };
+  }
+  if (rows.length > 10) {
+    return { error: "Too many tickets at once — add up to 10." };
+  }
+
+  const { error } = await supabase.from("credentials").insert(rows);
+  if (error) return { error: error.message };
+
+  revalidatePath("/wallet");
+  redirect(`/wallet?saved=${rows.length}+tickets`);
+}

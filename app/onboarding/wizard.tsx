@@ -112,8 +112,6 @@ export function OnboardingWizard({
       if (!state.full_name.trim()) return "Enter your full name.";
       if (!state.contractor_company.trim())
         return "Which company do you work for?";
-      if (!state.current_worksite.trim())
-        return "Which site are you going to?";
     }
     if (step === "you") {
       if (!state.full_name.trim()) return "Enter your full legal name.";
@@ -716,7 +714,7 @@ function WorkerDetailsStep({
       <StepHeader
         eyebrow="Your details"
         title="Quick setup."
-        body="Three things and you're in. You can add more to your profile later."
+        body="Two things and you're in. The gate knows which site you're at — no need to tell us."
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
@@ -725,6 +723,7 @@ function WorkerDetailsStep({
           onChange={update("full_name")}
           placeholder="Albin Christo Thomas"
           autoFocus
+          hint="Use the same name printed on your safety tickets."
         />
         <Field
           label="Company you work for"
@@ -732,21 +731,6 @@ function WorkerDetailsStep({
           onChange={update("contractor_company")}
           placeholder="Trican Well Service"
           hint="The employer or contractor you represent on site."
-        />
-        <Field
-          label="Site you're going to"
-          value={state.current_worksite}
-          onChange={update("current_worksite")}
-          placeholder="e.g. Tourmaline N144"
-          hint="The rig or wellsite for this rotation. You can change it when you move."
-        />
-        <Field
-          label="Phone"
-          value={state.phone}
-          onChange={update("phone")}
-          placeholder="403-555-0123"
-          type="tel"
-          optional
         />
       </div>
     </>

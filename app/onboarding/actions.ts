@@ -70,7 +70,7 @@ export async function completeOnboarding(payload: OnboardingPayload) {
   // Minimal required set. Worker: name + who they work for + where they're
   // going. Phone/license/emergency are optional now (face is not required).
   const required: Record<AccountType, string[]> = {
-    WORKER: ["full_name", "contractor_company", "current_worksite"],
+    WORKER: ["full_name", "contractor_company"],
     MEDIC: ["full_name", "medic_firm", "medic_license_number"],
   };
 
