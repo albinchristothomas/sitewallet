@@ -474,6 +474,8 @@ function TicketTile({
 }) {
   const [open, setOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // No capture= → opens the gallery; workers often already have card photos.
+  const galleryRef = useRef<HTMLInputElement>(null);
   const isOther = isOtherCredential(ticket.credential_type);
   const shortLabel = (
     isOther && ticket.custom_name.trim()
@@ -592,29 +594,50 @@ function TicketTile({
             />
           )}
 
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="mono rw-pressable"
-            style={{
-              width: "100%",
-              height: "34px",
-              borderRadius: "7px",
-              background: "#0d0f12",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: ticket.photo_path ? "#7ff0a8" : "#c4ccd2",
-              fontSize: "10px",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-            }}
-          >
-            {ticket.uploading
-              ? "Uploading…"
-              : ticket.photo_path
-                ? "Photo attached ✓"
-                : "Snap card"}
-          </button>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="mono rw-pressable"
+              style={{
+                flex: 1,
+                height: "34px",
+                borderRadius: "7px",
+                background: "#0d0f12",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: ticket.photo_path ? "#7ff0a8" : "#c4ccd2",
+                fontSize: "10px",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+              }}
+            >
+              {ticket.uploading
+                ? "Uploading…"
+                : ticket.photo_path
+                  ? "Photo ✓"
+                  : "Snap"}
+            </button>
+            <button
+              type="button"
+              onClick={() => galleryRef.current?.click()}
+              className="mono rw-pressable"
+              style={{
+                flex: 1,
+                height: "34px",
+                borderRadius: "7px",
+                background: "#0d0f12",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "#c4ccd2",
+                fontSize: "10px",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+              }}
+            >
+              Upload
+            </button>
+          </div>
           <input
             ref={fileRef}
             type="file"
@@ -624,6 +647,18 @@ function TicketTile({
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) onPhoto(f);
+              e.target.value = "";
+            }}
+          />
+          <input
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onPhoto(f);
+              e.target.value = "";
             }}
           />
 

@@ -110,6 +110,10 @@ export function AddCredentialForm({
   const [batchPending, setBatchPending] = useState(false);
   const [batchError, setBatchError] = useState<string | null>(null);
 
+  // Second input WITHOUT capture= so it opens the gallery/file picker —
+  // workers often already have ticket photos in WhatsApp or their gallery.
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
   // "Validation code" is jargon most workers don't have — keep it tucked away.
   const [showMore, setShowMore] = useState(false);
 
@@ -344,8 +348,97 @@ export function AddCredentialForm({
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) onCardFile(f);
+              e.target.value = "";
             }}
           />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onCardFile(f);
+              e.target.value = "";
+            }}
+          />
+
+          {/* two clear paths: take a photo now, or use one you already have */}
+          <div style={{ display: "flex", gap: 9, marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={() => cardInputRef.current?.click()}
+              className="mono rw-pressable"
+              style={{
+                flex: 1,
+                height: 46,
+                borderRadius: 9,
+                background: "#15191e",
+                border: "1px solid rgba(255,255,255,0.14)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                color: "#eef1f3",
+                cursor: "pointer",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f2581c"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+              SNAP WITH CAMERA
+            </button>
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="mono rw-pressable"
+              style={{
+                flex: 1,
+                height: 46,
+                borderRadius: 9,
+                background: "#15191e",
+                border: "1px solid rgba(255,255,255,0.14)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                color: "#eef1f3",
+                cursor: "pointer",
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f2581c"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              UPLOAD A PHOTO
+            </button>
+          </div>
           <div
             style={{
               marginTop: 8,
@@ -354,8 +447,9 @@ export function AddCredentialForm({
               color: "#6b747c",
             }}
           >
-            Required. Snap the card — the details below fill in automatically.
-            Several cards in one photo works too.
+            Required. Snap the card now, or upload a photo you already have —
+            the details below fill in automatically. Several cards in one photo
+            works too.
           </div>
           {cardError && (
             <p
