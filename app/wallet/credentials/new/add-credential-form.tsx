@@ -165,7 +165,9 @@ export function AddCredentialForm({
     }
     setCardUploading(false);
 
-    // Read the card(s) with AI. Any failure quietly falls back to manual entry.
+    // Read the card(s) with AI. Any failure quietly falls back to manual
+    // entry — but say WHICH failure, so "the key isn't configured" doesn't
+    // masquerade as "your photo was unreadable".
     setScanning(true);
     try {
       const res = await fetch("/api/extract-ticket", {
@@ -173,7 +175,13 @@ export function AddCredentialForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
-      const data = res.ok ? await res.json() : { tickets: [] };
+      if (res.status === 503) {
+        setScanNote(
+          "Auto-read isn't switched on yet (setup pending) — fill in the details below.",
+        );
+        return;
+      }
+      const data = res.ok ? await res.json() : { tickets: [], error: "http" };
       const tickets: ScannedTicket[] = data.tickets ?? [];
       if (tickets.length === 1) {
         applyToForm(tickets[0]);
@@ -187,11 +195,17 @@ export function AddCredentialForm({
         setSelected(
           new Set(tickets.map((t, i) => (inWallet(t) ? -1 : i)).filter((i) => i >= 0)),
         );
+      } else if (data.error) {
+        setScanNote(
+          "The scan hit a problem — fill in the details below and try again later.",
+        );
       } else {
-        setScanNote("Couldn't read the card — fill in the details below.");
+        setScanNote(
+          "Couldn't make out a ticket in that photo — try a closer, straighter shot, or fill in below.",
+        );
       }
     } catch {
-      setScanNote("Couldn't read the card — fill in the details below.");
+      setScanNote("The scan hit a problem — fill in the details below.");
     } finally {
       setScanning(false);
     }
