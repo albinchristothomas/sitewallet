@@ -15,6 +15,7 @@ import {
   isOtherCredential,
 } from "@/lib/credentials";
 import { CredentialPicker } from "@/lib/credential-picker";
+import { DateField } from "@/lib/date-field";
 
 function randomKey() {
   return Math.random().toString(36).slice(2);
@@ -108,6 +109,9 @@ export function AddCredentialForm({
   const [scanNote, setScanNote] = useState<string | null>(null);
   const [batchPending, setBatchPending] = useState(false);
   const [batchError, setBatchError] = useState<string | null>(null);
+
+  // "Validation code" is jargon most workers don't have — keep it tucked away.
+  const [showMore, setShowMore] = useState(false);
 
   const inWallet = (t: ScannedTicket): boolean => {
     if (t.catalog_value) return existingTypes.includes(t.catalog_value);
@@ -548,8 +552,8 @@ export function AddCredentialForm({
           )}
         </div>
 
-        {/* ── STEP 2 · CREDENTIAL TYPE ── */}
-        <StepHeader n={2} label="CREDENTIAL TYPE" />
+        {/* ── STEP 2 · WHICH TICKET ── */}
+        <StepHeader n={2} label="WHICH TICKET" />
         <div style={{ marginTop: 14 }}>
           <CredentialPicker
             value={credType}
@@ -613,7 +617,10 @@ export function AddCredentialForm({
           </>
         ) : (
           <>
-            <DetailField label="ISSUER">
+            <DetailField
+              label="WHO GAVE THE TRAINING"
+              hint="The company on the card — e.g. Energy Safety Canada, Trican, Red Cross."
+            >
               <input
                 id="issuer"
                 name="issuer"
@@ -625,7 +632,7 @@ export function AddCredentialForm({
               />
             </DetailField>
 
-            <DetailField label="CERTIFICATE NUMBER">
+            <DetailField label="CERT NUMBER (IF PRINTED ON THE CARD)">
               <input
                 id="certificate_number"
                 name="certificate_number"
@@ -635,24 +642,6 @@ export function AddCredentialForm({
                 placeholder="ESC-2024-118-44210"
                 className="mono"
                 style={{ ...fieldBoxStyle, fontSize: 14 }}
-              />
-            </DetailField>
-
-            <DetailField
-              label="VALIDATION CODE"
-              hint="On Energy Safety Canada cards, this is the long code printed under the QR. Other cards may not have one — leave blank if so."
-            >
-              <input
-                id="validation_code"
-                name="validation_code"
-                type="text"
-                placeholder="R8LQ3-TVNJ7-9JXGZ-0YGQG"
-                className="mono"
-                style={{
-                  ...fieldBoxStyle,
-                  fontSize: 14,
-                  letterSpacing: "0.1em",
-                }}
               />
             </DetailField>
 
@@ -667,65 +656,93 @@ export function AddCredentialForm({
                 style={fieldBoxStyle}
               />
             </DetailField>
+
+            {/* jargon lives behind a toggle — most workers never need it */}
+            {!showMore ? (
+              <button
+                type="button"
+                onClick={() => setShowMore(true)}
+                className="mono"
+                style={{
+                  marginTop: 14,
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  fontSize: 10,
+                  letterSpacing: "0.1em",
+                  color: "#6b747c",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+              >
+                + MORE DETAILS (OPTIONAL)
+              </button>
+            ) : (
+              <DetailField
+                label="VALIDATION CODE"
+                hint="Only on some cards — the long code printed under the QR. Leave blank if you don't see one."
+              >
+                <input
+                  id="validation_code"
+                  name="validation_code"
+                  type="text"
+                  placeholder="R8LQ3-TVNJ7-9JXGZ-0YGQG"
+                  className="mono"
+                  style={{
+                    ...fieldBoxStyle,
+                    fontSize: 14,
+                    letterSpacing: "0.1em",
+                  }}
+                />
+              </DetailField>
+            )}
           </>
         )}
 
-        {/* ── STEP 3 · CONFIRM DATES ── */}
-        <StepHeader n={3} label="CONFIRM DATES" />
-        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-          <div style={{ flex: 1 }}>
-            <div
-              className="mono"
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.12em",
-                color: "#5d666f",
-                marginBottom: 7,
-              }}
-            >
-              ISSUED
-            </div>
-            <input
-              id="issue_date"
-              name="issue_date"
-              type="date"
-              required={isOrientation}
-              value={issueDate}
-              onChange={(e) => setIssueDate(e.target.value)}
-              className="mono"
-              style={{ ...fieldBoxStyle, fontSize: 14, colorScheme: "dark" }}
-            />
+        {/* ── STEP 3 · DATES ON THE CARD (typed, not a calendar widget —
+            copying "29 03 2027" off a card is 6 keystrokes) ── */}
+        <StepHeader n={3} label="DATES ON THE CARD" />
+        <input type="hidden" name="issue_date" value={issueDate} />
+        <input type="hidden" name="expiry_date" value={expiryDate} />
+        <div style={{ marginTop: 14 }}>
+          <div
+            className="mono"
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              color: "#5d666f",
+              marginBottom: 7,
+            }}
+          >
+            EXPIRES{!isOther && <span style={{ color: "#ef4135" }}> *</span>}
+            <span style={{ color: "#3a3f45" }}>
+              {"  "}· TYPE IT LIKE ON THE CARD
+            </span>
           </div>
-          <div style={{ flex: 1 }}>
-            <div
-              className="mono"
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.12em",
-                color: "#5d666f",
-                marginBottom: 7,
-              }}
-            >
-              EXPIRES
-            </div>
-            <input
-              id="expiry_date"
-              name="expiry_date"
-              type="date"
-              // Catalog safety tickets always carry an expiry; only "Other"
-              // custom entries may legitimately have none.
-              required={!isOther}
-              value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
-              className="mono"
-              style={{
-                ...fieldBoxStyle,
-                fontSize: 14,
-                color: "#7ff0a8",
-                colorScheme: "dark",
-              }}
-            />
+          <DateField
+            value={expiryDate}
+            onChange={setExpiryDate}
+            accentColor="#7ff0a8"
+          />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <div
+            className="mono"
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              color: "#5d666f",
+              marginBottom: 7,
+            }}
+          >
+            ISSUED / COMPLETED
+            {isOrientation ? (
+              <span style={{ color: "#ef4135" }}> *</span>
+            ) : (
+              <span style={{ color: "#3a3f45" }}> · OPTIONAL</span>
+            )}
           </div>
+          <DateField value={issueDate} onChange={setIssueDate} />
         </div>
 
         {state.error && (
@@ -750,42 +767,55 @@ export function AddCredentialForm({
           background: "linear-gradient(0deg,#0d0f12 60%,transparent)",
         }}
       >
-        <button
-          type="submit"
-          disabled={pending || cardUploading || !cardPath || !submittedType}
-          style={{
-            height: 54,
-            width: "100%",
-            borderRadius: 9,
-            background: "#f2581c",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 9,
-            boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
-            border: "none",
-            cursor:
-              pending || cardUploading || !cardPath || !submittedType
-                ? "default"
-                : "pointer",
-            opacity:
-              pending || cardUploading || !cardPath || !submittedType ? 0.6 : 1,
-          }}
-        >
-          <span style={{ fontWeight: 800, fontSize: 15, color: "#0d0f12" }}>
-            {cardUploading
-              ? "Photo uploading…"
-              : !cardPath
-                ? "Photograph the card first"
-                : !submittedType
-                  ? isOther
-                    ? "Type the ticket name"
-                    : "Choose your ticket"
-                  : pending
-                    ? "Adding…"
-                    : "Add to wallet"}
-          </span>
-        </button>
+        {(() => {
+          const expiryMissing = !isOther && !expiryDate;
+          const issuedMissing = isOrientation && !issueDate;
+          const blocked =
+            pending ||
+            cardUploading ||
+            !cardPath ||
+            !submittedType ||
+            expiryMissing ||
+            issuedMissing;
+          return (
+            <button
+              type="submit"
+              disabled={blocked}
+              style={{
+                height: 54,
+                width: "100%",
+                borderRadius: 9,
+                background: "#f2581c",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 9,
+                boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+                border: "none",
+                cursor: blocked ? "default" : "pointer",
+                opacity: blocked ? 0.6 : 1,
+              }}
+            >
+              <span style={{ fontWeight: 800, fontSize: 15, color: "#0d0f12" }}>
+                {cardUploading
+                  ? "Photo uploading…"
+                  : !cardPath
+                    ? "Photograph the card first"
+                    : !submittedType
+                      ? isOther
+                        ? "Type the ticket name"
+                        : "Choose your ticket"
+                      : expiryMissing
+                        ? "Type the expiry date"
+                        : issuedMissing
+                          ? "Type the start date"
+                          : pending
+                            ? "Adding…"
+                            : "Add to wallet"}
+              </span>
+            </button>
+          );
+        })()}
         <div
           className="mono"
           style={{
