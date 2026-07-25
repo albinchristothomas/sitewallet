@@ -65,13 +65,15 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
 
   const credentialsList = credentials ?? [];
 
-  // No-expiry tickets count as VALID so the stat tiles add up to TOTAL.
+  // Tiles must add up: TOTAL = VALID + EXPIRED. "Valid" means usable today
+  // (including no-expiry and expiring-soon — those still get you through the
+  // gate); per-card pills show the expiring-soon warning.
   const validCount = credentialsList.filter((c) => {
     const s = getExpiryStatus(c.expiry_date);
-    return s === "valid" || s === "no_expiry";
+    return s === "valid" || s === "no_expiry" || s === "expiring_soon";
   }).length;
-  const expiringCount = credentialsList.filter(
-    (c) => getExpiryStatus(c.expiry_date) === "expiring_soon",
+  const expiredCount = credentialsList.filter(
+    (c) => getExpiryStatus(c.expiry_date) === "expired",
   ).length;
 
   const { data: activeSession } = await supabase
@@ -306,8 +308,8 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
             style={{
               flex: 1,
               borderRadius: 9,
-              background: "rgba(242,164,12,0.07)",
-              border: "1px solid rgba(242,164,12,0.25)",
+              background: "rgba(239,65,53,0.07)",
+              border: "1px solid rgba(239,65,53,0.25)",
               padding: "11px 12px",
             }}
           >
@@ -315,7 +317,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
               className="mono"
               style={{ fontSize: 9, letterSpacing: "0.1em", color: "#5d666f" }}
             >
-              EXP
+              EXPIRED
             </div>
             <div
               style={{
@@ -323,11 +325,11 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                 fontSize: 26,
                 fontWeight: numWeight,
                 letterSpacing: numLs,
-                color: "#ffd27a",
+                color: "#ff9a8f",
                 marginTop: 1,
               }}
             >
-              {expiringCount}
+              {expiredCount}
             </div>
           </div>
         </div>

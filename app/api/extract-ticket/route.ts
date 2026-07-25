@@ -22,6 +22,7 @@ type ExtractedTicket = {
   issue_date: string | null;
   expiry_date: string | null;
   confidence: "high" | "medium" | "low";
+  bbox: { x: number; y: number; width: number; height: number } | null;
 };
 
 const CATALOG_LINES = CREDENTIAL_TYPES.filter((c) => !c.isOther)
@@ -39,6 +40,7 @@ ${CATALOG_LINES}
 - certificate_number: only if a certificate/registration number is clearly printed; never invent one.
 - issue_date / expiry_date: ISO YYYY-MM-DD, from "Completed"/"Issued" and "Expires" text; null if not printed. If only month+year, use day 01.
 - confidence: high when the text is clearly legible, medium when partially legible, low when guessing.
+- bbox: the pixel bounding box of THIS card's rectangle within the image — {x, y, width, height} with x,y the top-left corner in pixels of the image as provided. Cover the full card face tightly. null only if you cannot locate the card's outline.
 
 Rules: never invent data — null beats a guess. A card's title (e.g. "TRICAN DEFENSIVE DRIVING COURSE") that doesn't match the catalog goes in custom_name verbatim. Ignore non-ticket content in the photo.`;
 
@@ -58,6 +60,22 @@ const SCHEMA = {
           issue_date: { type: ["string", "null"] },
           expiry_date: { type: ["string", "null"] },
           confidence: { type: "string", enum: ["high", "medium", "low"] },
+          bbox: {
+            anyOf: [
+              {
+                type: "object" as const,
+                properties: {
+                  x: { type: "integer" },
+                  y: { type: "integer" },
+                  width: { type: "integer" },
+                  height: { type: "integer" },
+                },
+                required: ["x", "y", "width", "height"],
+                additionalProperties: false,
+              },
+              { type: "null" as const },
+            ],
+          },
         },
         required: [
           "catalog_value",
@@ -68,6 +86,7 @@ const SCHEMA = {
           "issue_date",
           "expiry_date",
           "confidence",
+          "bbox",
         ],
         additionalProperties: false,
       },
@@ -171,6 +190,20 @@ export async function POST(request: NextRequest) {
 
     // Server-side sanity: catalog values must be real; dates must look ISO.
     const isoRe = /^\d{4}-\d{2}-\d{2}$/;
+    const saneBox = (
+      b: ExtractedTicket["bbox"],
+    ): ExtractedTicket["bbox"] => {
+      if (!b) return null;
+      const { x, y, width, height } = b;
+      if (
+        [x, y, width, height].some((n) => !Number.isFinite(n) || n < 0) ||
+        width < 40 ||
+        height < 25
+      ) {
+        return null;
+      }
+      return { x, y, width, height };
+    };
     const tickets = (parsed.tickets ?? [])
       .map((t) => ({
         ...t,
@@ -181,6 +214,7 @@ export async function POST(request: NextRequest) {
         issue_date: t.issue_date && isoRe.test(t.issue_date) ? t.issue_date : null,
         expiry_date:
           t.expiry_date && isoRe.test(t.expiry_date) ? t.expiry_date : null,
+        bbox: saneBox(t.bbox),
       }))
       // Drop entries with neither a catalog match nor a readable name.
       .filter((t) => t.catalog_value || (t.custom_name ?? "").trim().length > 1);

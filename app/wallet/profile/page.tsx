@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Eyebrow } from "@/lib/atoms";
+import { Eyebrow, getInitials } from "@/lib/atoms";
+import { faceUrl } from "@/lib/photos";
+import { GeneratedAvatar } from "@/lib/avatar-gen";
 import { ProfileForm } from "./profile-form";
+import { ProfilePhoto } from "./profile-photo";
 
 export default async function WorkerProfilePage(
   props: PageProps<"/wallet/profile">,
@@ -19,10 +22,12 @@ export default async function WorkerProfilePage(
   const { data: worker } = await supabase
     .from("workers")
     .select(
-      "full_name, phone, employee_number, contractor_company, account_type",
+      "full_name, phone, employee_number, contractor_company, account_type, photo_url",
     )
     .eq("id", user.id)
     .single();
+
+  const photo = await faceUrl(worker?.photo_url);
 
   // Only workers should be here. If a medic somehow lands here, push them home.
   if (worker?.account_type && worker.account_type !== "WORKER") {
@@ -51,6 +56,26 @@ export default async function WorkerProfilePage(
           ✓ Saved.
         </div>
       )}
+
+      <ProfilePhoto
+        hasPhoto={Boolean(photo)}
+        avatar={
+          photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photo}
+              alt={worker?.full_name ?? "You"}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <GeneratedAvatar
+              seed={user.id}
+              initials={getInitials(worker?.full_name)}
+              size={62}
+            />
+          )
+        }
+      />
 
       <div className="mt-6">
         <ProfileForm

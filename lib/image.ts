@@ -33,6 +33,43 @@ function imageToCanvas(file: File, maxDim: number): Promise<HTMLCanvasElement> {
   });
 }
 
+export type CropBox = { x: number; y: number; width: number; height: number };
+
+/**
+ * Cut one card's rectangle out of a (already-compressed) photo. Used when a
+ * wallet-page photo contains several cards: the AI returns each card's pixel
+ * bounding box, and every saved ticket gets its OWN cropped picture instead of
+ * the whole page. A small padding margin keeps card edges readable. Returns
+ * null on any failure so callers fall back to the full photo.
+ */
+export async function cropImage(
+  source: Blob,
+  box: CropBox,
+  quality = 0.85,
+): Promise<Blob | null> {
+  try {
+    const bmp = await createImageBitmap(source);
+    const pad = Math.round(Math.max(box.width, box.height) * 0.03);
+    const x = Math.max(0, Math.floor(box.x) - pad);
+    const y = Math.max(0, Math.floor(box.y) - pad);
+    const w = Math.min(bmp.width - x, Math.ceil(box.width) + pad * 2);
+    const h = Math.min(bmp.height - y, Math.ceil(box.height) + pad * 2);
+    // Reject nonsense boxes (too small to be a card, or outside the image).
+    if (w < 60 || h < 40) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bmp, x, y, w, h, 0, 0, w, h);
+    return await new Promise<Blob | null>((res) =>
+      canvas.toBlob((b) => res(b), "image/jpeg", quality),
+    );
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Downscale `file` so its longest edge ≤ maxDim, re-encode as JPEG at `quality`.
  * Falls back to the original file if anything goes wrong (non-image, decode

@@ -129,7 +129,7 @@ export default async function CredentialDetailPage(
           textTransform: "uppercase",
         }}
       >
-        Tap card to flip
+        {state === "expired" ? "Expired — renew this ticket" : "Tap card to flip"}
       </div>
 
       {/* the actual photo of the physical card the worker took */}

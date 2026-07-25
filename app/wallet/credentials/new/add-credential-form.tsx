@@ -7,7 +7,8 @@ import {
   type BatchTicket,
 } from "@/app/wallet/actions";
 import { createClient } from "@/lib/supabase/client";
-import { compressImage } from "@/lib/image";
+import { compressImage, cropImage, type CropBox } from "@/lib/image";
+import { ProgressBar } from "@/lib/progress-bar";
 import {
   CREDENTIAL_TYPES,
   getCredentialLabel,
@@ -43,6 +44,7 @@ type ScannedTicket = {
   issue_date: string | null;
   expiry_date: string | null;
   confidence: "high" | "medium" | "low";
+  bbox: CropBox | null;
 };
 
 // Shared field styling matching the design's dark input boxes.
@@ -99,6 +101,9 @@ export function AddCredentialForm({
   const [cardUploading, setCardUploading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
   const cardInputRef = useRef<HTMLInputElement>(null);
+  // The compressed photo stays in memory so multi-card batches can crop each
+  // card's own rectangle out of it before upload.
+  const cardBlobRef = useRef<Blob | null>(null);
 
   // AI scan state: after upload, Claude reads the photo and extracts every
   // ticket it can see. One card → autofill the form. Several cards (a wallet
@@ -150,6 +155,7 @@ export function AddCredentialForm({
     try {
       const supabase = createClient();
       const blob = await compressImage(file, 1600); // ~200-400KB JPEG
+      cardBlobRef.current = blob;
       path = `self/${randomKey()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("ticket-photos")
@@ -211,21 +217,43 @@ export function AddCredentialForm({
     }
   }
 
-  function submitBatch() {
+  async function submitBatch() {
     if (!cardPath || selected.size === 0) return;
     setBatchError(null);
     setBatchPending(true);
-    const tickets: BatchTicket[] = [...selected]
-      .map((i) => scanned[i])
-      .filter(Boolean)
-      .map((t) => ({
+
+    // Each card gets its OWN cropped picture cut from the wallet-page photo
+    // (when the AI located its rectangle). Fallback: the full photo.
+    const supabase = createClient();
+    const chosen = [...selected].map((i) => scanned[i]).filter(Boolean);
+    const tickets: BatchTicket[] = [];
+    for (const t of chosen) {
+      let photoPath: string | null = null;
+      if (t.bbox && cardBlobRef.current) {
+        try {
+          const crop = await cropImage(cardBlobRef.current, t.bbox);
+          if (crop) {
+            const p = `self/${randomKey()}.jpg`;
+            const { error: upErr } = await supabase.storage
+              .from("ticket-photos")
+              .upload(p, crop, { upsert: false, contentType: "image/jpeg" });
+            if (!upErr) photoPath = p;
+          }
+        } catch {
+          // fall through to the shared full photo
+        }
+      }
+      tickets.push({
         credential_type: t.catalog_value ?? (t.custom_name ?? "").trim(),
         issuer: t.issuer,
         certificate_number: t.certificate_number,
         holder_name: t.holder_name,
         issue_date: t.issue_date,
         expiry_date: t.expiry_date,
-      }));
+        photo_path: photoPath,
+      });
+    }
+
     startTransition(async () => {
       const res = await addCredentialsBatch(tickets, cardPath);
       if (res?.error) {
@@ -465,6 +493,10 @@ export function AddCredentialForm({
             the details below fill in automatically. Several cards in one photo
             works too.
           </div>
+          <ProgressBar
+            active={cardUploading || scanning}
+            label={cardUploading ? "UPLOADING PHOTO" : "READING YOUR CARD"}
+          />
           {cardError && (
             <p
               className="mono"
@@ -633,6 +665,10 @@ export function AddCredentialForm({
                   ? "Adding…"
                   : `Add ${selected.size} ticket${selected.size === 1 ? "" : "s"} to wallet`}
               </button>
+              <ProgressBar
+                active={batchPending}
+                label={`ADDING ${selected.size} TICKET${selected.size === 1 ? "" : "S"} TO YOUR WALLET`}
+              />
               {batchError && (
                 <p
                   className="mono"
@@ -924,6 +960,7 @@ export function AddCredentialForm({
             </button>
           );
         })()}
+        <ProgressBar active={pending} label="ADDING TO YOUR WALLET" />
         <div
           className="mono"
           style={{

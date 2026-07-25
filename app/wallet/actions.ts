@@ -96,6 +96,8 @@ export type BatchTicket = {
   holder_name: string | null;
   issue_date: string | null;
   expiry_date: string | null;
+  /** per-card crop from the wallet-page photo; falls back to the full photo */
+  photo_path?: string | null;
 };
 
 // Save several tickets detected in ONE card photo (a wallet-page shot can show

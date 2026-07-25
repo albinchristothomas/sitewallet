@@ -190,7 +190,8 @@ export function CredentialCard({
   }, [interactive]);
 
   const flip = () => {
-    if (!interactive) return;
+    // Expired cards stay put — no rotate/flip animation on a dead ticket.
+    if (!interactive || state === "expired") return;
     flippedRef.current = !flippedRef.current;
     const el = card3dRef.current;
     if (el) el.style.transform = `rotateX(0deg) rotateY(${flippedRef.current ? 180 : 0}deg)`;
