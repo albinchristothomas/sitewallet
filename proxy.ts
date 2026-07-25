@@ -40,6 +40,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/auth/") ||
     path.startsWith("/_next") ||
     path.startsWith("/api/cron/") ||
+    path === "/api/health" ||
     path === "/offline" ||
     path === "/help" ||
     path === "/card-demo";
