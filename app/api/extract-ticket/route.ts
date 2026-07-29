@@ -25,7 +25,13 @@ type ExtractedTicket = {
   bbox: { x: number; y: number; width: number; height: number } | null;
 };
 
-const CATALOG_LINES = CREDENTIAL_TYPES.filter((c) => !c.isOther)
+// COMPANY_ORIENTATION is deliberately NOT offered to the model: mapping a
+// "Tourmaline Orientation" card to a generic catalog code erases the site
+// name, which is the whole point of that ticket. Those come back as
+// custom_name with the printed title intact.
+const CATALOG_LINES = CREDENTIAL_TYPES.filter(
+  (c) => !c.isOther && !c.isCompanyOrientation,
+)
   .map((c) => `- ${c.value}: ${c.label} (typical issuer: ${c.issuer})`)
   .join("\n");
 
@@ -41,6 +47,8 @@ ${CATALOG_LINES}
 - issue_date / expiry_date: ISO YYYY-MM-DD, from "Completed"/"Issued" and "Expires" text; null if not printed. If only month+year, use day 01.
 - confidence: high when the text is clearly legible, medium when partially legible, low when guessing.
 - bbox: the pixel bounding box of THIS card's rectangle within the image — {x, y, width, height} with x,y the top-left corner in pixels of the image as provided. Cover the full card face tightly. null only if you cannot locate the card's outline.
+
+Company- and site-specific tickets: operator/contractor orientations and in-house courses (e.g. "Tourmaline Orientation", "CNRL Safety Orientation", "Trican Rig-It") NEVER map to a catalog code — the company or site name is the whole point of the ticket. Set catalog_value to null and put the full printed title, INCLUDING the company/site name, in custom_name.
 
 Rules: never invent data — null beats a guess. A card's title (e.g. "TRICAN DEFENSIVE DRIVING COURSE") that doesn't match the catalog goes in custom_name verbatim. Ignore non-ticket content in the photo.`;
 
@@ -97,7 +105,9 @@ const SCHEMA = {
 };
 
 const VALID_CATALOG = new Set<string>(
-  CREDENTIAL_TYPES.filter((c) => !c.isOther).map((c) => c.value),
+  CREDENTIAL_TYPES.filter((c) => !c.isOther && !c.isCompanyOrientation).map(
+    (c) => c.value,
+  ),
 );
 
 function mediaTypeFor(path: string): "image/jpeg" | "image/png" | "image/webp" {
@@ -205,17 +215,29 @@ export async function POST(request: NextRequest) {
       return { x, y, width, height };
     };
     const tickets = (parsed.tickets ?? [])
-      .map((t) => ({
-        ...t,
-        catalog_value:
+      .map((t) => {
+        const catalog =
           t.catalog_value && VALID_CATALOG.has(t.catalog_value)
             ? t.catalog_value
-            : null,
-        issue_date: t.issue_date && isoRe.test(t.issue_date) ? t.issue_date : null,
-        expiry_date:
-          t.expiry_date && isoRe.test(t.expiry_date) ? t.expiry_date : null,
-        bbox: saneBox(t.bbox),
-      }))
+            : null;
+        let custom = (t.custom_name ?? "").trim() || null;
+        // If the model mapped to the (unlisted) generic orientation code
+        // anyway, keep the ticket under a named orientation instead of
+        // dropping it — the issuer is the site/company name we want.
+        if (!catalog && !custom && t.catalog_value === "COMPANY_ORIENTATION") {
+          custom = t.issuer?.trim() ? `${t.issuer.trim()} Orientation` : null;
+        }
+        return {
+          ...t,
+          catalog_value: catalog,
+          custom_name: custom,
+          issue_date:
+            t.issue_date && isoRe.test(t.issue_date) ? t.issue_date : null,
+          expiry_date:
+            t.expiry_date && isoRe.test(t.expiry_date) ? t.expiry_date : null,
+          bbox: saneBox(t.bbox),
+        };
+      })
       // Drop entries with neither a catalog match nor a readable name.
       .filter((t) => t.catalog_value || (t.custom_name ?? "").trim().length > 1);
 

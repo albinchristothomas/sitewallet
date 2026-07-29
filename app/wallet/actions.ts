@@ -119,6 +119,12 @@ export async function addCredentialsBatch(
   }
 
   const isoRe = /^\d{4}-\d{2}-\d{2}$/;
+  // Each ticket prefers its own cropped photo (cut client-side from the
+  // wallet-page shot); the shared full photo is the fallback.
+  const safePath = (p: string | null | undefined): string | null => {
+    const s = (p ?? "").trim();
+    return s && !/^https?:\/\//i.test(s) && !s.includes("..") ? s : null;
+  };
   const rows = tickets
     .map((t) => ({
       worker_id: user.id,
@@ -129,7 +135,7 @@ export async function addCredentialsBatch(
       issue_date: t.issue_date && isoRe.test(t.issue_date) ? t.issue_date : null,
       expiry_date:
         t.expiry_date && isoRe.test(t.expiry_date) ? t.expiry_date : null,
-      photo_url: photo,
+      photo_url: safePath(t.photo_path) ?? photo,
       verification_status: "UNVERIFIED" as const,
     }))
     .filter((r) => r.credential_type && r.credential_type !== "OTHER");

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel, getExpiryStatus } from "@/lib/credentials";
+import { ticketPhotoUrl } from "@/lib/photos";
+import { TicketList, type TicketRow } from "./ticket-list";
 
 function shortId(uuid: string): string {
   return `RW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
@@ -63,7 +65,18 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
     .eq("worker_id", user.id)
     .order("expiry_date", { ascending: true, nullsFirst: false });
 
-  const credentialsList = credentials ?? [];
+  // Ranked: what needs the worker's attention sits on top. Expired first
+  // (renew it), then expiring soon (act before it lapses), then valid by
+  // soonest expiry, then no-expiry cards at the bottom.
+  const rankOf = (c: { expiry_date: string | null }): number => {
+    const s = getExpiryStatus(c.expiry_date);
+    return s === "expired" ? 0 : s === "expiring_soon" ? 1 : s === "valid" ? 2 : 3;
+  };
+  const credentialsList = (credentials ?? []).sort(
+    (a, b) =>
+      rankOf(a) - rankOf(b) ||
+      (a.expiry_date ?? "9999").localeCompare(b.expiry_date ?? "9999"),
+  );
 
   // Tiles must add up: TOTAL = VALID + EXPIRED. "Valid" means usable today
   // (including no-expiry and expiring-soon — those still get you through the
@@ -92,6 +105,71 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
     : null;
 
   const fullName = worker?.full_name ?? user.email ?? "Worker";
+
+  // Everything the list needs, precomputed — including a signed URL for each
+  // ticket's photo so the PHOTOS view shows the worker's own shot instantly.
+  const ticketRows: TicketRow[] = await Promise.all(
+    credentialsList.map(async (c): Promise<TicketRow> => {
+      const status = getExpiryStatus(c.expiry_date);
+      const isExpired = status === "expired";
+      const isExpiring = status === "expiring_soon";
+      const verified =
+        c.verification_status === "MANUALLY_VERIFIED" ||
+        c.verification_status === "VERIFIED_BY_ISSUER";
+
+      let subText: string;
+      let subColor: string;
+      if (!c.expiry_date) {
+        subText = "NO EXPIRY";
+        subColor = "#9aa3ab";
+      } else if (isExpired) {
+        subText = `EXPIRED ${fmtDate(c.expiry_date)}`;
+        subColor = "#ff9a8f";
+      } else if (isExpiring) {
+        const d = daysUntil(c.expiry_date);
+        subText = `EXPIRES IN ${d} DAY${d === 1 ? "" : "S"}`;
+        subColor = "#ffd27a";
+      } else {
+        subText = `VALID TO ${fmtDate(c.expiry_date)}`;
+        subColor = "#9aa3ab";
+      }
+
+      return {
+        id: c.id,
+        label: getCredentialLabel(c.credential_type),
+        subText,
+        subColor,
+        spine: isExpired ? "#5d666f" : isExpiring ? "#f2a40c" : "#f2581c",
+        titleColor: isExpired ? "#c4ccd2" : "#f4f6f7",
+        dim: isExpired,
+        pill: isExpired
+          ? {
+              bg: "rgba(239,65,53,0.14)",
+              line: "rgba(239,65,53,0.55)",
+              dot: "#ef4135",
+              fg: "#ff9a8f",
+              text: "EXPIRED",
+            }
+          : isExpiring
+            ? {
+                bg: "rgba(242,164,12,0.14)",
+                line: "rgba(242,164,12,0.55)",
+                dot: "#f2a40c",
+                fg: "#ffd27a",
+                text: "EXPIRING",
+              }
+            : {
+                bg: "rgba(47,200,106,0.12)",
+                line: "rgba(47,200,106,0.5)",
+                dot: "#2fd072",
+                fg: "#7ff0a8",
+                text: "VALID",
+              },
+        verified,
+        photoUrl: await ticketPhotoUrl(c.photo_url),
+      };
+    }),
+  );
 
   // Numeral display tokens from the approved design ("Display grotesk").
   const numFont = "var(--font-archivo),sans-serif";
@@ -344,13 +422,6 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
           gap: 11,
         }}
       >
-        <div
-          className="mono"
-          style={{ fontSize: 9, letterSpacing: "0.16em", color: "#5d666f" }}
-        >
-          YOUR TICKETS
-        </div>
-
         {credentialsList.length === 0 ? (
           <div
             style={{
@@ -431,180 +502,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
             </Link>
           </div>
         ) : (
-          credentialsList.map((c) => {
-            const status = getExpiryStatus(c.expiry_date);
-            const isExpired = status === "expired";
-            const isExpiring = status === "expiring_soon";
-            const verified =
-              c.verification_status === "MANUALLY_VERIFIED" ||
-              c.verification_status === "VERIFIED_BY_ISSUER";
-
-            const spine = isExpired
-              ? "#5d666f"
-              : isExpiring
-                ? "#f2a40c"
-                : "#f2581c";
-
-            const titleColor = isExpired ? "#c4ccd2" : "#f4f6f7";
-
-            // sub-line text + color
-            let subText: string;
-            let subColor: string;
-            if (!c.expiry_date) {
-              subText = "NO EXPIRY";
-              subColor = "#9aa3ab";
-            } else if (isExpired) {
-              subText = `EXPIRED ${fmtDate(c.expiry_date)}`;
-              subColor = "#ff9a8f";
-            } else if (isExpiring) {
-              const d = daysUntil(c.expiry_date);
-              subText = `EXPIRES IN ${d} DAY${d === 1 ? "" : "S"}`;
-              subColor = "#ffd27a";
-            } else {
-              subText = `VALID TO ${fmtDate(c.expiry_date)}`;
-              subColor = "#9aa3ab";
-            }
-
-            // status pill
-            const pill = isExpired
-              ? {
-                  bg: "rgba(239,65,53,0.14)",
-                  line: "rgba(239,65,53,0.55)",
-                  dot: "#ef4135",
-                  fg: "#ff9a8f",
-                  text: "EXPIRED",
-                }
-              : isExpiring
-                ? {
-                    bg: "rgba(242,164,12,0.14)",
-                    line: "rgba(242,164,12,0.55)",
-                    dot: "#f2a40c",
-                    fg: "#ffd27a",
-                    text: "EXPIRING",
-                  }
-                : {
-                    bg: "rgba(47,200,106,0.12)",
-                    line: "rgba(47,200,106,0.5)",
-                    dot: "#2fd072",
-                    fg: "#7ff0a8",
-                    text: "VALID",
-                  };
-
-            return (
-              <Link
-                key={c.id}
-                href={`/wallet/credentials/${c.id}`}
-                style={{
-                  display: "block",
-                  textDecoration: "none",
-                  color: "inherit",
-                  position: "relative",
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  background: isExpired
-                    ? "linear-gradient(152deg,#1c2026 0%,#16191e 60%,#121418 100%)"
-                    : "linear-gradient(152deg,#222831 0%,#191d23 60%,#14171c 100%)",
-                  filter: isExpired ? "grayscale(0.4) brightness(0.9)" : undefined,
-                  boxShadow: isExpired
-                    ? "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.05)"
-                    : "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
-                  padding: "14px 15px 14px 18px",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: 4,
-                    background: spine,
-                  }}
-                />
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontWeight: 800,
-                        fontSize: 17,
-                        letterSpacing: "-0.01em",
-                        color: titleColor,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {getCredentialLabel(c.credential_type)}
-                    </div>
-                    <div
-                      className="mono"
-                      style={{
-                        fontSize: 9.5,
-                        color: subColor,
-                        marginTop: 4,
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      {subText}
-                    </div>
-                    {!verified && (
-                      <div
-                        className="mono"
-                        style={{
-                          marginTop: 5,
-                          fontSize: 8.5,
-                          letterSpacing: "0.1em",
-                          color: "#ffb27a",
-                        }}
-                      >
-                        ● SELF-ENTERED · UNVERIFIED
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      flex: "none",
-                      padding: "5px 9px",
-                      borderRadius: 5,
-                      background: pill.bg,
-                      border: `1px solid ${pill.line}`,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        background: pill.dot,
-                        boxShadow: `0 0 6px ${pill.dot}`,
-                      }}
-                    />
-                    <span
-                      className="mono"
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        letterSpacing: "0.12em",
-                        color: pill.fg,
-                      }}
-                    >
-                      {pill.text}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })
+          <TicketList rows={ticketRows} />
         )}
       </div>
 
