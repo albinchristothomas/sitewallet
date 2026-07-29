@@ -26,11 +26,19 @@ export type TicketRow = {
 const VIEW_KEY = "rv-wallet-view";
 
 export function TicketList({ rows }: { rows: TicketRow[] }) {
-  const [view, setView] = useState<"cards" | "photos">("cards");
+  // PHOTOS is the default — workers want their own card pictures up front.
+  // CARDS is the opt-in view, and either choice sticks on the device.
+  const [view, setView] = useState<"cards" | "photos">("photos");
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(VIEW_KEY);
-    if (saved === "photos") setView("photos");
+    // Guarded like the write below: with "Block all cookies" even touching
+    // window.localStorage throws, and an effect throw blanks the whole list.
+    try {
+      const saved = window.localStorage.getItem(VIEW_KEY);
+      if (saved === "cards") setView("cards");
+    } catch {
+      // storage blocked — stay on the PHOTOS default
+    }
   }, []);
 
   function pick(v: "cards" | "photos") {
@@ -185,6 +193,11 @@ function CardRow({ r }: { r: TicketRow }) {
 }
 
 function PhotoTile({ r }: { r: TicketRow }) {
+  // Signed photo URLs expire after an hour — if the browser can't load the
+  // image (stale tab, evicted cache), show the card row instead of a broken
+  // picture.
+  const [failed, setFailed] = useState(false);
+  if (failed) return <CardRow r={r} />;
   return (
     <Link
       href={`/wallet/credentials/${r.id}`}
@@ -205,6 +218,12 @@ function PhotoTile({ r }: { r: TicketRow }) {
       <img
         src={r.photoUrl ?? ""}
         alt={r.label}
+        onError={() => setFailed(true)}
+        // A server-rendered image can fail BEFORE hydration attaches onError;
+        // the ref runs at mount and catches that already-failed state.
+        ref={(el) => {
+          if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+        }}
         style={{
           display: "block",
           width: "100%",
