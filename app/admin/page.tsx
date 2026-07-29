@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { HardHat } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
+import { isOwner } from "@/lib/owner";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -10,6 +11,7 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const owner = isOwner(user.email);
 
   const { data: sites } = await supabase
     .from("sites")
@@ -30,6 +32,14 @@ export default async function AdminPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {owner && (
+            <Link
+              href="/admin/people"
+              className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+            >
+              People
+            </Link>
+          )}
           <Link
             href="/admin/invite"
             className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
