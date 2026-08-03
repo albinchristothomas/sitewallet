@@ -70,9 +70,9 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
     .order("expiry_date", { ascending: true, nullsFirst: false });
 
   // Order the wallet the way a medic reads it: the recognized industry
-  // tickets (H2S Alive, First Aid + CPR, TDG — the catalog) always on top,
-  // A to Z; company/site orientations and other custom tickets below them,
-  // newest first (a worker collects one per site, the current one matters).
+  // tickets (H2S Alive, First Aid + CPR, TDG — the catalog) always on top;
+  // company/site orientations and other custom tickets below them. Both
+  // groups A to Z so a specific ticket is always where you expect it.
   const catalogValues = new Set<string>(
     CREDENTIAL_TYPES.filter((c) => !c.isOther && !c.isCompanyOrientation).map(
       (c) => c.value,
@@ -82,15 +82,9 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
     const aCatalog = catalogValues.has(a.credential_type) ? 0 : 1;
     const bCatalog = catalogValues.has(b.credential_type) ? 0 : 1;
     if (aCatalog !== bCatalog) return aCatalog - bCatalog;
-    if (aCatalog === 0) {
-      return getCredentialLabel(a.credential_type).localeCompare(
-        getCredentialLabel(b.credential_type),
-      );
-    }
-    // Both YYYY-MM-DD-prefixed, so string compare is date compare.
-    const aWhen = a.issue_date ?? a.created_at ?? "";
-    const bWhen = b.issue_date ?? b.created_at ?? "";
-    return bWhen.localeCompare(aWhen);
+    return getCredentialLabel(a.credential_type).localeCompare(
+      getCredentialLabel(b.credential_type),
+    );
   });
 
   // Tiles must add up: TOTAL = VALID + EXPIRED. "Valid" means usable today

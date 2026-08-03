@@ -29,6 +29,7 @@ export function TicketList({ rows }: { rows: TicketRow[] }) {
   // PHOTOS is the default — workers want their own card pictures up front.
   // CARDS is the opt-in view, and either choice sticks on the device.
   const [view, setView] = useState<"cards" | "photos">("photos");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     // Guarded like the write below: with "Block all cookies" even touching
@@ -97,13 +98,112 @@ export function TicketList({ rows }: { rows: TicketRow[] }) {
         </div>
       </div>
 
-      {rows.map((r) =>
-        view === "photos" && r.photoUrl ? (
-          <PhotoTile key={r.id} r={r} />
-        ) : (
-          <CardRow key={r.id} r={r} />
-        ),
+      {/* Search — worth the space once the wallet has a few tickets. */}
+      {rows.length > 3 && (
+        <div style={{ position: "relative" }}>
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#5d666f"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              position: "absolute",
+              left: 13,
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+            }}
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your tickets"
+            aria-label="Search your tickets"
+            style={{
+              width: "100%",
+              height: 44,
+              borderRadius: 9,
+              background: "#15191e",
+              border: "1px solid rgba(255,255,255,0.1)",
+              padding: "0 38px 0 38px",
+              fontSize: 14,
+              color: "#d6dce0",
+              outline: "none",
+            }}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+              style={{
+                position: "absolute",
+                right: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 30,
+                height: 30,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#9aa3ab"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              >
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       )}
+
+      {(() => {
+        const q = query.trim().toLowerCase();
+        const shown = q
+          ? rows.filter((r) => r.label.toLowerCase().includes(q))
+          : rows;
+        if (shown.length === 0) {
+          return (
+            <div
+              className="mono"
+              style={{
+                padding: "18px 4px",
+                fontSize: 10,
+                letterSpacing: "0.08em",
+                color: "#5d666f",
+                textAlign: "center",
+              }}
+            >
+              NO TICKET MATCHES &ldquo;{query.trim().toUpperCase()}&rdquo;
+            </div>
+          );
+        }
+        return shown.map((r) =>
+          view === "photos" && r.photoUrl ? (
+            <PhotoTile key={r.id} r={r} />
+          ) : (
+            <CardRow key={r.id} r={r} />
+          ),
+        );
+      })()}
     </>
   );
 }
