@@ -78,6 +78,10 @@ export function AddCredentialForm({
   const [holderName, setHolderName] = useState<string>(p.holder ?? "");
   const [issueDate, setIssueDate] = useState<string>(p.issue ?? "");
   const [expiryDate, setExpiryDate] = useState<string>(p.expiry ?? "");
+  // Plenty of real tickets never expire (Gas Monitor, some rig-specific
+  // courses). The worker says so explicitly — we never assume it just
+  // because the scan didn't find a date.
+  const [noExpiry, setNoExpiry] = useState(false);
 
   const isOrientation = isCompanyOrientation(credType);
   const isOther = isOtherCredential(credType);
@@ -142,7 +146,10 @@ export function AddCredentialForm({
     if (t.certificate_number) setCertNumber(t.certificate_number);
     if (t.holder_name) setHolderName(t.holder_name);
     if (t.issue_date) setIssueDate(t.issue_date);
-    if (t.expiry_date) setExpiryDate(t.expiry_date);
+    if (t.expiry_date) {
+      setExpiryDate(t.expiry_date);
+      setNoExpiry(false);
+    }
   }
 
   async function onCardFile(file: File) {
@@ -191,6 +198,29 @@ export function AddCredentialForm({
       const tickets: ScannedTicket[] = data.tickets ?? [];
       if (tickets.length === 1) {
         applyToForm(tickets[0]);
+        // Crop the card's own rectangle out of the photo — the saved picture
+        // should be the card, not the table it was lying on. On any failure
+        // the full photo stays; never block the worker.
+        if (tickets[0].bbox && cardBlobRef.current) {
+          try {
+            const crop = await cropImage(cardBlobRef.current, tickets[0].bbox);
+            if (crop) {
+              const cropPath = `self/${randomKey()}.jpg`;
+              const { error: cropUpErr } = await createClient()
+                .storage.from("ticket-photos")
+                .upload(cropPath, crop, {
+                  upsert: false,
+                  contentType: "image/jpeg",
+                });
+              if (!cropUpErr) {
+                setCardPath(cropPath);
+                setCardPreview(URL.createObjectURL(crop));
+              }
+            }
+          } catch {
+            // keep the uncropped photo
+          }
+        }
         setScanNote(
           inWallet(tickets[0])
             ? "Heads up — this ticket looks like it's already in your wallet."
@@ -858,16 +888,81 @@ export function AddCredentialForm({
               marginBottom: 7,
             }}
           >
-            EXPIRES{!isOther && <span style={{ color: "#ef4135" }}> *</span>}
+            EXPIRES
+            {!isOther && !noExpiry && <span style={{ color: "#ef4135" }}> *</span>}
             <span style={{ color: "#3a3f45" }}>
               {"  "}· TYPE IT LIKE ON THE CARD
             </span>
           </div>
-          <DateField
-            value={expiryDate}
-            onChange={setExpiryDate}
-            accentColor="#7ff0a8"
-          />
+          {!noExpiry && (
+            <DateField
+              value={expiryDate}
+              onChange={setExpiryDate}
+              accentColor="#7ff0a8"
+            />
+          )}
+          {/* Real tickets like Gas Monitor never expire — an explicit tap,
+              never assumed from a failed scan. */}
+          <button
+            type="button"
+            onClick={() =>
+              setNoExpiry((v) => {
+                if (!v) setExpiryDate("");
+                return !v;
+              })
+            }
+            className="mono"
+            style={{
+              marginTop: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "9px 13px",
+              borderRadius: 8,
+              border: `1px solid ${noExpiry ? "rgba(47,200,106,0.5)" : "rgba(255,255,255,0.12)"}`,
+              background: noExpiry ? "rgba(47,200,106,0.1)" : "transparent",
+              cursor: "pointer",
+            }}
+          >
+            <span
+              style={{
+                width: 15,
+                height: 15,
+                borderRadius: 4,
+                border: `1.5px solid ${noExpiry ? "#2fd072" : "#5d666f"}`,
+                background: noExpiry ? "#2fd072" : "transparent",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flex: "none",
+              }}
+            >
+              {noExpiry && (
+                <svg
+                  width="9"
+                  height="9"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#0d0f12"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              )}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                color: noExpiry ? "#7ff0a8" : "#9aa3ab",
+              }}
+            >
+              THIS CARD HAS NO EXPIRY DATE
+            </span>
+          </button>
         </div>
         <div style={{ marginTop: 16 }}>
           <div
@@ -912,7 +1007,7 @@ export function AddCredentialForm({
         }}
       >
         {(() => {
-          const expiryMissing = !isOther && !expiryDate;
+          const expiryMissing = !isOther && !noExpiry && !expiryDate;
           const issuedMissing = isOrientation && !issueDate;
           const blocked =
             pending ||
