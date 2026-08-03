@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCredentialLabel, getExpiryStatus } from "@/lib/credentials";
+import {
+  CREDENTIAL_TYPES,
+  getCredentialLabel,
+  getExpiryStatus,
+} from "@/lib/credentials";
 import { ticketPhotoUrl } from "@/lib/photos";
 import { TicketList, type TicketRow } from "./ticket-list";
 
@@ -65,18 +69,29 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
     .eq("worker_id", user.id)
     .order("expiry_date", { ascending: true, nullsFirst: false });
 
-  // Ranked: what needs the worker's attention sits on top. Expired first
-  // (renew it), then expiring soon (act before it lapses), then valid by
-  // soonest expiry, then no-expiry cards at the bottom.
-  const rankOf = (c: { expiry_date: string | null }): number => {
-    const s = getExpiryStatus(c.expiry_date);
-    return s === "expired" ? 0 : s === "expiring_soon" ? 1 : s === "valid" ? 2 : 3;
-  };
-  const credentialsList = (credentials ?? []).sort(
-    (a, b) =>
-      rankOf(a) - rankOf(b) ||
-      (a.expiry_date ?? "9999").localeCompare(b.expiry_date ?? "9999"),
+  // Order the wallet the way a medic reads it: the recognized industry
+  // tickets (H2S Alive, First Aid + CPR, TDG — the catalog) always on top,
+  // A to Z; company/site orientations and other custom tickets below them,
+  // newest first (a worker collects one per site, the current one matters).
+  const catalogValues = new Set<string>(
+    CREDENTIAL_TYPES.filter((c) => !c.isOther && !c.isCompanyOrientation).map(
+      (c) => c.value,
+    ),
   );
+  const credentialsList = (credentials ?? []).sort((a, b) => {
+    const aCatalog = catalogValues.has(a.credential_type) ? 0 : 1;
+    const bCatalog = catalogValues.has(b.credential_type) ? 0 : 1;
+    if (aCatalog !== bCatalog) return aCatalog - bCatalog;
+    if (aCatalog === 0) {
+      return getCredentialLabel(a.credential_type).localeCompare(
+        getCredentialLabel(b.credential_type),
+      );
+    }
+    // Both YYYY-MM-DD-prefixed, so string compare is date compare.
+    const aWhen = a.issue_date ?? a.created_at ?? "";
+    const bWhen = b.issue_date ?? b.created_at ?? "";
+    return bWhen.localeCompare(aWhen);
+  });
 
   // Tiles must add up: TOTAL = VALID + EXPIRED. "Valid" means usable today
   // (including no-expiry and expiring-soon — those still get you through the
