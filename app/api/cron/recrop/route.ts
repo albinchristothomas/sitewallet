@@ -57,8 +57,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: qErr.message }, { status: 500 });
   }
 
-  // Only photos shared by 2+ credentials are collages needing splitting;
-  // recrop/ photos are this job's own output and never reprocessed.
+  // Every original photo gets tightened to its card(s): shared photos are
+  // collages needing splitting, single photos get the table/background cut
+  // away. recrop/ photos are this job's own output and never reprocessed —
+  // that's what makes re-runs converge. Collages first (worst offenders).
   const groups = new Map<string, CredRow[]>();
   for (const c of (creds ?? []) as CredRow[]) {
     if (!c.photo_url || c.photo_url.startsWith("recrop/")) continue;
@@ -66,7 +68,9 @@ export async function POST(request: NextRequest) {
     g.push(c);
     groups.set(c.photo_url, g);
   }
-  const shared = [...groups.entries()].filter(([, rows]) => rows.length >= 2);
+  const shared = [...groups.entries()].sort(
+    (a, b) => b[1].length - a[1].length,
+  );
 
   const report: Array<Record<string, unknown>> = [];
   let processed = 0;
@@ -135,7 +139,10 @@ export async function POST(request: NextRequest) {
     };
 
     for (const row of rows) {
-      const mi = findMatch(row);
+      // A lone credential with a lone detected card is an unambiguous pair;
+      // everything else goes through the matchers.
+      const mi =
+        rows.length === 1 && tickets.length === 1 ? 0 : findMatch(row);
       if (mi < 0) {
         report.push({ id: row.id, type: row.credential_type, status: "no_match" });
         continue;
@@ -189,7 +196,7 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({
-    shared_photos: shared.length,
+    photos: shared.length,
     processed,
     remaining: shared.length - processed,
     report,
