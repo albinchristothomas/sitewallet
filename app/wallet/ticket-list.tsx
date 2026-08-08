@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-// The wallet's ticket list, in two views the worker can flip between:
-//   CARDS  — the designed rows (type, status, expiry)
-//   PHOTOS — the actual picture they took of each card, right in the list.
-// Workers asked for the photo up front ("I want to see MY card"), so the
-// choice is remembered on the device — pick PHOTOS once and the wallet
-// always opens straight to the pictures.
+// The wallet's ticket list — ONE card design for every ticket. When the
+// worker photographed the card, the picture sits in a fixed-height window
+// inside the same card (cover-cropped, so every card is the same shape —
+// no letterboxing). No photo? Same card, no window. Every card carries the
+// orange spine; typography is identical across all of them.
 
 export type TicketRow = {
   id: string;
   label: string;
   subText: string;
   subColor: string;
-  spine: string;
   titleColor: string;
   dim: boolean;
   pill: { bg: string; line: string; dot: string; fg: string; text: string };
@@ -23,79 +21,19 @@ export type TicketRow = {
   photoUrl: string | null;
 };
 
-const VIEW_KEY = "rv-wallet-view";
-
 export function TicketList({ rows }: { rows: TicketRow[] }) {
-  // PHOTOS is the default — workers want their own card pictures up front.
-  // CARDS is the opt-in view, and either choice sticks on the device.
-  const [view, setView] = useState<"cards" | "photos">("photos");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    // Guarded like the write below: with "Block all cookies" even touching
-    // window.localStorage throws, and an effect throw blanks the whole list.
-    try {
-      const saved = window.localStorage.getItem(VIEW_KEY);
-      if (saved === "cards") setView("cards");
-    } catch {
-      // storage blocked — stay on the PHOTOS default
-    }
-  }, []);
-
-  function pick(v: "cards" | "photos") {
-    setView(v);
-    try {
-      window.localStorage.setItem(VIEW_KEY, v);
-    } catch {
-      // private mode — the toggle still works for this visit
-    }
-  }
+  const q = query.trim().toLowerCase();
+  const shown = q ? rows.filter((r) => r.label.toLowerCase().includes(q)) : rows;
 
   return (
     <>
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+        className="mono"
+        style={{ fontSize: 9, letterSpacing: "0.16em", color: "#5d666f" }}
       >
-        <div
-          className="mono"
-          style={{ fontSize: 9, letterSpacing: "0.16em", color: "#5d666f" }}
-        >
-          YOUR TICKETS
-        </div>
-        <div
-          style={{
-            display: "inline-flex",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: 7,
-            overflow: "hidden",
-          }}
-        >
-          {(["cards", "photos"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => pick(v)}
-              className="mono"
-              style={{
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                padding: "6px 11px",
-                border: "none",
-                cursor: "pointer",
-                color: view === v ? "#f2581c" : "#9aa3ab",
-                background:
-                  view === v ? "rgba(242,88,28,0.13)" : "transparent",
-              }}
-            >
-              {v === "cards" ? "CARDS" : "PHOTOS"}
-            </button>
-          ))}
-        </div>
+        YOUR TICKETS
       </div>
 
       {/* Search — worth the space once the wallet has a few tickets. */}
@@ -175,40 +113,32 @@ export function TicketList({ rows }: { rows: TicketRow[] }) {
         </div>
       )}
 
-      {(() => {
-        const q = query.trim().toLowerCase();
-        const shown = q
-          ? rows.filter((r) => r.label.toLowerCase().includes(q))
-          : rows;
-        if (shown.length === 0) {
-          return (
-            <div
-              className="mono"
-              style={{
-                padding: "18px 4px",
-                fontSize: 10,
-                letterSpacing: "0.08em",
-                color: "#5d666f",
-                textAlign: "center",
-              }}
-            >
-              NO TICKET MATCHES &ldquo;{query.trim().toUpperCase()}&rdquo;
-            </div>
-          );
-        }
-        return shown.map((r) =>
-          view === "photos" && r.photoUrl ? (
-            <PhotoTile key={r.id} r={r} />
-          ) : (
-            <CardRow key={r.id} r={r} />
-          ),
-        );
-      })()}
+      {shown.length === 0 ? (
+        <div
+          className="mono"
+          style={{
+            padding: "18px 4px",
+            fontSize: 10,
+            letterSpacing: "0.08em",
+            color: "#5d666f",
+            textAlign: "center",
+          }}
+        >
+          NO TICKET MATCHES &ldquo;{query.trim().toUpperCase()}&rdquo;
+        </div>
+      ) : (
+        shown.map((r) => <TicketCard key={r.id} r={r} />)
+      )}
     </>
   );
 }
 
-function CardRow({ r }: { r: TicketRow }) {
+function TicketCard({ r }: { r: TicketRow }) {
+  // If the photo can't load (expired signed URL, evicted cache), the card
+  // simply renders without its photo window — never a broken image.
+  const [failed, setFailed] = useState(false);
+  const showPhoto = !!r.photoUrl && !failed;
+
   return (
     <Link
       href={`/wallet/credentials/${r.id}`}
@@ -219,32 +149,48 @@ function CardRow({ r }: { r: TicketRow }) {
         position: "relative",
         borderRadius: 12,
         overflow: "hidden",
-        background: r.dim
-          ? "linear-gradient(152deg,#1c2026 0%,#16191e 60%,#121418 100%)"
-          : "linear-gradient(152deg,#222831 0%,#191d23 60%,#14171c 100%)",
-        filter: r.dim ? "grayscale(0.4) brightness(0.9)" : undefined,
-        boxShadow: r.dim
-          ? "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.05)"
-          : "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
-        padding: "14px 15px 14px 18px",
+        background:
+          "linear-gradient(152deg,#222831 0%,#191d23 60%,#14171c 100%)",
+        boxShadow:
+          "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 4,
-          background: r.spine,
-        }}
-      />
+      {showPhoto && (
+        <div
+          style={{
+            height: 172,
+            background: "#0b0d10",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={r.photoUrl ?? ""}
+            alt={r.label}
+            onError={() => setFailed(true)}
+            // A server-rendered image can fail BEFORE hydration attaches
+            // onError; the ref runs at mount and catches that state.
+            ref={(el) => {
+              if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: r.dim ? "grayscale(0.5) brightness(0.75)" : undefined,
+            }}
+          />
+        </div>
+      )}
+
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
+          padding: "14px 15px 14px 18px",
         }}
       >
         <div style={{ minWidth: 0 }}>
@@ -286,132 +232,52 @@ function CardRow({ r }: { r: TicketRow }) {
             </div>
           )}
         </div>
-        <Pill pill={r.pill} />
-      </div>
-    </Link>
-  );
-}
-
-function PhotoTile({ r }: { r: TicketRow }) {
-  // Signed photo URLs expire after an hour — if the browser can't load the
-  // image (stale tab, evicted cache), show the card row instead of a broken
-  // picture.
-  const [failed, setFailed] = useState(false);
-  if (failed) return <CardRow r={r} />;
-  return (
-    <Link
-      href={`/wallet/credentials/${r.id}`}
-      style={{
-        display: "block",
-        textDecoration: "none",
-        color: "inherit",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "#15191e",
-        boxShadow: r.dim
-          ? "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.05)"
-          : "0 10px 24px -16px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.07)",
-      }}
-    >
-      {/* the worker's own shot of the card — contain, never crop the text */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={r.photoUrl ?? ""}
-        alt={r.label}
-        onError={() => setFailed(true)}
-        // A server-rendered image can fail BEFORE hydration attaches onError;
-        // the ref runs at mount and catches that already-failed state.
-        ref={(el) => {
-          if (el && el.complete && el.naturalWidth === 0) setFailed(true);
-        }}
-        style={{
-          display: "block",
-          width: "100%",
-          maxHeight: 250,
-          objectFit: "contain",
-          background: "#0b0d10",
-          filter: r.dim ? "grayscale(0.4) brightness(0.85)" : undefined,
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          padding: "10px 13px",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <div style={{ minWidth: 0 }}>
-          <div
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            flex: "none",
+            padding: "5px 9px",
+            borderRadius: 5,
+            background: r.pill.bg,
+            border: `1px solid ${r.pill.line}`,
+          }}
+        >
+          <span
             style={{
-              fontWeight: 800,
-              fontSize: 14,
-              letterSpacing: "-0.01em",
-              color: r.titleColor,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: r.pill.dot,
+              boxShadow: `0 0 6px ${r.pill.dot}`,
             }}
-          >
-            {r.label}
-          </div>
-          <div
+          />
+          <span
             className="mono"
             style={{
               fontSize: 9,
-              color: r.subColor,
-              marginTop: 3,
-              letterSpacing: "0.04em",
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              color: r.pill.fg,
             }}
           >
-            {r.subText}
-            {!r.verified && (
-              <span style={{ color: "#ffb27a" }}> · UNVERIFIED</span>
-            )}
-          </div>
+            {r.pill.text}
+          </span>
         </div>
-        <Pill pill={r.pill} />
       </div>
-    </Link>
-  );
-}
 
-function Pill({ pill }: { pill: TicketRow["pill"] }) {
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        flex: "none",
-        padding: "5px 9px",
-        borderRadius: 5,
-        background: pill.bg,
-        border: `1px solid ${pill.line}`,
-      }}
-    >
-      <span
+      {/* the orange spine — on every card, photo or not, full height */}
+      <div
         style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: pill.dot,
-          boxShadow: `0 0 6px ${pill.dot}`,
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 4,
+          background: "#f2581c",
         }}
       />
-      <span
-        className="mono"
-        style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: "0.12em",
-          color: pill.fg,
-        }}
-      >
-        {pill.text}
-      </span>
-    </div>
+    </Link>
   );
 }

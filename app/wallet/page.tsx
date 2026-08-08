@@ -148,7 +148,6 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
         label: getCredentialLabel(c.credential_type),
         subText,
         subColor,
-        spine: isExpired ? "#5d666f" : isExpiring ? "#f2a40c" : "#f2581c",
         titleColor: isExpired ? "#c4ccd2" : "#f4f6f7",
         dim: isExpired,
         pill: isExpired
