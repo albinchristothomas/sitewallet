@@ -10,7 +10,7 @@ import { ticketPhotoUrl } from "@/lib/photos";
 import { TicketList, type TicketRow } from "./ticket-list";
 
 function shortId(uuid: string): string {
-  return `RW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+  return `RV-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
 }
 
 function firstName(name: string): string {

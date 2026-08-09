@@ -36,7 +36,7 @@ type CompliancePayload = {
 };
 
 function shortId(uuid: string): string {
-  return `RW-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
+  return `RV-${uuid.slice(0, 4).toUpperCase()}-${uuid.slice(4, 8).toUpperCase()}`;
 }
 
 function formatDate(value: string): string {

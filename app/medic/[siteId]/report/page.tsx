@@ -57,7 +57,7 @@ function fmtSealDate(iso: string): string {
   return `${d}·${m}·${y.slice(2)}`;
 }
 
-// "RW-DSR-20260619-1422" — official record id (site-local clock)
+// "RV-DSR-20260619-1422" — official record id (site-local clock)
 function fmtReportId(iso: string): string {
   const compact = iso.replace(/-/g, "");
   const stamp = new Date()
@@ -68,7 +68,7 @@ function fmtReportId(iso: string): string {
       timeZone: SITE_TZ,
     })
     .replace(":", "");
-  return `RW-DSR-${compact}-${stamp}`;
+  return `RV-DSR-${compact}-${stamp}`;
 }
 
 export default async function EndOfDayReportPage(

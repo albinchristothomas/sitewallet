@@ -7,9 +7,9 @@ import { getExpiryStatus } from "@/lib/credentials";
 import { QrActions } from "./qr-actions";
 
 // RigVise gate id, derived from the worker's uuid. Mono, uppercase, stable.
-function rigWiseId(uuid: string): string {
+function rigViseId(uuid: string): string {
   const hex = uuid.replace(/[^0-9a-f]/gi, "").toUpperCase();
-  return `RW-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
+  return `RV-${hex.slice(0, 4)}-${hex.slice(4, 8)}`;
 }
 
 export default async function WalletQrPage() {
@@ -40,7 +40,7 @@ export default async function WalletQrPage() {
   const fullName = worker?.full_name ?? user.email ?? "Worker";
   const company = worker?.contractor_company ?? null;
   const facePhoto = await faceUrl(worker?.photo_url);
-  const rwId = rigWiseId(user.id);
+  const rwId = rigViseId(user.id);
 
   // Footer summary, driven by the worker's real wallet.
   const creds = credentials ?? [];
