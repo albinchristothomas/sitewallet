@@ -48,3 +48,6 @@ next-env.d.ts
 # local design artifacts (not part of the app)
 design-brief-v2/
 references/
+
+.vercel
+.env*
