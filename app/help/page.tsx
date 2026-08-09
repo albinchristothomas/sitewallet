@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FEEDBACK_EMAIL } from "@/lib/brand";
 
 export default function HelpPage() {
   return (
@@ -117,10 +118,10 @@ export default function HelpPage() {
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           Email{" "}
           <a
-            href="mailto:feedback@rigwise.ca"
+            href={`mailto:${FEEDBACK_EMAIL}`}
             className="font-medium underline"
           >
-            feedback@rigwise.ca
+            {FEEDBACK_EMAIL}
           </a>{" "}
           with what you were doing and what happened. Screenshots help.
         </p>

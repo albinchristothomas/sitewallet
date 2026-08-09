@@ -3,6 +3,8 @@
 // Table-based layout + inline styles only (email clients ignore stylesheets).
 // Mirrors the report's warm-cream "paper document" look.
 
+import { SITE_DOMAIN } from "@/lib/brand";
+
 export type EodCrewRow = {
   name: string;
   company: string | null;
@@ -168,7 +170,7 @@ export function buildEodEmailHtml(d: EodData): string {
 
   <tr><td style="padding:24px 28px 26px;">
     <div style="border-top:1px solid ${LINE};padding-top:14px;font-family:${mono};font-size:9px;letter-spacing:0.12em;color:${INK_DIM};text-transform:uppercase;line-height:1.8;">
-      Generated automatically by RigVise at end of day · rigwise.ca<br>
+      Generated automatically by RigVise at end of day · ${SITE_DOMAIN}<br>
       Times shown in America/Edmonton. This report reflects gate records as captured on site.
     </div>
   </td></tr>

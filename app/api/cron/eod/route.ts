@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { EMAIL_FROM } from "@/lib/brand";
 import { siteDayBounds, siteReportDay, siteTime } from "@/lib/dates";
 import {
   buildEodEmailHtml,
@@ -218,7 +219,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "RigVise <noreply@rigwise.ca>",
+        from: EMAIL_FROM,
         to: [recipient],
         subject: `Daily Safety Report · ${site.name} · ${dayLabel(day)}`,
         html,

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { INTENT_DESCRIPTION, type SignupIntent, homeForType, type AccountType } from "@/lib/roles";
 import { LoginForm } from "./login-form";
 import { DevLogin } from "./dev-login";
+import { SITE_DOMAIN } from "@/lib/brand";
 
 function isIntent(s: string | string[] | undefined): s is SignupIntent {
   return s === "worker" || s === "medic";
@@ -194,7 +195,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
           >
             PROTECTED WORKSITE SYSTEM · VOID IF SHARED
             <br />
-            RIGVISE.CA ·{" "}
+            {SITE_DOMAIN.toUpperCase()} ·{" "}
             <Link
               href="/help"
               style={{ color: "#5d666f", textDecorationLine: "none" }}

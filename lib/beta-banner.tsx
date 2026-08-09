@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/brand";
 
 // Quiet footer. No "PILOT" or "BETA" framing.
 export function BetaBanner() {
@@ -12,7 +13,7 @@ export function BetaBanner() {
       </Link>
       <span className="mx-2 text-[color:var(--text-mute)]">·</span>
       <a
-        href="mailto:hello@rigwise.ca"
+        href={`mailto:${CONTACT_EMAIL}`}
         className="transition-colors hover:text-[color:var(--text-dim)]"
       >
         Contact

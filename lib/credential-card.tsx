@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { verifyUrlFor } from "@/lib/brand";
 
 // ============================================================
 // CredentialCard — a near-verbatim port of the approved
@@ -439,7 +440,7 @@ export function CredentialCard({
                 </div>
               </div>
               <div style={{ textAlign: "center", fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em", color: "#c4ccd2", marginTop: 14 }}>
-                {data.verifyUrl ?? "rigwise.ca/v/" + data.certNo}
+                {data.verifyUrl ?? verifyUrlFor(data.certNo)}
               </div>
 
               {data.scope && (

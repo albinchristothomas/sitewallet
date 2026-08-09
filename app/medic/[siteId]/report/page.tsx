@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 import { SITE_TZ, siteDayBounds, siteToday } from "@/lib/dates";
 import { ReportControls } from "./report-controls";
+import { SITE_DOMAIN } from "@/lib/brand";
 
 // Approved "Warm cream" paper palette (design block 10 · END-OF-DAY REPORT)
 const paperBg = "#f3efe6";
@@ -1101,7 +1102,7 @@ export default async function EndOfDayReportPage(
         >
           {fmtDateLong(day)} · Generated{" "}
           {new Date().toLocaleString("en-CA", { timeZone: SITE_TZ })} by RigVise
-          · rigwise.ca
+          · {SITE_DOMAIN}
         </p>
       </div>
 

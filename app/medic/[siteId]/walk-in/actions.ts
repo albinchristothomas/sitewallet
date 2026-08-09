@@ -62,6 +62,11 @@ export async function createWalkIn(
   //    worker can never sign in to it (no magic link is ever sent). If they
   //    later install the app and want to claim this record, that's a future
   //    flow — out of scope this week.
+  //
+  //    Deliberately NOT derived from the site domain: this string is a stored
+  //    auth identity, not an address. It never receives mail and never has to
+  //    resolve. If the product moves domains, existing walk-in accounts keep
+  //    working precisely because this stays put.
   const shadowEmail = `walkin.${crypto.randomUUID()}@walkin.rigwise.ca`;
   const { data: created, error: createErr } = await admin.auth.admin.createUser(
     {

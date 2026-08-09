@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { FEEDBACK_EMAIL } from "@/lib/brand";
 
 export default function Error({
   error,
@@ -40,7 +41,7 @@ export default function Error({
           Try again
         </button>
         <a
-          href={`mailto:feedback@rigwise.ca?subject=RigVise%20error&body=${encodeURIComponent(
+          href={`mailto:${FEEDBACK_EMAIL}?subject=RigVise%20error&body=${encodeURIComponent(
             `Error message: ${error.message}\n\nRef: ${error.digest ?? "n/a"}\n\nWhat I was doing:`,
           )}`}
           className="rounded-md border border-zinc-300 px-4 py-3 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-900"
