@@ -43,6 +43,7 @@ export async function proxy(request: NextRequest) {
     path === "/api/health" ||
     path === "/offline" ||
     path === "/help" ||
+    path === "/privacy" ||
     path === "/card-demo";
 
   // Anonymous user hitting a private route → /login.

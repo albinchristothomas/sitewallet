@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>RigVise</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0d0f12; color: #f4f6f7; font-family: system-ui, -apple-system, sans-serif; }
+    main { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
+    .mark { width: 56px; height: 56px; background: #f2581c; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .mark i { width: 20px; height: 20px; background: #0d0f12; display: block; }
+    h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+    p { color: #9aa3ab; font-size: 14px; line-height: 1.5; margin: 0; max-width: 300px; }
+    a { color: #f2581c; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- Fallback shell only. In normal use the native app loads the live site
+       (capacitor.config.ts server.url). This is what a user sees if that
+       fails outright, e.g. no network on first launch. -->
+  <main>
+    <div class="mark"><i></i></div>
+    <h1>RigVise</h1>
+    <p>Could not reach the RigVise service. Check your connection and try again.</p>
+    <p><a href="javascript:location.reload()">Retry</a></p>
+  </main>
+</body>
+</html>
