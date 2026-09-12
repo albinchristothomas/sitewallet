@@ -321,7 +321,7 @@ export function CredentialCard({
                   />
                   <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(115deg, rgba(13,15,18,0.0) 0 3px, rgba(13,15,18,0.35) 3px 4px)" }} />
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: MONO, fontSize: 8, letterSpacing: "0.12em", color: "rgba(13,15,18,0.75)", fontWeight: 700 }}>
-                    RW✦
+                    RV
                   </div>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export function CredentialCard({
 
               <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Caveat', cursive", fontSize: 30, lineHeight: 0.8, color: "#d6dce0", transform: "rotate(-2deg)" }}>{data.holderName}</div>
+                  <div style={{ fontFamily: "var(--font-caveat), cursive", fontSize: 30, lineHeight: 0.8, color: "#d6dce0", transform: "rotate(-2deg)" }}>{data.holderName}</div>
                   <div style={{ borderTop: "1px solid rgba(255,255,255,0.18)", marginTop: 5, paddingTop: 5, fontFamily: MONO, fontSize: 8, letterSpacing: "0.16em", color: "#5d666f" }}>HOLDER SIGNATURE</div>
                 </div>
                 <div style={{ textAlign: "right" }}>

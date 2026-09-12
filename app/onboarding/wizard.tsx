@@ -154,7 +154,7 @@ export function OnboardingWizard({
               medic_license_number: state.medic_license_number,
             };
       const res = await completeOnboarding(payload);
-      if (res && !res.ok) setError(res.error ?? "Something went wrong.");
+      if (res && !res.ok) setError(res.error ?? "Save failed. Try again.");
     });
   };
 
@@ -372,7 +372,7 @@ export function OnboardingWizard({
                     letterSpacing: "0.01em",
                   }}
                 >
-                  {step === "intro" ? "Get started" : "Continue"}
+                  {step === "intro" ? "Start setup" : "Continue"}
                 </span>
                 <ArrowIcon />
               </>
@@ -402,22 +402,6 @@ export function OnboardingWizard({
           · {new Date().getFullYear()}
         </div>
       </div>
-
-      <p
-        className="mono"
-        style={{
-          marginTop: 16,
-          padding: "0 4px",
-          textAlign: "center",
-          fontSize: 9,
-          letterSpacing: "0.08em",
-          lineHeight: 1.7,
-          color: "#5d666f",
-          textTransform: "uppercase",
-        }}
-      >
-        Stored against this account only · Travels with you between sites
-      </p>
     </div>
   );
 }
@@ -581,14 +565,16 @@ function IntroStep({
 }) {
   const checklist =
     accountType === "WORKER"
-      ? ["Your name", "Company you work for", "Site you're going to"]
+      ? ["Full name", "Company you work for"]
       : ["Name + phone", "Medic firm + license"];
 
   return (
     <>
       <StepHeader
         eyebrow={
-          accountType === "WORKER" ? "Worker enrollment" : "Medic enrollment"
+          accountType === "WORKER"
+            ? "Before your first gate"
+            : "Before your first shift"
         }
         title={
           accountType === "WORKER"
@@ -597,8 +583,8 @@ function IntroStep({
         }
         body={
           accountType === "WORKER"
-            ? "We need a few details once. After that, every gate you walk up to pulls the same data — no paper forms, no re-typing."
-            : "We need a few details once so workers admitted under you are traceable to the right firm and license."
+            ? "Enter these once. After that the medic at the gate scans your pass and you're through."
+            : "Enter these once. Anyone you admit is traceable back to your firm and license."
         }
       />
 
@@ -686,7 +672,7 @@ function YouStep({
           label="Full legal name"
           value={state.full_name}
           onChange={update("full_name")}
-          placeholder="Albin Christo Thomas"
+          placeholder="Dale Kowalchuk"
           autoFocus
         />
         <Field
@@ -695,7 +681,7 @@ function YouStep({
           onChange={update("phone")}
           placeholder="403-555-0123"
           type="tel"
-          hint="Optional — so the medic can reach you if something comes up on site."
+          hint="The number the site supervisor calls when they need the medic."
         />
       </div>
     </>
@@ -713,15 +699,15 @@ function WorkerDetailsStep({
     <>
       <StepHeader
         eyebrow="Your details"
-        title="Quick setup."
-        body="Two things and you're in. The gate knows which site you're at — no need to tell us."
+        title="Name and company."
+        body="Your site is set at the gate."
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <Field
           label="Full name"
           value={state.full_name}
           onChange={update("full_name")}
-          placeholder="Albin Christo Thomas"
+          placeholder="Dale Kowalchuk"
           autoFocus
           hint="Use the same name printed on your safety tickets."
         />
@@ -756,14 +742,14 @@ function CredentialsStep({
           label="Medic firm"
           value={state.medic_firm}
           onChange={update("medic_firm")}
-          placeholder="Aluma Safety / Falck / etc."
+          placeholder="Aluma Safety"
           autoFocus
         />
         <Field
           label="Medic license number"
           value={state.medic_license_number}
           onChange={update("medic_license_number")}
-          placeholder="License # / registration #"
+          placeholder="AB-EMR-44210"
         />
       </div>
     </>

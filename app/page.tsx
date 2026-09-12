@@ -111,7 +111,7 @@ export default async function Home() {
           color: "rgba(255,255,255,0.03)",
         }}
       >
-        RW
+        RV
       </div>
 
       <div className="rw-enter relative mx-auto flex w-full max-w-[1000px] flex-1 flex-col">
@@ -142,24 +142,13 @@ export default async function Home() {
                 RIG
                 <span style={{ color: "#8b949c", fontWeight: 600 }}>VISE</span>
               </div>
-              <div
-                className="mono"
-                style={{
-                  fontSize: 9,
-                  letterSpacing: "0.18em",
-                  color: "#5d666f",
-                  marginTop: 3,
-                }}
-              >
-                GATE STATION
-              </div>
             </div>
           </div>
           <div
             className="mono text-right"
             style={{ fontSize: 11, letterSpacing: "0.12em", color: "#9aa3ab" }}
           >
-            EST · ALBERTA · BC · SK
+            AB · BC · SK
           </div>
         </div>
 

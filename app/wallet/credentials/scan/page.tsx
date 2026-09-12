@@ -18,21 +18,39 @@ export default async function ScanCredentialPage() {
 
   return (
     <main
-      className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-4"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+      className="mx-auto flex w-full max-w-[384px] flex-1 flex-col px-6 pb-4"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 14px)" }}
     >
-      <div className="flex items-center justify-between">
+      {/* header (matches /wallet/credentials/new) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <Link
           href="/wallet"
           aria-label="Back to wallet"
-          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-[22px] leading-none text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+          style={{ display: "inline-flex", lineHeight: 0 }}
         >
-          ←
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#9aa3ab"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
         </Link>
-        <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[color:var(--text-faint)]">
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 24,
+            letterSpacing: "-0.02em",
+            color: "#f4f6f7",
+          }}
+        >
           Scan ticket
         </div>
-        <div className="w-11" />
       </div>
 
       <ScanForm holderName={worker?.full_name ?? ""} />

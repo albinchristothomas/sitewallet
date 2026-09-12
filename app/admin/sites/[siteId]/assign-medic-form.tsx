@@ -19,13 +19,13 @@ export function AssignMedicForm({ siteId }: { siteId: string }) {
           type="email"
           required
           placeholder="medic@firm.ca"
-          className="h-11 flex-1 rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3.5 text-sm outline-none focus:border-[color:var(--brand)]"
+          className="h-10 flex-1 rounded-[7px] border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-3.5 text-sm outline-none focus:border-[color:var(--brand)]"
           style={{ color: "var(--text)" }}
         />
         <button
           type="submit"
           disabled={pending}
-          className="h-11 rounded-xl px-5 text-sm font-bold"
+          className="h-10 rounded-[7px] px-5 text-sm font-bold"
           style={{
             background: "#f2581c",
             color: "#0d0f12",

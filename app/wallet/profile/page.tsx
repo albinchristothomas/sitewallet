@@ -6,6 +6,7 @@ import { faceUrl } from "@/lib/photos";
 import { GeneratedAvatar } from "@/lib/avatar-gen";
 import { ProfileForm } from "./profile-form";
 import { ProfilePhoto } from "./profile-photo";
+import { DeleteAccount } from "./delete-account";
 
 export default async function WorkerProfilePage(
   props: PageProps<"/wallet/profile">,
@@ -38,7 +39,14 @@ export default async function WorkerProfilePage(
     <main className="mx-auto w-full max-w-md flex-1 px-5 pb-10 pt-5">
       <Link
         href="/wallet"
-        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
+        className="mono"
+        style={{
+          fontSize: 11,
+          color: "#9aa3ab",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          textDecoration: "none",
+        }}
       >
         ← Wallet
       </Link>
@@ -52,8 +60,8 @@ export default async function WorkerProfilePage(
       </header>
 
       {saved && (
-        <div className="mt-4 rounded-xl border border-[color:rgba(16,185,129,0.32)] bg-[color:rgba(16,185,129,0.10)] px-4 py-3 text-[13px] text-[color:#34D399]">
-          ✓ Saved.
+        <div className="mt-4 rounded-xl border border-[color:var(--ok-line)] bg-[color:var(--ok-bg)] px-4 py-3 text-[13px] text-[color:var(--ok-text)]">
+          Saved.
         </div>
       )}
 
@@ -88,6 +96,8 @@ export default async function WorkerProfilePage(
           }}
         />
       </div>
+
+      <DeleteAccount />
     </main>
   );
 }

@@ -85,7 +85,7 @@ export default async function VerifyWorkerPage(
         </p>
         <Link
           href={`/medic/${siteId}/scan`}
-          className="mt-6 inline-block rounded-xl bg-[color:var(--hi-yellow)] px-5 py-3 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+          className="mt-6 inline-flex h-[54px] items-center justify-center rounded-[9px] bg-[color:var(--brand)] px-5 text-sm font-bold text-[color:var(--on-brand)] hover:brightness-95"
         >
           Try another scan
         </Link>
@@ -142,7 +142,7 @@ export default async function VerifyWorkerPage(
   if (expiredCount > 0) denyParts.push(`${expiredCount} EXPIRED`);
   if (missingCount > 0) denyParts.push(`${missingCount} MISSING`);
   const denySub =
-    denyParts.length > 0 ? `NOT COMPLIANT — ${denyParts.join(", ")}` : "NOT COMPLIANT";
+    denyParts.length > 0 ? `NOT COMPLIANT · ${denyParts.join(", ")}` : "NOT COMPLIANT";
 
   // Reason text for the DENY field.
   const reasonParts: string[] = [];
@@ -1036,12 +1036,11 @@ export default async function VerifyWorkerPage(
           }}
         >
           <div className="font-semibold" style={{ color: "#ff9a8f" }}>
-            Heads up — admitting anyway is an override
+            Admitting anyway is an override.
           </div>
           <div className="mt-1 text-[color:var(--text-dim)]">
-            It&apos;s recorded in the audit log with your medic ID. Only use
-            when you&apos;ve verified another way (paper card, phone call to
-            issuer, etc.).
+            Logged against your medic ID. Use it only after you have verified
+            another way: paper card, or a call to the issuer.
           </div>
         </div>
       )}

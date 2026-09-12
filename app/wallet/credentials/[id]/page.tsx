@@ -86,7 +86,7 @@ export default async function CredentialDetailPage(
     issuerSub: "ISSUING BODY · CAN",
     category: verified ? "VERIFIED · SAFETY TICKET" : "SELF-ENTERED · SAFETY TICKET",
     title: label.toUpperCase(),
-    subtitle: verified ? "Verified credential" : "Self-entered — confirm at the gate",
+    subtitle: verified ? "Verified credential" : "Self-entered. Medic confirms at the gate.",
     holderName: worker?.full_name ?? "Worker",
     holderRole: (worker?.contractor_company ?? "WORKER").toUpperCase(),
     certNo: c.certificate_number ?? "—",
@@ -129,7 +129,7 @@ export default async function CredentialDetailPage(
           textTransform: "uppercase",
         }}
       >
-        {state === "expired" ? "Expired — renew this ticket" : "Tap card to flip"}
+        {state === "expired" ? "Expired. Renew before your next shift." : "Tap card to flip"}
       </div>
 
       {/* the actual photo of the physical card the worker took */}

@@ -6,7 +6,7 @@ import { saveMedicProfile } from "./actions";
 const initialState: { error?: string } = {};
 
 const inputCls =
-  "h-[48px] w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
+  "h-[48px] w-full rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--brand)] focus:outline-none";
 
 const KNOWN_FIRMS = [
   "Aluma Safety",
@@ -108,13 +108,13 @@ export function MedicProfileForm({
       </Field>
 
       {state.error && (
-        <p className="text-sm text-[color:#F87171]">{state.error}</p>
+        <p className="text-sm text-[color:var(--bad-text)]">{state.error}</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="h-[56px] w-full rounded-xl bg-[color:var(--hi-yellow)] text-[16px] font-bold text-[color:var(--ink-1)] hover:brightness-95 disabled:opacity-50"
+        className="h-[48px] w-full rounded-[9px] bg-[color:var(--brand)] text-[16px] font-bold text-[color:var(--on-brand)] hover:brightness-95 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Save profile"}
       </button>
@@ -142,7 +142,7 @@ function Field({
         className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-dim)]"
       >
         {label}
-        {required && <span className="ml-1 text-[color:#EF4444]">*</span>}
+        {required && <span className="ml-1 text-[color:var(--bad)]">*</span>}
       </label>
       {children}
       {hint && (

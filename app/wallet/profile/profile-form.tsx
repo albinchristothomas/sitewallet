@@ -6,7 +6,7 @@ import { saveWorkerProfile } from "./actions";
 const initialState: { error?: string } = {};
 
 const inputCls =
-  "h-[48px] w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
+  "h-[48px] w-full rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--brand)] focus:outline-none";
 
 type Initial = {
   fullName: string;
@@ -45,7 +45,7 @@ export function ProfileForm({
           type="text"
           required
           defaultValue={initial.fullName}
-          placeholder="Jonathan Doe"
+          placeholder="As printed on your tickets"
           className={inputCls}
         />
       </Field>
@@ -64,7 +64,7 @@ export function ProfileForm({
       <Field
         label="Contractor company"
         htmlFor="contractor_company"
-        hint="Your employer — e.g. Precision Drilling, CWC Energy, Calfrac."
+        hint="Who you work for. Precision Drilling, CWC Energy, Calfrac."
       >
         <input
           id="contractor_company"
@@ -79,7 +79,7 @@ export function ProfileForm({
       <Field
         label="Employee number"
         htmlFor="employee_number"
-        hint="Optional — your employer's ID for you."
+        hint="Optional. Your employer's ID number."
       >
         <input
           id="employee_number"
@@ -98,7 +98,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="h-[56px] w-full rounded-xl bg-[color:var(--hi-yellow)] text-[16px] font-bold text-[color:var(--ink-1)] hover:brightness-95 disabled:opacity-50"
+        className="h-[48px] w-full rounded-[9px] bg-[color:var(--brand)] text-[15px] font-bold text-[color:var(--on-brand)] hover:brightness-95 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Save profile"}
       </button>

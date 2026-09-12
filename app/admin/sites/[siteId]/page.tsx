@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCredentialLabel } from "@/lib/credentials";
-import { Avatar, Eyebrow, StatusPill, getInitials } from "@/lib/atoms";
+import { Avatar, Eyebrow, getInitials } from "@/lib/atoms";
 import { AssignMedicForm } from "./assign-medic-form";
 
 export default async function SiteDetailPage(
@@ -29,8 +29,11 @@ export default async function SiteDetailPage(
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10">
         <p>Site not found.</p>
-        <Link href="/admin" className="text-sm underline">
-          Back
+        <Link
+          href="/admin"
+          className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
+        >
+          ← Admin
         </Link>
       </main>
     );
@@ -60,31 +63,23 @@ export default async function SiteDetailPage(
         href="/admin"
         className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        ← All sites
+        ← Admin
       </Link>
 
       {justCreated && (
         <div
-          className="mt-3 flex items-center gap-3 rounded-2xl border px-4 py-3"
+          className="mt-3 rounded-2xl border px-4 py-3 text-[13px]"
           style={{
-            background: "rgba(16,185,129,0.10)",
-            borderColor: "rgba(16,185,129,0.32)",
+            background: "var(--ok-bg)",
+            borderColor: "var(--ok-line)",
           }}
         >
-          <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-            style={{ background: "rgba(16,185,129,0.30)", color: "#10B981" }}
-          >
-            ✓
-          </div>
-          <div className="text-[13px]">
-            <span className="font-semibold text-[color:#34D399]">
-              Site created.
-            </span>{" "}
-            <span className="text-[color:var(--text-dim)]">
-              Now assign a medic and you&apos;re ready to scan workers in.
-            </span>
-          </div>
+          <span className="font-semibold text-[color:var(--ok-text)]">
+            Site created.
+          </span>{" "}
+          <span className="text-[color:var(--text-dim)]">
+            Assign a medic before the first shift.
+          </span>
         </div>
       )}
 
@@ -119,10 +114,9 @@ export default async function SiteDetailPage(
             {required.map((r) => (
               <li
                 key={r}
-                className="flex items-center justify-between rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-2.5 text-sm"
+                className="flex items-center rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] px-4 py-2.5 text-sm"
               >
                 <span>{getCredentialLabel(r)}</span>
-                <StatusPill status="info" label="Required" />
               </li>
             ))}
           </ul>
@@ -177,25 +171,25 @@ export default async function SiteDetailPage(
       <section className="mt-8 flex flex-wrap gap-3">
         <Link
           href={`/medic/${siteId}/scan`}
-          className="rounded-xl bg-[color:var(--hi-yellow)] px-5 py-3 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+          className="inline-flex h-10 items-center rounded-[7px] bg-[color:var(--hi-yellow)] px-4 text-[14px] font-bold text-[color:var(--ink-1)] hover:brightness-95"
         >
           Open scanner
         </Link>
         <Link
           href={`/medic/${siteId}/roster`}
-          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+          className="inline-flex h-10 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-2)]"
         >
           Daily roster
         </Link>
         <Link
           href={`/medic/${siteId}/report`}
-          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+          className="inline-flex h-10 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-2)]"
         >
           End-of-day report
         </Link>
         <Link
           href={`/medic/${siteId}/incidents`}
-          className="rounded-xl border border-[color:var(--hair-strong)] px-5 py-3 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+          className="inline-flex h-10 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-2)]"
         >
           Incidents
         </Link>

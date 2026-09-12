@@ -92,7 +92,7 @@ export function CredentialPicker({
     }
   }
 
-  const triggerH = compact ? 38 : 50;
+  const triggerH = compact ? 38 : 48;
 
   return (
     <div ref={rootRef} style={{ position: "relative", width: "100%" }}>

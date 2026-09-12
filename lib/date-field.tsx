@@ -63,7 +63,7 @@ export function DateField({
   };
 
   const boxStyle: React.CSSProperties = {
-    height: 52,
+    height: 48,
     width: "100%",
     borderRadius: 9,
     background: "#15191e",

@@ -92,9 +92,9 @@ export default async function PeoplePage() {
     <main className="mx-auto w-full max-w-5xl flex-1 px-5 pb-12 pt-6">
       <Link
         href="/admin"
-        className="mono text-[11px] uppercase tracking-[0.1em] text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
+        className="text-sm text-[color:var(--text-dim)] hover:text-[color:var(--text)]"
       >
-        ← Setup
+        ← Admin
       </Link>
 
       <header className="mt-3">
@@ -109,9 +109,9 @@ export default async function PeoplePage() {
       {/* pilot funnel */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Signed up" value={workerRows.length} tone="#f4f6f7" />
-        <Stat label="Added tickets" value={withTickets} tone="#7ff0a8" />
-        <Stat label="Scanned at a gate" value={everScanned} tone="#6ec8ff" />
-        <Stat label="Medics" value={medics.length} tone="#ffd27a" />
+        <Stat label="Added tickets" value={withTickets} tone="#f4f6f7" />
+        <Stat label="Scanned at a gate" value={everScanned} tone="#f4f6f7" />
+        <Stat label="Medics" value={medics.length} tone="#f4f6f7" />
       </div>
 
       <Section title={`Workers · ${workerRows.length}`} rows={workerRows} />

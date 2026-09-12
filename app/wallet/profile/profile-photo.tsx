@@ -70,7 +70,7 @@ export function ProfilePhoto({
           <>
             <div className="text-[14px] font-semibold">Your photo</div>
             <p className="mt-1 text-[12px] leading-relaxed text-[color:var(--text-faint)]">
-              Locked — it anchors the face check at the gate. Ask a medic to
+              Locked. Used for the face check at the gate. Ask a medic to
               change it.
             </p>
           </>
@@ -78,8 +78,7 @@ export function ProfilePhoto({
           <>
             <div className="text-[14px] font-semibold">Add your photo</div>
             <p className="mt-1 text-[12px] leading-relaxed text-[color:var(--text-faint)]">
-              The medic matches this to your face at the gate — it gets you
-              waved through faster. One-time set.
+              The medic matches this to your face at the gate. You set it once.
             </p>
             <button
               type="button"

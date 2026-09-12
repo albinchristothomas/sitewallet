@@ -282,7 +282,6 @@ export function WalkInForm({ siteId }: { siteId: string }) {
                 autoFocus
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Dale Hutchins"
                 style={{
                   width: "100%",
                   background: "transparent",
@@ -302,7 +301,6 @@ export function WalkInForm({ siteId }: { siteId: string }) {
                 <input
                   value={employer}
                   onChange={(e) => setEmployer(e.target.value)}
-                  placeholder="Borealis Vac"
                   style={{
                     width: "100%",
                     background: "transparent",
@@ -322,7 +320,7 @@ export function WalkInForm({ siteId }: { siteId: string }) {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="780·555·0148"
+                  placeholder="780 555 0148"
                   className="mono"
                   style={{
                     width: "100%",

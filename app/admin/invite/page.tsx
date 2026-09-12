@@ -15,8 +15,7 @@ export default function InvitePage() {
         <Eyebrow className="mb-1">Invite</Eyebrow>
         <h1 className="text-2xl font-bold tracking-tight">Invite worker</h1>
         <p className="mt-2 text-sm text-[color:var(--text-dim)]">
-          Sends a sign-in link to the worker's email. They tap, set up their
-          wallet, and they're in. No password.
+          Sends a sign-in code to the worker's email. No password needed.
         </p>
       </header>
       <div className="mt-7">

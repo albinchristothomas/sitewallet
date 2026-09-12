@@ -13,9 +13,7 @@ export default function NewSitePage() {
       </Link>
       <header className="mt-3">
         <Eyebrow className="mb-1">New site</Eyebrow>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Set up a worksite
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight">New site</h1>
         <p className="mt-2 text-sm text-[color:var(--text-dim)]">
           Creates the operator company, project, requirements profile, and the
           site in one go.

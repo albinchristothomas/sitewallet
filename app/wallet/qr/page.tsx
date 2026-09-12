@@ -34,7 +34,7 @@ export default async function WalletQrPage() {
     type: "svg",
     margin: 1,
     width: 400,
-    color: { dark: "#0E1116", light: "#FACC15" },
+    color: { dark: "#0d0f12", light: "#efe9dc" },
   });
 
   const fullName = worker?.full_name ?? user.email ?? "Worker";

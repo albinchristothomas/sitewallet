@@ -15,6 +15,8 @@ const MONO = "'JetBrains Mono', monospace";
 export default async function LoginPage(props: PageProps<"/login">) {
   const sp = await props.searchParams;
   const as: SignupIntent | null = isIntent(sp.as) ? sp.as : null;
+  // Landing here right after in-app account deletion.
+  const deleted = sp.deleted === "1";
 
   const supabase = await createClient();
   const {
@@ -41,7 +43,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
       <div
         className="rw-enter relative w-full max-w-[384px] overflow-hidden"
         style={{
-          borderRadius: 34,
+          borderRadius: 16,
           background:
             "radial-gradient(120% 90% at 50% -10%, #161a1f 0%, #0d0f12 60%)",
           boxShadow:
@@ -117,9 +119,28 @@ export default async function LoginPage(props: PageProps<"/login">) {
                 letterSpacing: "0.03em",
               }}
             >
-              No passwords. We email you a 6-digit code — type it in, or tap
-              the button in the email.
+              No passwords. We email you a 6-digit code each time you sign in.
             </div>
+
+            {deleted && (
+              <div
+                style={{
+                  marginTop: 14,
+                  borderRadius: 9,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "#15191e",
+                  padding: "11px 13px",
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  lineHeight: 1.6,
+                  letterSpacing: "0.03em",
+                  color: "#c4ccd2",
+                }}
+              >
+                Your account has been deleted. Your tickets, photos, and sign-in
+                are gone.
+              </div>
+            )}
 
             {as && (
               <div
@@ -140,7 +161,6 @@ export default async function LoginPage(props: PageProps<"/login">) {
                     height: 6,
                     borderRadius: "50%",
                     background: "#f2581c",
-                    boxShadow: "0 0 6px #f2581c",
                   }}
                 />
                 <span
@@ -149,7 +169,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
                     fontSize: 9,
                     fontWeight: 700,
                     letterSpacing: "0.12em",
-                    color: "#ffd27a",
+                    color: "#f2581c",
                     textTransform: "uppercase",
                   }}
                 >
@@ -201,7 +221,7 @@ export default async function LoginPage(props: PageProps<"/login">) {
               style={{ color: "#5d666f", textDecorationLine: "none" }}
               className="transition-colors hover:text-[#9aa3ab]"
             >
-              SUPPORT 1-800-RIG-VISE
+              HELP
             </Link>
           </div>
         </div>

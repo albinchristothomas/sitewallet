@@ -183,8 +183,7 @@ export default async function EndOfDayReportPage(
   );
   const crewHours = (totalMinutes / 60).toFixed(1);
 
-  // Crew table shows the full roster (design label reflects how many of total)
-  const shownCount = roster.length;
+  // Crew table shows the full roster
   const totalCount = roster.length;
 
   const wellLsd = site?.lsd_location || site?.well_number || "—";
@@ -216,8 +215,8 @@ export default async function EndOfDayReportPage(
   ).length;
   const incidentText =
     incidents.length === 0
-      ? "None reported — 0 recordable"
-      : `${incidents.length} reported — ${recordableCount} recordable`;
+      ? "None reported · 0 recordable"
+      : `${incidents.length} reported · ${recordableCount} recordable`;
   const incidentColor = incidents.length === 0 ? "#1e8a4c" : "#c0392b";
 
   const mono = "var(--font-jetbrains-mono), ui-monospace, monospace";
@@ -342,7 +341,7 @@ export default async function EndOfDayReportPage(
                   >
                     RIG
                     <span style={{ color: "#a59a8a", fontWeight: 600 }}>
-                      WISE
+                      VISE
                     </span>
                   </div>
                 </div>
@@ -525,7 +524,7 @@ export default async function EndOfDayReportPage(
                     color: paperSub,
                   }}
                 >
-                  {shownCount} OF {totalCount} SHOWN
+                  {totalCount} ON ROSTER
                 </div>
               </div>
               <div

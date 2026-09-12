@@ -29,19 +29,18 @@ export default async function MedicHomePage() {
       </p>
 
       {items.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
+        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--line-strong)] bg-[color:var(--surface-1)] p-8 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--surface-3)] text-[color:var(--brand)]">
             <Shield size={28} strokeWidth={1.75} />
           </div>
           <p className="mt-3 text-[15px] font-semibold">No sites assigned yet</p>
           <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
             You need to be assigned to a site before you can scan workers in.
-            If this is your own demo, open Setup and click &ldquo;Assign myself
-            as medic&rdquo; on a site.
+            Ask the site admin to add you, or assign yourself in Setup.
           </p>
           <Link
             href="/admin"
-            className="mt-4 inline-block rounded-lg border border-[color:var(--hair-strong)] px-4 py-2.5 text-sm font-semibold hover:bg-[color:var(--ink-3)]"
+            className="mt-4 inline-flex h-11 items-center rounded-[9px] border border-[color:var(--line-strong)] px-4 text-sm font-semibold hover:bg-[color:var(--surface-3)]"
           >
             Open Setup
           </Link>
@@ -62,7 +61,7 @@ export default async function MedicHomePage() {
             return (
               <li
                 key={a.site_id}
-                className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4"
+                className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-1)] p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -80,13 +79,13 @@ export default async function MedicHomePage() {
                   <div className="flex shrink-0 gap-2">
                     <Link
                       href={`/medic/${site.id}`}
-                      className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-1.5 text-sm font-semibold hover:bg-[color:var(--ink-3)]"
+                      className="inline-flex h-10 items-center rounded-[9px] border border-[color:var(--line-strong)] px-3 text-sm font-semibold hover:bg-[color:var(--surface-3)]"
                     >
                       Open
                     </Link>
                     <Link
                       href={`/medic/${site.id}/scan`}
-                      className="rounded-lg bg-[color:var(--hi-yellow)] px-3 py-1.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+                      className="inline-flex h-10 items-center rounded-[9px] bg-[color:var(--brand)] px-3 text-sm font-bold text-[color:var(--on-brand)] hover:brightness-95"
                     >
                       Scan
                     </Link>

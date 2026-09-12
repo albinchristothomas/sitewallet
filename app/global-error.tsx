@@ -24,18 +24,19 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0E1116",
-          color: "#fff",
+          background: "#0d0f12",
+          color: "#f4f6f7",
         }}
       >
         <div style={{ maxWidth: 420, padding: 24, textAlign: "center" }}>
           <p
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "0.16em",
               textTransform: "uppercase",
-              color: "#fca5a5",
+              color: "#ff9a8f",
             }}
           >
             App crashed
@@ -47,7 +48,7 @@ export default function GlobalError({
             style={{
               fontSize: 14,
               marginTop: 8,
-              color: "#cbd5e1",
+              color: "#9aa3ab",
             }}
           >
             Reload to try again. Your data is safe.
@@ -56,13 +57,14 @@ export default function GlobalError({
             onClick={reset}
             style={{
               marginTop: 24,
-              background: "#fff",
-              color: "#0E1116",
+              background: "#f2581c",
+              color: "#0d0f12",
               border: "none",
-              borderRadius: 8,
-              padding: "12px 20px",
-              fontSize: 15,
-              fontWeight: 600,
+              borderRadius: 7,
+              height: 40,
+              padding: "0 16px",
+              fontSize: 14,
+              fontWeight: 700,
               cursor: "pointer",
             }}
           >

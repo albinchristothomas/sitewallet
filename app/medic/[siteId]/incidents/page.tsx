@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 
 const SEVERITY_STYLE: Record<string, string> = {
-  LOW: "bg-[color:rgba(16,185,129,0.14)] text-[color:#34D399]",
-  MEDIUM: "bg-[color:rgba(245,158,11,0.14)] text-[color:#FBBF24]",
-  HIGH: "bg-[color:rgba(234,88,12,0.18)] text-[color:#F97316]",
-  CRITICAL: "bg-[color:rgba(239,68,68,0.18)] text-[color:#F87171]",
+  LOW: "bg-[color:var(--ok-bg)] text-[color:var(--ok-text)]",
+  MEDIUM: "bg-[color:var(--warn-bg)] text-[color:var(--warn-text)]",
+  HIGH: "bg-[color:rgba(242,88,28,0.16)] text-[color:var(--brand)]",
+  CRITICAL: "bg-[color:var(--bad-bg)] text-[color:var(--bad-text)]",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -79,23 +79,18 @@ export default async function IncidentsPage(
         </div>
         <Link
           href={`/medic/${siteId}/incidents/new`}
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-[color:var(--hi-yellow)] px-4 text-sm font-bold text-[color:var(--ink-1)]"
+          className="inline-flex h-10 items-center gap-1.5 rounded-[9px] bg-[color:var(--hi-yellow)] px-4 text-sm font-bold text-[color:var(--ink-1)]"
         >
           <Plus size={16} strokeWidth={2} /> Log incident
         </Link>
       </header>
 
       {list.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ink-3)] text-[color:#34D399]">
-            <AlertTriangle size={28} strokeWidth={1.75} />
-          </div>
-          <p className="mt-3 text-[15px] font-semibold">
-            No incidents logged
-          </p>
+        <div className="mt-8 rounded-2xl border border-dashed border-[color:var(--line-strong)] bg-[color:var(--surface-2)] p-6 text-center">
+          <p className="text-[15px] font-semibold">No incidents logged</p>
           <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
-            Log first aid, near misses, evacuations, anything that needs to
-            end up in the end-of-day report.
+            First aid, near misses, evacuations. Anything that belongs on the
+            end-of-day report.
           </p>
         </div>
       ) : (
@@ -105,7 +100,7 @@ export default async function IncidentsPage(
             return (
               <li
                 key={i.id}
-                className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4"
+                className="rounded-xl border border-[color:var(--hair)] bg-[color:var(--surface-2)] p-4"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span

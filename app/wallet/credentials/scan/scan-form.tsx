@@ -81,7 +81,7 @@ export function ScanForm({ holderName }: { holderName: string }) {
     <div className="mt-3 flex flex-1 flex-col gap-3">
       {phase === "idle" && (
         <div className="flex flex-1 flex-col gap-3">
-          <div className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-5">
+          <div className="rounded-[12px] border border-[color:var(--line)] bg-[color:var(--surface-2)] p-5">
             <div className="text-[15px] font-bold leading-tight">
               Scan a paper ticket
             </div>
@@ -98,13 +98,13 @@ export function ScanForm({ holderName }: { holderName: string }) {
 
           <button
             onClick={() => cameraRef.current?.click()}
-            className="flex h-16 w-full items-center justify-center gap-2.5 rounded-xl bg-[color:var(--hi-yellow)] text-[15px] font-bold text-[color:var(--ink-1)] active:scale-[0.98]"
+            className="flex h-[52px] w-full items-center justify-center gap-2.5 rounded-[9px] bg-[color:var(--brand)] text-[15px] font-bold text-[color:var(--on-brand)] active:scale-[0.98]"
           >
             <Camera size={20} strokeWidth={1.75} /> Take photo of ticket
           </button>
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] text-[14px] font-semibold text-[color:var(--text)] active:scale-[0.98]"
+            className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] text-[14px] font-semibold text-[color:var(--text)] active:scale-[0.98]"
           >
             <ImageIcon size={18} strokeWidth={1.75} /> Choose from gallery
           </button>
@@ -136,7 +136,7 @@ export function ScanForm({ holderName }: { holderName: string }) {
       {phase === "reading" && (
         <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
           {preview && (
-            <div className="overflow-hidden rounded-2xl border border-[color:var(--hair)]">
+            <div className="overflow-hidden rounded-[12px] border border-[color:var(--line)]">
               <img
                 src={preview}
                 alt="Scanning preview"
@@ -149,9 +149,9 @@ export function ScanForm({ holderName }: { holderName: string }) {
               <span>Reading ticket…</span>
               <span>{progress}%</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--ink-2)]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--surface-2)]">
               <div
-                className="h-full bg-[color:var(--hi-yellow)] transition-[width] duration-200"
+                className="h-full bg-[color:var(--brand)] transition-[width] duration-200"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -166,7 +166,7 @@ export function ScanForm({ holderName }: { holderName: string }) {
       {phase === "parsed" && parsed && (
         <div className="flex flex-1 flex-col gap-3">
           {preview && (
-            <div className="overflow-hidden rounded-2xl border border-[color:var(--hair)]">
+            <div className="overflow-hidden rounded-[12px] border border-[color:var(--line)]">
               <img
                 src={preview}
                 alt="Scanned ticket"
@@ -174,14 +174,14 @@ export function ScanForm({ holderName }: { holderName: string }) {
               />
             </div>
           )}
-          <div className="rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-4">
-            <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-[color:#34D399]">
+          <div className="rounded-[12px] border border-[color:var(--line)] bg-[color:var(--surface-2)] p-4">
+            <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-[color:var(--ok-text)]">
               Auto-filled
             </div>
             <div className="mt-2 space-y-2 text-[13px]">
               <Row
                 label="Type"
-                value={parsed.credentialLabel || "(not recognized — pick manually)"}
+                value={parsed.credentialLabel || "(not recognized. Pick it manually)"}
                 ok={!!parsed.credentialKey}
               />
               <Row
@@ -214,15 +214,15 @@ export function ScanForm({ holderName }: { holderName: string }) {
           </div>
 
           {parsed.confidence.qr && (
-            <div className="rounded-2xl border border-[color:rgba(16,185,129,0.32)] bg-[color:rgba(16,185,129,0.08)] p-4">
+            <div className="rounded-[12px] border border-[color:var(--ok-line)] bg-[color:var(--ok-bg)] p-4">
               <div className="flex items-start gap-3">
                 <ShieldCheck
                   size={20}
                   strokeWidth={1.75}
-                  className="mt-0.5 shrink-0 text-[color:#34D399]"
+                  className="mt-0.5 shrink-0 text-[color:var(--ok-text)]"
                 />
                 <div className="text-[13px] leading-relaxed">
-                  <div className="font-semibold text-[color:#34D399]">
+                  <div className="font-semibold text-[color:var(--ok-text)]">
                     QR code detected
                   </div>
                   <div className="mt-1 text-[color:var(--text-dim)]">
@@ -248,13 +248,13 @@ export function ScanForm({ holderName }: { holderName: string }) {
                 setParsed(null);
                 setPreview(null);
               }}
-              className="h-12 rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] text-[14px] font-semibold text-[color:var(--text-dim)]"
+              className="h-[48px] rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] text-[14px] font-semibold text-[color:var(--text-dim)]"
             >
               Try again
             </button>
             <button
               onClick={useResults}
-              className="h-12 rounded-xl bg-[color:var(--hi-yellow)] text-[14px] font-bold text-[color:var(--ink-1)]"
+              className="h-[48px] rounded-[9px] bg-[color:var(--brand)] text-[14px] font-bold text-[color:var(--on-brand)]"
             >
               Use these values
             </button>
@@ -264,8 +264,8 @@ export function ScanForm({ holderName }: { holderName: string }) {
 
       {phase === "error" && (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <div className="rounded-2xl border border-[color:rgba(239,68,68,0.30)] bg-[color:rgba(239,68,68,0.10)] p-5">
-            <div className="text-[14px] font-semibold text-[color:#F87171]">
+          <div className="rounded-[12px] border border-[color:var(--bad-line)] bg-[color:var(--bad-bg)] p-5">
+            <div className="text-[14px] font-semibold text-[color:var(--bad-text)]">
               Couldn&rsquo;t read the ticket
             </div>
             <p className="mt-1 text-[13px] text-[color:var(--text-dim)]">
@@ -278,7 +278,7 @@ export function ScanForm({ holderName }: { holderName: string }) {
               setError(null);
               setPreview(null);
             }}
-            className="h-12 rounded-xl bg-[color:var(--hi-yellow)] px-5 text-[14px] font-bold text-[color:var(--ink-1)]"
+            className="h-[48px] rounded-[9px] bg-[color:var(--brand)] px-5 text-[14px] font-bold text-[color:var(--on-brand)]"
           >
             Try another photo
           </button>

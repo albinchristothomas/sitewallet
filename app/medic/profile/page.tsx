@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 import { MedicProfileForm } from "./profile-form";
+import { DeleteAccount } from "@/app/wallet/profile/delete-account";
 
 export default async function MedicProfilePage(
   props: PageProps<"/medic/profile">,
@@ -46,8 +47,8 @@ export default async function MedicProfilePage(
       </header>
 
       {saved && (
-        <div className="mt-4 rounded-xl border border-[color:rgba(16,185,129,0.32)] bg-[color:rgba(16,185,129,0.10)] px-4 py-3 text-[13px] text-[color:#34D399]">
-          ✓ Saved.
+        <div className="mt-4 rounded-xl border border-[color:var(--ok-line)] bg-[color:var(--ok-bg)] px-4 py-3 text-[13px] text-[color:var(--ok-text)]">
+          Saved.
         </div>
       )}
 
@@ -62,6 +63,8 @@ export default async function MedicProfilePage(
           }}
         />
       </div>
+
+      <DeleteAccount />
     </main>
   );
 }

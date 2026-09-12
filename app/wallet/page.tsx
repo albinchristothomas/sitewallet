@@ -15,7 +15,7 @@ function shortId(uuid: string): string {
 
 function firstName(name: string): string {
   const trimmed = name.trim();
-  if (!trimmed) return "there";
+  if (!trimmed) return "Worker";
   const first = trimmed.split(/\s+/)[0];
   if (first.includes("@")) return first.split("@")[0];
   return first;
@@ -474,7 +474,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                 lineHeight: 1.6,
               }}
             >
-              H2S ALIVE · FIRST AID · CSO · WHATEVER YOU CARRY
+              H2S ALIVE · FIRST AID · CSO · SITE ORIENTATIONS
             </div>
             <Link
               href="/wallet/credentials/new"
@@ -484,7 +484,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
                 justifyContent: "center",
                 gap: 8,
                 marginTop: 16,
-                height: 46,
+                height: 52,
                 padding: "0 18px",
                 borderRadius: 9,
                 background: "#f2581c",
@@ -506,7 +506,7 @@ export default async function WalletPage(props: PageProps<"/wallet">) {
               >
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              Add credential
+              Add ticket
             </Link>
           </div>
         ) : (

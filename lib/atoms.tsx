@@ -395,9 +395,9 @@ export function Stat({
 }) {
   const colors: Record<NonNullable<typeof tone>, string> = {
     neutral: "text-[color:var(--text)]",
-    ok: "text-[color:#4ADE80]",
-    warn: "text-[color:#FBBF24]",
-    bad: "text-[color:#F87171]",
+    ok: "text-[color:var(--ok-text)]",
+    warn: "text-[color:var(--warn-text)]",
+    bad: "text-[color:var(--bad-text)]",
     brand: "text-[color:var(--brand)]",
   };
   return (

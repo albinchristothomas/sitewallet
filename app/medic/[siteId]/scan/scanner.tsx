@@ -113,12 +113,12 @@ export function Scanner({ siteId }: { siteId: string }) {
   return (
     <div className="flex w-full flex-1 flex-col gap-3">
       {/* Toggle — bigger, full-width on mobile */}
-      <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-1.5">
+      <div className="grid grid-cols-2 gap-1.5 rounded-[12px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] p-1.5">
         <button
           onClick={() => setMode("camera")}
-          className={`h-12 rounded-lg text-[14px] font-semibold transition ${
+          className={`h-11 rounded-[9px] text-[14px] font-semibold transition ${
             mode === "camera"
-              ? "bg-[color:var(--ink-3)] text-[color:var(--text)]"
+              ? "bg-[color:var(--surface-3)] text-[color:var(--text)]"
               : "text-[color:var(--text-dim)]"
           }`}
         >
@@ -126,9 +126,9 @@ export function Scanner({ siteId }: { siteId: string }) {
         </button>
         <button
           onClick={() => setMode("manual")}
-          className={`h-12 rounded-lg text-[14px] font-semibold transition ${
+          className={`h-11 rounded-[9px] text-[14px] font-semibold transition ${
             mode === "manual"
-              ? "bg-[color:var(--ink-3)] text-[color:var(--text)]"
+              ? "bg-[color:var(--surface-3)] text-[color:var(--text)]"
               : "text-[color:var(--text-dim)]"
           }`}
         >
@@ -138,7 +138,7 @@ export function Scanner({ siteId }: { siteId: string }) {
 
       {mode === "camera" ? (
         <div
-          className="relative flex-1 overflow-hidden rounded-2xl border border-[color:var(--hair)] bg-black"
+          className="relative flex-1 overflow-hidden rounded-2xl border border-[color:var(--line)] bg-black"
           style={{
             minHeight: "min(60vh, 480px)",
             backgroundImage:
@@ -162,8 +162,8 @@ export function Scanner({ siteId }: { siteId: string }) {
                   className="sw-scan absolute left-3 right-3 top-1/2 h-[2px]"
                   style={{
                     background:
-                      "linear-gradient(90deg, transparent, #FACC15, transparent)",
-                    boxShadow: "0 0 14px rgba(250,204,21,0.7)",
+                      "linear-gradient(90deg, transparent, var(--brand), transparent)",
+                    boxShadow: "0 0 14px rgba(242,88,28,0.6)",
                   }}
                 />
               )}
@@ -178,13 +178,13 @@ export function Scanner({ siteId }: { siteId: string }) {
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"
               style={{
-                background: detected ? "#10B981" : "#FACC15",
+                background: detected ? "var(--ok)" : "var(--brand)",
                 boxShadow: detected
-                  ? "0 0 0 3px rgba(16,185,129,0.30)"
-                  : "0 0 0 3px rgba(250,204,21,0.20)",
+                  ? "0 0 0 3px rgba(47,200,106,0.30)"
+                  : "0 0 0 3px rgba(242,88,28,0.20)",
               }}
             />
-            <span style={{ color: detected ? "#34D399" : "var(--text-dim)" }}>
+            <span style={{ color: detected ? "var(--ok-text)" : "var(--text-dim)" }}>
               {detected ? "GOT IT" : "READY"}
             </span>
           </div>
@@ -203,7 +203,7 @@ export function Scanner({ siteId }: { siteId: string }) {
       ) : (
         <form
           onSubmit={submitManual}
-          className="flex flex-1 flex-col gap-3 rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)] p-5"
+          className="flex flex-1 flex-col gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface-1)] p-5"
         >
           <label
             htmlFor="manual"
@@ -219,7 +219,7 @@ export function Scanner({ siteId }: { siteId: string }) {
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            className="w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-1)] px-4 py-4 font-mono text-[15px] text-[color:var(--text)] focus:border-[color:var(--hi-yellow)] focus:outline-none"
+            className="w-full rounded-xl border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] px-4 py-4 font-mono text-[15px] text-[color:var(--text)] focus:border-[color:var(--brand)] focus:outline-none"
           />
           <p className="text-[12px] leading-relaxed text-[color:var(--text-faint)]">
             Ask the worker to open their QR screen and tap{" "}
@@ -231,7 +231,7 @@ export function Scanner({ siteId }: { siteId: string }) {
           <div className="flex-1" />
           <button
             type="submit"
-            className="h-14 w-full rounded-xl bg-[color:var(--hi-yellow)] text-[15px] font-bold text-[color:var(--ink-1)] active:scale-[0.98]"
+            className="h-[54px] w-full rounded-[9px] bg-[color:var(--brand)] text-[15px] font-bold text-[color:var(--on-brand)] active:scale-[0.98]"
           >
             Look up worker
           </button>
@@ -239,7 +239,7 @@ export function Scanner({ siteId }: { siteId: string }) {
       )}
 
       {error && (
-        <p className="rounded-lg border border-[color:rgba(239,68,68,0.30)] bg-[color:rgba(239,68,68,0.10)] px-4 py-3 text-[13px] leading-relaxed text-[color:#F87171]">
+        <p className="rounded-lg border border-[color:var(--bad-line)] bg-[color:var(--bad-bg)] px-4 py-3 text-[13px] leading-relaxed text-[color:var(--bad-text)]">
           {error}
         </p>
       )}
@@ -254,7 +254,7 @@ function Corner({
   pos: "tl" | "tr" | "bl" | "br";
   detected: boolean;
 }) {
-  const color = detected ? "#10B981" : "#FACC15";
+  const color = detected ? "var(--ok)" : "var(--brand)";
   const base: React.CSSProperties = {
     position: "absolute",
     width: 44,

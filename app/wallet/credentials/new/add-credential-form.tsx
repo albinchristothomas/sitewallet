@@ -189,9 +189,7 @@ export function AddCredentialForm({
         body: JSON.stringify({ path }),
       });
       if (res.status === 503) {
-        setScanNote(
-          "Auto-read isn't switched on yet (setup pending) — fill in the details below.",
-        );
+        setScanNote("Auto-read isn't on yet. Type the ticket in below.");
         return;
       }
       const data = res.ok ? await res.json() : { tickets: [], error: "http" };
@@ -223,8 +221,8 @@ export function AddCredentialForm({
         }
         setScanNote(
           inWallet(tickets[0])
-            ? "Heads up — this ticket looks like it's already in your wallet."
-            : "Details read from your photo — check them and save.",
+            ? "Already in your wallet. Add it again only if this is a renewal."
+            : "Read from your photo. Check every field, then save.",
         );
       } else if (tickets.length > 1) {
         setScanned(tickets);
@@ -232,16 +230,14 @@ export function AddCredentialForm({
           new Set(tickets.map((t, i) => (inWallet(t) ? -1 : i)).filter((i) => i >= 0)),
         );
       } else if (data.error) {
-        setScanNote(
-          "The scan hit a problem — fill in the details below and try again later.",
-        );
+        setScanNote("Scan failed. Type the details in below.");
       } else {
         setScanNote(
-          "Couldn't make out a ticket in that photo — try a closer, straighter shot, or fill in below.",
+          "Couldn't read a ticket in that photo. Try a closer, straighter shot, or type it in below.",
         );
       }
     } catch {
-      setScanNote("The scan hit a problem — fill in the details below.");
+      setScanNote("Scan failed. Type the details in below.");
     } finally {
       setScanning(false);
     }
@@ -407,7 +403,7 @@ export function AddCredentialForm({
                     ? "READING YOUR CARD…"
                     : cardPath
                       ? "CARD PHOTO ADDED ✓ · TAP TO RETAKE"
-                      : "TAP TO CAPTURE THE PHYSICAL CARD"}
+                      : "TAP TO PHOTOGRAPH THE CARD"}
               </span>
             </div>
           </button>
@@ -443,7 +439,7 @@ export function AddCredentialForm({
               className="mono rw-pressable"
               style={{
                 flex: 1,
-                height: 46,
+                height: 48,
                 borderRadius: 9,
                 background: "#15191e",
                 border: "1px solid rgba(255,255,255,0.14)",
@@ -471,7 +467,7 @@ export function AddCredentialForm({
                 <path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z" />
                 <circle cx="12" cy="13" r="3.5" />
               </svg>
-              SNAP WITH CAMERA
+              TAKE A PHOTO
             </button>
             <button
               type="button"
@@ -479,7 +475,7 @@ export function AddCredentialForm({
               className="mono rw-pressable"
               style={{
                 flex: 1,
-                height: 46,
+                height: 48,
                 borderRadius: 9,
                 background: "#15191e",
                 border: "1px solid rgba(255,255,255,0.14)",
@@ -519,9 +515,7 @@ export function AddCredentialForm({
               color: "#6b747c",
             }}
           >
-            Required. Snap the card now, or upload a photo you already have —
-            the details below fill in automatically. Several cards in one photo
-            works too.
+            Required. Take a photo of the card now, or upload one from your phone.
           </div>
           <ProgressBar
             active={cardUploading || scanning}
@@ -756,44 +750,27 @@ export function AddCredentialForm({
 
         {/* ── ISSUER / CARD DETAILS ── */}
         {isOrientation ? (
-          <>
-            <div
-              className="mono"
-              style={{
-                marginTop: 18,
-                borderRadius: 9,
-                border: "1px solid rgba(255,210,122,0.3)",
-                background: "rgba(255,210,122,0.06)",
-                padding: "10px 14px",
-                fontSize: 10,
-                lineHeight: 1.6,
-                letterSpacing: "0.04em",
-                color: "#ffd27a",
-              }}
-            >
-              COMPANY ORIENTATIONS ARE ISSUED BY THE OPERATING COMPANY · NO
-              EXTERNAL VERIFICATION NEEDED · JUST THE COMPANY NAME AND THE START
-              / END DATES
-            </div>
-
-            <DetailField label="ISSUING COMPANY" required>
-              <input
-                id="issuer"
-                name="issuer"
-                type="text"
-                required
-                value={issuer}
-                onChange={(e) => setIssuer(e.target.value)}
-                placeholder="e.g. Tourmaline Oil Corp"
-                style={fieldBoxStyle}
-              />
-            </DetailField>
-          </>
+          <DetailField
+            label="ISSUING COMPANY"
+            required
+            hint="The operator who ran the orientation, e.g. Tourmaline, CNRL, Ovintiv. Nothing to verify on these; just the company and the dates you completed it."
+          >
+            <input
+              id="issuer"
+              name="issuer"
+              type="text"
+              required
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              placeholder="e.g. Tourmaline Oil Corp"
+              style={fieldBoxStyle}
+            />
+          </DetailField>
         ) : (
           <>
             <DetailField
               label="WHO GAVE THE TRAINING"
-              hint="The company on the card — e.g. Energy Safety Canada, Trican, Red Cross."
+              hint="The company on the card, e.g. Energy Safety Canada, Trican, Red Cross."
             >
               <input
                 id="issuer"
@@ -854,7 +831,7 @@ export function AddCredentialForm({
             ) : (
               <DetailField
                 label="VALIDATION CODE"
-                hint="Only on some cards — the long code printed under the QR. Leave blank if you don't see one."
+                hint="Only on some cards. The long code printed under the QR. Leave blank if you don't see one."
               >
                 <input
                   id="validation_code"

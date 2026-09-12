@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { HardHat } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/lib/atoms";
 import { isOwner } from "@/lib/owner";
@@ -35,22 +34,22 @@ export default async function AdminPage() {
           {owner && (
             <Link
               href="/admin/people"
-              className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+              className="inline-flex h-10 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-2)]"
             >
               People
             </Link>
           )}
           <Link
             href="/admin/invite"
-            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+            className="inline-flex h-10 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-2)]"
           >
             Invite worker
           </Link>
           <Link
             href="/admin/sites/new"
-            className="rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+            className="inline-flex h-10 items-center rounded-[7px] bg-[color:var(--hi-yellow)] px-4 text-[14px] font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            + New site
+            New site
           </Link>
         </div>
       </header>
@@ -60,20 +59,16 @@ export default async function AdminPage() {
       </div>
 
       {!sites || sites.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--ink-3)] text-[color:var(--hi-yellow)]">
-            <HardHat size={28} strokeWidth={1.75} />
-          </div>
-          <p className="mt-3 text-[15px] font-semibold">No worksites yet</p>
+        <div className="rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-8">
+          <p className="text-[15px] font-semibold">No sites yet.</p>
           <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--text-dim)]">
-            Start by setting up a site — the rig or pad workers will check in
-            at. You can edit it later.
+            Add the rig or pad workers will check in at.
           </p>
           <Link
             href="/admin/sites/new"
-            className="mt-4 inline-block rounded-lg bg-[color:var(--hi-yellow)] px-4 py-2.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+            className="mt-4 inline-flex h-10 items-center rounded-[7px] bg-[color:var(--hi-yellow)] px-4 text-[14px] font-bold text-[color:var(--ink-1)] hover:brightness-95"
           >
-            + Create first site
+            New site
           </Link>
         </div>
       ) : (
@@ -117,7 +112,7 @@ export default async function AdminPage() {
                   </div>
                   <Link
                     href={`/admin/sites/${s.id}`}
-                    className="shrink-0 rounded-lg border border-[color:var(--hair-strong)] px-3 py-1.5 text-sm font-semibold hover:bg-[color:var(--ink-3)]"
+                    className="inline-flex h-10 shrink-0 items-center rounded-[7px] border border-[color:var(--hair-strong)] px-4 text-[14px] font-semibold hover:bg-[color:var(--ink-3)]"
                   >
                     Manage
                   </Link>

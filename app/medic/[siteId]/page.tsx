@@ -367,7 +367,7 @@ export default async function MedicSitePage(
             }}
           >
             <div style={{ fontWeight: 600, fontSize: 14, color: "#eef1f3" }}>
-              Quiet right now
+              No one checked in
             </div>
             <div
               style={{
@@ -378,7 +378,7 @@ export default async function MedicSitePage(
                 lineHeight: 1.6,
               }}
             >
-              NO ONE&apos;S CHECKED IN YET — SCAN A QR OR ADD A WALK-IN
+              SCAN A QR OR ADD A WALK-IN
             </div>
           </div>
         ) : (

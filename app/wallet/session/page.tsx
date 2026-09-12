@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Eyebrow } from "@/lib/atoms";
 import { SITE_TZ, siteTime } from "@/lib/dates";
 import { checkOut } from "./actions";
 import { CheckoutButton } from "./checkout-button";
@@ -12,7 +11,7 @@ function formatDuration(checkIn: string): string {
   );
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return `${String(h).padStart(2, "0")} h ${String(m).padStart(2, "0")} m`;
+  return h === 0 ? `${m}m` : `${h}h ${String(m).padStart(2, "0")}m`;
 }
 
 export default async function ActiveSessionPage() {
@@ -36,15 +35,62 @@ export default async function ActiveSessionPage() {
   if (!session) {
     return (
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-10 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">No active session</h1>
-        <p className="mt-2 text-sm text-[color:var(--text-dim)]">
-          You're not checked in to a site right now.
-        </p>
+        <h1
+          style={{
+            fontWeight: 800,
+            fontSize: 22,
+            letterSpacing: "-0.02em",
+            color: "#f4f6f7",
+          }}
+        >
+          Not checked in
+        </h1>
+        <div
+          className="mono"
+          style={{
+            fontSize: 9.5,
+            color: "#9aa3ab",
+            letterSpacing: "0.04em",
+            marginTop: 8,
+            lineHeight: 1.6,
+          }}
+        >
+          SCAN YOUR PASS AT THE GATE TO CHECK IN
+        </div>
         <Link
           href="/wallet/qr"
-          className="mt-6 rounded-xl bg-[color:var(--hi-yellow)] px-6 py-3.5 text-sm font-bold text-[color:var(--ink-1)] hover:brightness-95"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginTop: 16,
+            height: 52,
+            padding: "0 18px",
+            borderRadius: 9,
+            background: "#f2581c",
+            boxShadow: "0 8px 20px -8px rgba(242,88,28,0.6)",
+            fontWeight: 800,
+            fontSize: 14,
+            color: "#0d0f12",
+          }}
         >
-          Show my QR
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#0d0f12"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <path d="M14 14h3v3M21 21v.01M17 21h.01M21 17v.01" />
+          </svg>
+          Show gate pass
         </Link>
       </main>
     );
@@ -85,50 +131,137 @@ export default async function ActiveSessionPage() {
         <div className="w-5" />
       </div>
 
+      {/* Same green panel as the wallet's ON SITE NOW banner, card-sized. */}
       <div
-        className="mb-3.5 rounded-2xl p-5"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 100%)",
-          border: "1px solid rgba(16,185,129,0.35)",
+          marginBottom: 14,
+          borderRadius: 12,
+          background: "rgba(47,200,106,0.07)",
+          border: "1px solid rgba(47,200,106,0.25)",
+          padding: 20,
         }}
       >
-        <div className="mb-3.5 flex items-center gap-2.5">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 14,
+          }}
+        >
           <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
             style={{
-              background: "#10B981",
-              boxShadow: "0 0 0 6px rgba(16,185,129,0.20)",
+              width: 6,
+              height: 6,
+              flex: "none",
+              borderRadius: "50%",
+              background: "#2fd072",
+              boxShadow: "0 0 6px #2fd072",
             }}
           />
-          <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[color:#34D399]">
-            Checked in · {formatDuration(session.check_in_at)}
+          <span
+            className="mono"
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              color: "#7ff0a8",
+              fontWeight: 700,
+            }}
+          >
+            CHECKED IN · {formatDuration(session.check_in_at)}
           </span>
         </div>
-        <Eyebrow className="mb-1.5">Site</Eyebrow>
-        <div className="text-[22px] font-bold leading-tight">{site?.name}</div>
-        <div className="mt-0.5 text-[15px] text-[color:var(--text-dim)]">
+        <div
+          className="mono"
+          style={{
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            color: "#5d666f",
+            marginBottom: 6,
+          }}
+        >
+          SITE
+        </div>
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 22,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.15,
+            color: "#f4f6f7",
+          }}
+        >
+          {site?.name}
+        </div>
+        <div style={{ marginTop: 2, fontSize: 15, color: "#9aa3ab" }}>
           {site?.rig_name && <>{site.rig_name} · </>}
           {operator?.name}
         </div>
         {project?.name && (
-          <div className="mt-3.5 text-[13px] leading-snug text-[color:var(--text-dim)]">
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: 13,
+              lineHeight: 1.4,
+              color: "#9aa3ab",
+            }}
+          >
             {project.name}
           </div>
         )}
 
-        <div className="mt-4 grid grid-cols-2 gap-3.5 border-t border-white/[0.08] pt-4">
+        <div
+          style={{
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 14,
+          }}
+        >
           <div>
-            <Eyebrow className="mb-1">Check-in</Eyebrow>
-            <div className="font-mono text-[17px] font-bold">{checkInTime}</div>
-            <div className="mt-0.5 font-mono text-[12px] text-[color:var(--text-dim)]">
+            <div
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.1em",
+                color: "#5d666f",
+                marginBottom: 4,
+              }}
+            >
+              CHECK-IN
+            </div>
+            <div
+              className="mono"
+              style={{ fontSize: 17, fontWeight: 700, color: "#f4f6f7" }}
+            >
+              {checkInTime}
+            </div>
+            <div
+              className="mono"
+              style={{ marginTop: 2, fontSize: 12, color: "#9aa3ab" }}
+            >
               {checkInDate}
             </div>
           </div>
           {site?.lsd_location && (
             <div>
-              <Eyebrow className="mb-1">LSD</Eyebrow>
-              <div className="font-mono text-[14px] font-semibold">
+              <div
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.1em",
+                  color: "#5d666f",
+                  marginBottom: 4,
+                }}
+              >
+                LSD
+              </div>
+              <div
+                className="mono"
+                style={{ fontSize: 14, fontWeight: 600, color: "#f4f6f7" }}
+              >
                 {site.lsd_location}
               </div>
             </div>

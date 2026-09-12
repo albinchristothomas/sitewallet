@@ -7,7 +7,7 @@ type State = { error?: string; sent?: boolean; email?: string };
 const initialState: State = {};
 
 const inputCls =
-  "h-[52px] w-full rounded-xl border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--hi-yellow)] focus:outline-none";
+  "h-[48px] w-full rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] px-3.5 text-[15px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)] focus:border-[color:var(--brand)] focus:outline-none";
 
 export function InviteForm() {
   const [state, action, pending] = useActionState(inviteWorker, initialState);
@@ -15,13 +15,13 @@ export function InviteForm() {
   if (state.sent) {
     return (
       <div
-        className="rounded-2xl p-6"
+        className="rounded-[12px] p-6"
         style={{
           background: "rgba(16,185,129,0.10)",
           border: "1px solid rgba(16,185,129,0.32)",
         }}
       >
-        <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-[color:#34D399]">
+        <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-[color:var(--ok-text)]">
           Invite sent
         </div>
         <p className="mt-2 text-sm">
@@ -30,7 +30,7 @@ export function InviteForm() {
         </p>
         <a
           href="/admin/invite"
-          className="mt-4 inline-block text-sm font-medium text-[color:var(--hi-yellow)] hover:underline"
+          className="mt-4 inline-block text-sm font-medium text-[color:var(--brand)] hover:underline"
         >
           Invite another worker →
         </a>
@@ -45,7 +45,7 @@ export function InviteForm() {
           htmlFor="email"
           className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-dim)]"
         >
-          Worker email <span className="text-[color:#EF4444]">*</span>
+          Worker email <span className="text-[color:var(--bad)]">*</span>
         </label>
         <input
           id="email"
@@ -76,13 +76,13 @@ export function InviteForm() {
       </div>
 
       {state.error && (
-        <p className="text-sm text-[color:#F87171]">{state.error}</p>
+        <p className="text-sm text-[color:var(--bad-text)]">{state.error}</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="h-[56px] w-full rounded-xl bg-[color:var(--hi-yellow)] text-base font-bold text-[color:var(--ink-1)] hover:brightness-95 disabled:opacity-50"
+        className="h-[48px] w-full rounded-[9px] bg-[color:var(--brand)] text-base font-bold text-[color:var(--on-brand)] hover:brightness-95 disabled:opacity-50"
       >
         {pending ? "Sending..." : "Send sign-in link"}
       </button>

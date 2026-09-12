@@ -65,12 +65,12 @@ export default async function RosterPage(
               type="date"
               name="day"
               defaultValue={day}
-              className="mt-1 rounded-lg border border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] px-3 py-2 text-sm focus:border-[color:var(--hi-yellow)] focus:outline-none"
+              className="mt-1 h-10 rounded-[9px] border border-[color:var(--line-strong)] bg-[color:var(--surface-2)] px-3 text-sm focus:border-[color:var(--hi-yellow)] focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="rounded-lg border border-[color:var(--hair-strong)] px-3 py-2 text-sm font-semibold hover:bg-[color:var(--ink-2)]"
+            className="h-10 rounded-[9px] border border-[color:var(--line-strong)] px-3 text-sm font-semibold hover:bg-[color:var(--surface-2)]"
           >
             Apply
           </button>
@@ -82,11 +82,11 @@ export default async function RosterPage(
       </p>
 
       {list.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-[color:var(--hair-strong)] bg-[color:var(--ink-2)] p-10 text-center text-sm text-[color:var(--text-dim)]">
+        <div className="mt-6 rounded-2xl border border-dashed border-[color:var(--line-strong)] bg-[color:var(--surface-2)] p-10 text-center text-sm text-[color:var(--text-dim)]">
           No activity for this day.
         </div>
       ) : (
-        <div className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--hair)] bg-[color:var(--ink-2)]">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-[color:var(--hair)] bg-[color:var(--surface-2)]">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[color:var(--hair)] text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-faint)]">

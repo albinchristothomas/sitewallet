@@ -1,36 +1,38 @@
 import Link from "next/link";
 import { FEEDBACK_EMAIL } from "@/lib/brand";
+import { StatusPill } from "@/lib/atoms";
+import { BrowserOnly } from "@/lib/browser-only";
 
 export default function HelpPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">Help</h1>
-      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Plain-English instructions.
-      </p>
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold">Workers</h2>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6">
+          {/* Meaningless inside the App Store / Play Store app, so hidden there. */}
+          <BrowserOnly>
+            <li>
+              <strong>Add the app to your home screen.</strong> Open this site
+              in Safari (iPhone) or Chrome (Android). Tap the share icon and
+              choose "Add to Home Screen". After that, RigVise opens like a
+              normal app.
+            </li>
+          </BrowserOnly>
           <li>
-            <strong>Add the app to your home screen.</strong> Open this site in
-            Safari (iPhone) or Chrome (Android). Tap the share icon and choose
-            "Add to Home Screen". After that, RigVise opens like a normal
-            app.
+            <strong>Sign in.</strong> Use your work email. Type the 6-digit
+            code we email you. No password to remember.
           </li>
           <li>
-            <strong>Sign in.</strong> Use your work email. Tap the link we send
-            you. No password to remember.
-          </li>
-          <li>
-            <strong>Add your tickets.</strong> Wallet → "+ Add credential". Pick
-            the credential (H2S Alive, First Aid, etc.), enter the dates and
-            the validation code from the card. Repeat for each ticket.
+            <strong>Add your tickets.</strong> Wallet → "Add ticket".
+            Photograph the card; the details are read off it. Check them and
+            save. Repeat for each ticket.
           </li>
           <li>
             <strong>At the gate.</strong> Tap{" "}
             <Link href="/wallet/qr" className="underline">
-              "Show my QR"
+              "Show gate pass"
             </Link>{" "}
             and hold the screen up for the medic. Wait for them to admit you.
           </li>
@@ -60,13 +62,19 @@ export default function HelpPage() {
           </li>
           <li>
             <strong>Read the verdict.</strong>{" "}
-            <span className="rounded bg-emerald-100 px-1 dark:bg-emerald-900/40">
-              Green = compliant
-            </span>
+            <StatusPill
+              status="valid"
+              size="sm"
+              label="Compliant"
+              className="align-middle"
+            />
             : worker has every credential this site requires.{" "}
-            <span className="rounded bg-red-100 px-1 dark:bg-red-900/40">
-              Red = not compliant
-            </span>
+            <StatusPill
+              status="bad"
+              size="sm"
+              label="Not compliant"
+              className="align-middle"
+            />
             : at least one credential is missing or expired. Look at the list
             to see which.
           </li>
@@ -91,21 +99,15 @@ export default function HelpPage() {
         <h2 className="text-lg font-semibold">Status pill meanings</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-medium text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200">
-              Valid
-            </span>
+            <StatusPill status="valid" />
             <dd>Credential is current. More than 30 days until expiry.</dd>
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-amber-100 px-3 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
-              Expiring soon
-            </span>
+            <StatusPill status="expiring" label="Expiring soon" />
             <dd>Less than 30 days until expiry. Time to schedule renewal.</dd>
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-red-100 px-3 py-0.5 text-xs font-medium text-red-900 dark:bg-red-900/40 dark:text-red-200">
-              Expired
-            </span>
+            <StatusPill status="expired" />
             <dd>
               Past the expiry date. Cannot be used at a site that requires it.
             </dd>
@@ -113,9 +115,9 @@ export default function HelpPage() {
         </dl>
       </section>
 
-      <section className="mt-10 rounded-xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-950">
-        <h2 className="text-base font-semibold">Got stuck?</h2>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+      <section className="rw-panel rw-spine mt-10 overflow-hidden rounded-[12px] p-5 pl-6">
+        <h2 className="text-base font-semibold">Report a problem</h2>
+        <p className="mt-1 text-sm text-[color:var(--text-dim)]">
           Email{" "}
           <a
             href={`mailto:${FEEDBACK_EMAIL}`}

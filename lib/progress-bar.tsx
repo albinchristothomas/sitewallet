@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Design-system progress bar: steel track, safety-orange fill with glow, mono
-// uppercase label + percent. Duration of server work is unknown, so the bar
-// eases toward 90% while active (perceived progress = feedback, per the
-// everyday-design rule) and the page's own success transition finishes the
-// story. Renders nothing when inactive.
+// Design-system progress bar: steel track, flat safety-orange fill, mono
+// uppercase label. Duration of server work is unknown, so the bar eases
+// toward 90% while active and the page's own success transition finishes
+// the story. No percent readout: the number would be invented. Renders
+// nothing when inactive.
 export function ProgressBar({
   active,
   label,
@@ -40,8 +40,6 @@ export function ProgressBar({
       <div
         className="mono"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
           fontSize: 9,
           fontWeight: 700,
           letterSpacing: "0.14em",
@@ -49,8 +47,7 @@ export function ProgressBar({
           marginBottom: 6,
         }}
       >
-        <span>{label}</span>
-        <span>{Math.round(pct)}%</span>
+        {label}
       </div>
       <div
         style={{
@@ -66,8 +63,7 @@ export function ProgressBar({
             height: "100%",
             width: `${pct}%`,
             borderRadius: 999,
-            background: "linear-gradient(90deg,#c2440f,#f2581c,#ff6a30)",
-            boxShadow: "0 0 12px rgba(242,88,28,0.6)",
+            background: "#f2581c",
             transition: "width 0.2s ease",
           }}
         />

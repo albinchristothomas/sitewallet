@@ -136,7 +136,7 @@ export function LoginForm({ signupAs }: { signupAs: SignupIntent | null }) {
             letterSpacing: "0.01em",
           }}
         >
-          {pending ? "Sending code…" : "Email me a sign-in code"}
+          {pending ? "Sending code…" : "Send code"}
         </span>
         {!pending && (
           <svg
@@ -281,7 +281,7 @@ function CodeEntry({
           cursor: "pointer",
         }}
       >
-        ← Use a different email / resend
+        ← Resend code
       </button>
     </div>
   );

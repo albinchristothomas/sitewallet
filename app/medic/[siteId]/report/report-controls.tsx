@@ -18,7 +18,7 @@ export function ReportControls({ day }: { day: string }) {
       <button
         onClick={() => window.print()}
         type="button"
-        className="rw-pressable inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-bold"
+        className="rw-pressable inline-flex h-10 items-center gap-1.5 rounded-[9px] px-4 text-sm font-bold"
         style={{ background: "#f2581c", color: "#0d0f12" }}
       >
         <Printer size={16} strokeWidth={1.75} /> Download PDF

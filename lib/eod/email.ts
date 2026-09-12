@@ -87,7 +87,7 @@ export function buildEodEmailHtml(d: EodData): string {
 
   const denialBlock = d.denials.length
     ? `<div style="margin-top:22px;">
-        <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${RED};text-transform:uppercase;font-weight:700;">Entry denials — ${d.denials.length}</div>
+        <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${RED};text-transform:uppercase;font-weight:700;">Entry denials · ${d.denials.length}</div>
         ${d.denials
           .map(
             (x) => `<div style="margin-top:8px;padding:9px 12px;border:1px solid ${LINE};border-left:3px solid ${RED};font-family:${sans};font-size:13px;color:${INK};">
@@ -102,7 +102,7 @@ export function buildEodEmailHtml(d: EodData): string {
 
   const incidentBlock = d.incidents.length
     ? `<div style="margin-top:22px;">
-        <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${ORANGE};text-transform:uppercase;font-weight:700;">Incidents — ${d.incidents.length} (${d.recordableCount} recordable)</div>
+        <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${ORANGE};text-transform:uppercase;font-weight:700;">Incidents · ${d.incidents.length} · ${d.recordableCount} recordable</div>
         ${d.incidents
           .map(
             (x) => `<div style="margin-top:8px;padding:9px 12px;border:1px solid ${LINE};border-left:3px solid ${ORANGE};font-family:${sans};font-size:13px;color:${INK};">
@@ -113,7 +113,7 @@ export function buildEodEmailHtml(d: EodData): string {
           )
           .join("")}
       </div>`
-    : `<div style="margin-top:22px;font-family:${sans};font-size:13px;color:${GREEN};font-weight:600;">Incidents: none reported — 0 recordable.</div>`;
+    : `<div style="margin-top:22px;font-family:${sans};font-size:13px;color:${GREEN};font-weight:600;">Incidents: none reported · 0 recordable.</div>`;
 
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Daily Safety Report</title></head>
@@ -153,7 +153,7 @@ export function buildEodEmailHtml(d: EodData): string {
   </td></tr>
 
   <tr><td style="padding:22px 28px 0;">
-    <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${INK_DIM};text-transform:uppercase;font-weight:700;">Crew — ${d.admittedCount} admitted</div>
+    <div style="font-family:${mono};font-size:10px;letter-spacing:0.14em;color:${INK_DIM};text-transform:uppercase;font-weight:700;">Crew · ${d.admittedCount} admitted</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border:1px solid ${LINE};">
       <tr style="background:#efe9dd;">
         <th align="left" style="padding:7px 10px;font-family:${mono};font-size:9px;letter-spacing:0.1em;color:${INK_DIM};text-transform:uppercase;">Worker</th>

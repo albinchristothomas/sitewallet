@@ -22,7 +22,7 @@ export default async function ScanPage(props: PageProps<"/medic/[siteId]/scan">)
         <Link
           href={`/medic/${siteId}`}
           aria-label="Back to site"
-          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-[22px] leading-none text-[color:var(--text-dim)] hover:bg-[color:var(--ink-2)] hover:text-[color:var(--text)]"
+          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-[22px] leading-none text-[color:var(--text-dim)] hover:bg-[color:var(--surface-1)] hover:text-[color:var(--text)]"
         >
           ←
         </Link>
