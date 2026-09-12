@@ -4,8 +4,8 @@ import { BrandMark, BrandWordmark, getInitials } from "@/lib/atoms";
 import { faceUrl } from "@/lib/photos";
 import { GeneratedAvatar } from "@/lib/avatar-gen";
 import { NavMenu } from "@/lib/nav-menu";
-import { type AccountType } from "@/lib/roles";
 import { isOwner } from "@/lib/owner";
+import { type AccountType } from "@/lib/roles";
 
 // Top nav: brand on the left; professional SVG icon links + the avatar menu on
 // the right. The avatar shows the person's photo when they have one, otherwise
@@ -120,7 +120,7 @@ export async function NavBar() {
               name={name}
               roleLabel={type === "MEDIC" ? "Medic · Gate station" : "Worker · Wallet"}
               profileHref={type === "MEDIC" ? "/medic/profile" : "/wallet/profile"}
-              owner={isOwner(user.email)}
+              ownerHref={isOwner(user.email) ? "/admin/people" : undefined}
             >
               {avatar}
             </NavMenu>

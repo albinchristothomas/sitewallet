@@ -109,10 +109,12 @@ export async function POST(request: NextRequest) {
     // Match each credential row to a detected ticket, strongest signal first:
     // cert number, then catalog code, then printed name, then a unique expiry
     // date, then the lone orientation for a generic COMPANY_ORIENTATION row.
-    const findMatch = (row: CredRow): number => {
+    // `pool` limits candidates to unused tickets (first pass) or allows reuse
+    // (second pass: a duplicate row of the same card gets the same crop).
+    const findMatch = (row: CredRow, pool: (i: number) => boolean): number => {
       const tryFind = (pred: (t: ExtractedTicket) => boolean) => {
         const idxs = tickets
-          .map((t, i) => (!used.has(i) && pred(t) ? i : -1))
+          .map((t, i) => (pool(i) && pred(t) ? i : -1))
           .filter((i) => i >= 0);
         return idxs.length === 1 ? idxs[0] : -1;
       };
@@ -138,16 +140,43 @@ export async function POST(request: NextRequest) {
       return -1;
     };
 
-    for (const row of rows) {
-      // A lone credential with a lone detected card is an unambiguous pair;
-      // everything else goes through the matchers.
+    // Pass 1: unambiguous one-to-one matches.
+    const assigned = new Map<number, number>();
+    rows.forEach((row, ri) => {
       const mi =
-        rows.length === 1 && tickets.length === 1 ? 0 : findMatch(row);
+        rows.length === 1 && tickets.length === 1
+          ? 0
+          : findMatch(row, (i) => !used.has(i));
+      if (mi >= 0) {
+        assigned.set(ri, mi);
+        used.add(mi);
+      }
+    });
+    // Pass 2: a row that is a duplicate of an already-matched card (same
+    // ticket saved twice) takes that card's crop.
+    rows.forEach((row, ri) => {
+      if (assigned.has(ri)) return;
+      const mi = findMatch(row, () => true);
+      if (mi >= 0) assigned.set(ri, mi);
+    });
+    // Pass 3: what is left pairs up in order when the counts agree — two
+    // generic orientation rows on a page with two orientation cards.
+    const leftRows = rows.map((_, ri) => ri).filter((ri) => !assigned.has(ri));
+    const leftTickets = tickets
+      .map((t, i) => ({ i, y: t.bbox?.y ?? 0, x: t.bbox?.x ?? 0 }))
+      .filter(({ i }) => !used.has(i))
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+      .map(({ i }) => i);
+    if (leftRows.length > 0 && leftRows.length === leftTickets.length) {
+      leftRows.forEach((ri, k) => assigned.set(ri, leftTickets[k]));
+    }
+
+    for (const [ri, row] of rows.entries()) {
+      const mi = assigned.get(ri) ?? -1;
       if (mi < 0) {
         report.push({ id: row.id, type: row.credential_type, status: "no_match" });
         continue;
       }
-      used.add(mi);
       const box = tickets[mi].bbox;
       if (!box || !imgW || !imgH) {
         report.push({ id: row.id, type: row.credential_type, status: "no_bbox" });

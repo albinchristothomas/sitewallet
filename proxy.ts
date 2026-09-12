@@ -79,19 +79,21 @@ export async function proxy(request: NextRequest) {
       // worker space and a WORKER can never land in medic/admin space, no
       // matter how they got there (deep link, stray nav, typed URL). account_type
       // is never changed; this only redirects.
+      //
+      // The product owner is the one exception: their own account is a worker
+      // account (they test as a worker), but /admin — sites, people, invites —
+      // is theirs to run. Owner is decided by email in lib/owner.ts.
       const isWorkerSpace = path.startsWith("/wallet");
       const isMedicSpace =
         path.startsWith("/medic") || path.startsWith("/admin");
+      const ownerInAdmin = path.startsWith("/admin") && isOwner(user.email);
 
       if (w.account_type === "MEDIC" && isWorkerSpace) {
         const url = request.nextUrl.clone();
         url.pathname = "/medic";
         return NextResponse.redirect(url);
       }
-      // The product owner keeps a WORKER account (own wallet for testing) but
-      // must reach the owner-only admin screens.
-      const ownerOnAdmin = path.startsWith("/admin") && isOwner(user.email);
-      if (w.account_type === "WORKER" && isMedicSpace && !ownerOnAdmin) {
+      if (w.account_type === "WORKER" && isMedicSpace && !ownerInAdmin) {
         const url = request.nextUrl.clone();
         url.pathname = "/wallet";
         return NextResponse.redirect(url);
