@@ -11,11 +11,14 @@ export function NavMenu({
   name,
   roleLabel,
   profileHref,
+  owner = false,
   children,
 }: {
   name: string;
   roleLabel: string;
   profileHref: string;
+  /** Product owner: adds the People roster link. */
+  owner?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -139,6 +142,26 @@ export function NavMenu({
             </svg>
             Help
           </Link>
+          {owner && (
+            <Link href="/admin/people" className={itemCls} onClick={() => setOpen(false)}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" />
+                <circle cx="17" cy="9" r="2.8" />
+                <path d="M17 14.5c2.8 0 4.5 1.9 4.5 4.5" />
+              </svg>
+              People
+            </Link>
+          )}
           <div
             style={{
               height: 1,
