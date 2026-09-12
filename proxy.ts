@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isOwner } from "@/lib/owner";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -87,7 +88,10 @@ export async function proxy(request: NextRequest) {
         url.pathname = "/medic";
         return NextResponse.redirect(url);
       }
-      if (w.account_type === "WORKER" && isMedicSpace) {
+      // The product owner keeps a WORKER account (own wallet for testing) but
+      // must reach the owner-only admin screens.
+      const ownerOnAdmin = path.startsWith("/admin") && isOwner(user.email);
+      if (w.account_type === "WORKER" && isMedicSpace && !ownerOnAdmin) {
         const url = request.nextUrl.clone();
         url.pathname = "/wallet";
         return NextResponse.redirect(url);
