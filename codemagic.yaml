@@ -1,0 +1,81 @@
+# RigVise — cloud builds on Codemagic (https://codemagic.io).
+#
+# iOS with no Mac: Codemagic runs the build on its own Mac machines, creates
+# the Apple signing certificate + profile from your App Store Connect API key,
+# and uploads the build to TestFlight. Setup steps are in STORE.md.
+#
+# One-time in the Codemagic UI (Team settings → Integrations / Code signing):
+#   1. App Store Connect API key integration named exactly:  rigvise
+#   2. (optional, Android) upload D:/Android/keys/rigvise-upload.keystore as
+#      an Android keystore reference named:                   rigvise_upload
+#
+# Per app, in Codemagic → app → Environment variables (group "rigvise"):
+#   APP_STORE_APPLE_ID  — the numeric Apple ID of the app in App Store Connect
+#                         (App Information → General → Apple ID). Optional;
+#                         without it the build number just counts up.
+
+workflows:
+  ios-testflight:
+    name: RigVise iOS → TestFlight
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: rigvise
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.rigvise.app
+      groups:
+        - rigvise
+      node: 22
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: npm ci --no-audit --no-fund
+      - name: Sync the native project
+        script: npx cap sync ios
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Bump the build number
+        script: |
+          set -e
+          cd ios/App
+          LATEST=0
+          if [ -n "${APP_STORE_APPLE_ID:-}" ]; then
+            LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          fi
+          NEXT=$(( LATEST >= BUILD_NUMBER ? LATEST + 1 : BUILD_NUMBER ))
+          agvtool new-version -all "$NEXT"
+      - name: Build the signed IPA
+        script: xcode-project build-ipa --project "ios/App/App.xcodeproj" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  android-play:
+    name: RigVise Android → signed bundle
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - rigvise_upload
+      node: 22
+      java: 21
+    scripts:
+      - name: Install dependencies
+        script: npm ci --no-audit --no-fund
+      - name: Sync the native project
+        script: npx cap sync android
+      - name: Build the signed bundle and APK
+        script: |
+          set -e
+          cd android
+          ./gradlew bundleRelease assembleRelease --no-daemon
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/apk/release/*.apk

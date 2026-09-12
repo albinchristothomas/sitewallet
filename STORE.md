@@ -36,13 +36,23 @@ When rigvise.com is live:
 (or edit the default in capacitor.config.ts). Both domains are already in
 `allowNavigation`.
 
-## Android — build and publish (Windows is fine)
+## Android — build and publish (tooling already installed on this PC)
 
-1. Install Android Studio (bundles the JDK and SDK).
-2. `npx cap open android` → let Gradle sync.
-3. Build → Generate Signed Bundle → create a keystore. **Back the keystore up
-   somewhere safe** — losing it means never updating the app again. Play App
-   Signing is on by default; keep it.
+JDK 21 and the Android SDK live in `D:\Android`; the upload keystore is
+`D:\Android\keys
+igvise-upload.keystore` with its passwords beside it.
+**Back that folder up.** Losing the keystore means never updating the app.
+
+1. Build from the repo root, no Android Studio needed:
+
+       set JAVA_HOME=D:\Android\jdk\jdk-21.0.12.1+1
+       cd android
+       gradlew bundleRelease assembleRelease
+
+2. Outputs: `android/app/build/outputs/bundle/release/app-release.aab` for
+   Play, and `android/app/build/outputs/apk/release/app-release.apk` to
+   install directly on any Android phone.
+3. Play App Signing is on by default in the Play Console; keep it.
 4. Play Console → Create app → upload the `.aab`. Fill:
    - App name RigVise, category Business, contains ads: no
    - Privacy policy URL: https://<domain>/privacy
@@ -57,28 +67,41 @@ When rigvise.com is live:
    that is the right place for the 40-worker pilot. Production review is
    usually 1–3 days.
 
-## iOS — build and publish (needs a Mac with Xcode)
+## iOS — build and publish with NO Mac (Codemagic)
 
-There is no way around the Mac: Apple's toolchain only runs on macOS. Options:
-borrow one for an afternoon, use a cloud Mac (MacStadium, MacinCloud — a few
-dollars an hour), or a CI service with macOS runners (Codemagic has a free
-tier and a Capacitor preset).
+Apple's toolchain only runs on macOS, so the build runs on Codemagic's Mac
+machines instead of yours. `codemagic.yaml` in the repo already defines the
+whole pipeline: install, sync, sign, build, upload to TestFlight. The free
+tier covers roughly 10 iOS builds a month.
 
-1. On the Mac: `git clone`, `npm i`, `npx cap sync ios`, `npx cap open ios`.
-2. Xcode → Signing & Capabilities → pick your team; bundle id `com.rigvise.app`.
-3. Product → Archive → Distribute → App Store Connect.
-4. App Store Connect → new app:
-   - Privacy policy URL, support URL (https://<domain>/help)
-   - App Privacy questionnaire (same answers as Play's data safety)
-   - Screenshots: 6.7" and 6.5" iPhone sets (Xcode simulator captures work)
-   - Review notes: give Apple a **demo login**. Create a worker account and a
-     medic account on a demo site, and paste their sign-in emails plus a
-     note that codes go to those inboxes — or, better, ask me to add a
-     reviewer-only password login gated to those two accounts.
-5. TestFlight for the pilot (instant after processing); App Review for public
-   release, typically 1–2 days. Camera-use apps and thin-wrapper concerns:
-   the app has native permissions, offline handling, and platform-appropriate
-   UI, which is what Guideline 4.2 looks for.
+One-time setup (about 20 minutes, all in a browser):
+
+1. **Apple Developer** account active (developer.apple.com, US$99/yr).
+2. **App Store Connect** (appstoreconnect.apple.com):
+   - Users and Access → Integrations → App Store Connect API → Generate API
+     Key. Name "codemagic", access **App Manager**. Download the `.p8` file
+     right away (Apple offers it once) and note the Issuer ID + Key ID.
+   - Apps → + → New App: iOS, name RigVise, bundle id `com.rigvise.app`
+     (register the identifier first at developer.apple.com → Identifiers if
+     it is not in the list), SKU `rigvise`.
+3. **Codemagic** (codemagic.io): sign in with GitHub, add the `sitewallet`
+   repository, pick "codemagic.yaml" as the configuration.
+   - Team settings → Integrations → App Store Connect → add the `.p8`, Issuer
+     ID and Key ID. Name the integration exactly **rigvise**.
+   - Optional: environment variable `APP_STORE_APPLE_ID` = the numeric Apple
+     ID under the app's General → App Information, in a variable group named
+     **rigvise**. Without it, build numbers still count up.
+4. Start the **RigVise iOS → TestFlight** workflow. The first run takes about
+   15 minutes; the build lands in TestFlight automatically.
+5. TestFlight → add testers by email. Workers install the TestFlight app and
+   tap the invite, same day.
+6. App Store release: App Store Connect → the build → fill the listing
+   (privacy policy URL, support URL, screenshots, review notes with a demo
+   login) → Submit for Review. Typically 1–2 days.
+
+Android can also be built in the cloud with the `android-play` workflow if
+you upload `D:/Android/keys/rigvise-upload.keystore` under Codemagic → Code
+signing identities → Android keystores, reference name **rigvise_upload**.
 
 ## What changed in the web app for the shells
 
@@ -89,9 +112,9 @@ tier and a Capacitor preset).
 - Camera access is `getUserMedia` (QR) and `<input capture>` (photos); both
   work in the shells with the permissions declared above.
 
-## Not done yet (needs you or a Mac)
+## Not done yet (needs you)
 
-- Signing keystore / Apple team: only you can own these.
-- Store screenshots and the feature graphic.
+- Apple Developer + Play Console accounts, and the App Store Connect API key for Codemagic: only you can own these. The Android upload keystore already exists in D:\Android\keys.
+- Store screenshots. (The 512 icon and 1024x500 feature graphic are ready in D:\Android\out\play-assets.)
 - Deep links (assetlinks.json / apple-app-site-association) — optional; only
   needed if you want https://rigvise.com/... links to open the app.
