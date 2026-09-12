@@ -170,6 +170,13 @@ export async function POST(request: NextRequest) {
     if (leftRows.length > 0 && leftRows.length === leftTickets.length) {
       leftRows.forEach((ri, k) => assigned.set(ri, leftTickets[k]));
     }
+    // Pass 4: one card in the photo means every row sharing that photo IS
+    // that card (front and back saved as two tickets, or a plain duplicate).
+    if (tickets.length === 1) {
+      rows.forEach((_, ri) => {
+        if (!assigned.has(ri)) assigned.set(ri, 0);
+      });
+    }
 
     for (const [ri, row] of rows.entries()) {
       const mi = assigned.get(ri) ?? -1;
