@@ -15,7 +15,7 @@ const SAMPLE: CredentialCardData = {
   serial: "0049 8821 7",
   scope:
     "Certifies completion of Hydrogen Sulphide (H2S) Awareness: properties of H2S, exposure limits, detection, respiratory protective equipment, and rescue techniques. Valid three (3) years from issue.",
-  verifyUrl: "rigwise.ca/v/4471-0022",
+  verifyUrl: "rigvise.com/v/4471-0022",
 };
 
 export default function CardDemoPage() {

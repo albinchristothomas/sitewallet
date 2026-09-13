@@ -14,7 +14,7 @@
 // worker actually used.
 
 export const SITE_DOMAIN =
-  process.env.NEXT_PUBLIC_SITE_DOMAIN?.trim() || "rigwise.ca";
+  process.env.NEXT_PUBLIC_SITE_DOMAIN?.trim() || "rigvise.com";
 
 export const MAIL_DOMAIN = process.env.MAIL_DOMAIN?.trim() || SITE_DOMAIN;
 

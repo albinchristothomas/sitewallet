@@ -28,7 +28,7 @@ export type CredentialCardData = {
   expires: string; // e.g. "04 MAR 2027"
   serial: string; // e.g. "0049 8821 7"
   scope?: string; // back: scope of training
-  verifyUrl?: string; // back: rigwise.ca/v/...
+  verifyUrl?: string; // back: rigvise.com/v/...
   photoUrl?: string | null;
   qrSeed?: number;
 };

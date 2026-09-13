@@ -67,7 +67,7 @@ In Supabase dashboard:
 
 ## 4. (Optional) Custom domain
 
-If you bought `rigwise.ca` or similar:
+The product domain is `rigvise.com` (rigwise.ca redirects to it):
 
 1. In Vercel project → **Settings → Domains** → **Add**.
 2. Paste your domain. Vercel shows you which DNS record to set at your
@@ -75,8 +75,8 @@ If you bought `rigwise.ca` or similar:
 3. Add the record. Wait 5–30 min for DNS propagation. Vercel auto-issues a
    Let's Encrypt cert.
 4. Go back to Supabase → **Authentication → URL Configuration** and:
-   - Update Site URL to `https://rigwise.ca`
-   - Add `https://rigwise.ca/auth/callback` to redirect URLs
+   - Update Site URL to `https://rigvise.com`
+   - Add `https://rigvise.com/auth/callback` to redirect URLs
 
 ## 5. Verify the deployment
 

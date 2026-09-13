@@ -46,4 +46,4 @@ data go?" before they let an app onto the lease. Plain answers.
 - Workers control their own wallet and can leave.
 - During a pilot you can walk away anytime; we export and delete on request.
 
-*Questions: [your contact email] · rigwise.ca*
+*Questions: [your contact email] · rigvise.com*

@@ -3,6 +3,24 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isOwner } from "@/lib/owner";
 
 export async function proxy(request: NextRequest) {
+  // Domain move: once LEGACY_DOMAIN_REDIRECT is set (only after rigvise.com
+  // resolves), every request to the old rigwise.ca address is sent to the
+  // same path on rigvise.com. Old emails, QR codes, and installed apps keep
+  // working. API routes are excluded so Vercel Cron and the backfill jobs,
+  // which do not follow redirects, still reach the app.
+  const host = request.headers.get("host") ?? "";
+  if (
+    process.env.LEGACY_DOMAIN_REDIRECT &&
+    /(^|\.)rigwise\.ca$/i.test(host) &&
+    !request.nextUrl.pathname.startsWith("/api/")
+  ) {
+    const url = request.nextUrl.clone();
+    url.protocol = "https:";
+    url.host = "rigvise.com";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

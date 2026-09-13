@@ -7,7 +7,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 //
 // CAP_SERVER_URL lets a build point at a preview or the new domain:
 //   CAP_SERVER_URL=https://rigvise.com npx cap sync
-const serverUrl = process.env.CAP_SERVER_URL ?? "https://rigwise.ca";
+const serverUrl = process.env.CAP_SERVER_URL ?? "https://rigvise.com";
 
 const config: CapacitorConfig = {
   appId: "com.rigvise.app",

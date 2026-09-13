@@ -24,7 +24,7 @@ requirements, compares the face/card, and admits or denies. Medics file an
 end-of-day report; everything is keyed to the **well number**.
 
 Wedge: get it into one medic's hands at one gate, make that medic's shift
-faster and his paperwork automatic. Domain: **rigwise.ca**.
+faster and his paperwork automatic. Domain: **rigvise.com**.
 
 The user (Albin) is non-technical-leaning and vibe-coding this. Be concrete,
 ship working software, and always tell him exactly which dashboard buttons he
@@ -175,10 +175,10 @@ Sales artifacts: `SELLABLE.md` (GTM pathway), `sales/PILOT_AGREEMENT.md`,
    RPC + idempotent assignment + working form on the site page.
 
 **Post-pilot / hardening:**
-7. ~~Branded magic-link email via Resend~~ **DONE (2026-06-23).** rigwise.ca
+7. ~~Branded magic-link email via Resend~~ **DONE (2026-06-23).** rigvise.com
    verified in Resend (DNS on Cloudflare), Supabase Custom SMTP wired, branded
    template live on Magic Link + Confirm signup. Auth emails now send from
-   `RigVise <noreply@rigwise.ca>`.
+   `RigVise <noreply@rigvise.com>`.
 8. Rotating signed 30s QR instead of the static worker UUID.
 9. Retention job to actually purge after 2 years (cron / DB policy).
 10. Tighten RLS (Phase-1 policies let any authenticated user create
