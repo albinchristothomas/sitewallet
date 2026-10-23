@@ -34,10 +34,14 @@ workflows:
         script: npx cap sync ios
       - name: Set up keychain for code signing
         script: keychain initialize
-      - name: Fetch or create signing files from App Store Connect
-        script: app-store-connect fetch-signing-files "com.rigvise.app" --type IOS_APP_STORE --create
-      - name: Add the signing certificates
-        script: keychain add-certificates
+      - name: Create signing files and add the certificate
+        script: |
+          set -e
+          # A fresh key pair for the distribution certificate Apple creates.
+          ssh-keygen -t rsa -b 2048 -m PEM -f "$CM_BUILD_DIR/cm_cert_key" -q -N ""
+          export CERTIFICATE_PRIVATE_KEY="$(cat "$CM_BUILD_DIR/cm_cert_key")"
+          app-store-connect fetch-signing-files "com.rigvise.app" --type IOS_APP_STORE --create
+          keychain add-certificates
       - name: Apply the profiles to the Xcode project
         script: xcode-project use-profiles
       - name: Bump the build number
