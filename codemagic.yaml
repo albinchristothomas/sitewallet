@@ -22,9 +22,6 @@ workflows:
     integrations:
       app_store_connect: rigvise
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.rigvise.app
       groups:
         - rigvise
       node: 22
@@ -35,7 +32,13 @@ workflows:
         script: npm ci --no-audit --no-fund
       - name: Sync the native project
         script: npx cap sync ios
-      - name: Set up code signing
+      - name: Set up keychain for code signing
+        script: keychain initialize
+      - name: Fetch or create signing files from App Store Connect
+        script: app-store-connect fetch-signing-files "com.rigvise.app" --type IOS_APP_STORE --create
+      - name: Add the signing certificates
+        script: keychain add-certificates
+      - name: Apply the profiles to the Xcode project
         script: xcode-project use-profiles
       - name: Bump the build number
         script: |
