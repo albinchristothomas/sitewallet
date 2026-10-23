@@ -74,6 +74,10 @@ machines instead of yours. `codemagic.yaml` in the repo already defines the
 whole pipeline: install, sync, sign, build, upload to TestFlight. The free
 tier covers roughly 10 iOS builds a month.
 
+The iOS target is **iPhone only** (`TARGETED_DEVICE_FAMILY = 1`). That keeps
+Apple from reviewing a portrait field app on an iPad and removes the need for
+iPad screenshots. Change it back in Xcode if you ever want iPad support.
+
 One-time setup (about 20 minutes, all in a browser):
 
 1. **Apple Developer** account active (developer.apple.com, US$99/yr).
@@ -112,9 +116,26 @@ signing identities → Android keystores, reference name **rigvise_upload**.
 - Camera access is `getUserMedia` (QR) and `<input capture>` (photos); both
   work in the shells with the permissions declared above.
 
+## Status
+
+**Google Play (2026-09-14):** submitted for review. Store listing, category,
+contact details, every App content declaration, and a closed testing track
+("Alpha", Canada + United States) are all done and sent to Google. Production
+access still needs 12 testers opted in for 14 consecutive days.
+
+**Apple (2026-09-22):** everything that does not need an Apple account is done.
+The iOS target is iPhone only, the icon is the current orange mark with no
+alpha channel, and the listing copy, App Privacy answers and reviewer notes
+are written in `D:\Android\outppstore-assets\listing.md`. Five screenshots
+at the required 6.9 inch size (1290x2796) are in
+`D:\Android\outppstore-assets\screenshots-6.9`. What remains is the Apple
+Developer account, the App Store Connect API key, and the Codemagic run.
+
 ## Not done yet (needs you)
 
-- Apple Developer + Play Console accounts, and the App Store Connect API key for Codemagic: only you can own these. The Android upload keystore already exists in D:\Android\keys.
-- Store screenshots. (The 512 icon and 1024x500 feature graphic are ready in D:\Android\out\play-assets.)
+- Apple Developer account (US$99/yr) and the App Store Connect API key for
+  Codemagic: only you can own these. The Android upload keystore already
+  exists in D:\Android\keys.
+- 12 Play testers for the closed track.
 - Deep links (assetlinks.json / apple-app-site-association) — optional; only
   needed if you want https://rigvise.com/... links to open the app.
