@@ -82,6 +82,14 @@ export async function sendMagicLink(
     return { error: "Enter a valid email address.", signupAs };
   }
 
+  // App store reviewers can't receive our emailed codes, and inside the
+  // iPhone/Android app there is no address bar to reach /review. Typing the
+  // one review account's email here sends them to its password page instead.
+  const reviewEmail = process.env.REVIEW_LOGIN_EMAIL?.trim().toLowerCase();
+  if (reviewEmail && email === reviewEmail) {
+    redirect("/review");
+  }
+
   const supabase = await createClient();
   const headerList = await headers();
   const origin =
